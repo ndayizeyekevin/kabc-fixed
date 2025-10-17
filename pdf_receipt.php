@@ -17,9 +17,9 @@ $html .= '<div id="container" style="width: 100%; border: 1px solid black; margi
     </tr>
     <tr>
         <td align="center" style="display:grid;">
-           <span>Centre Saint Paul</span><br>
-           <span>KG 13 Avenue 22, Kigali, Rwanda</span><br>
-           <span>Tin: 111477597</span><br>
+           <span>'.$company_name.'</span><br>
+           <span>'.$company_address.'</span><br>
+           <span>Tin: '.$company_tin.'</span><br>
            
         </td>
     </tr>
@@ -29,7 +29,7 @@ $html .= '<div id="container" style="width: 100%; border: 1px solid black; margi
     </tr>
     <tr>
         <td align="center" style="display: grid;">
-            <span>Client Tin:103149400</span><br>
+            <span>Client Tin:</span><br>
             <span>Client Name: -</span>
             
 

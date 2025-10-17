@@ -42,7 +42,7 @@ function callCURLs($jsonData, $endpoint) {
         
     $jsonMaster[] = '
     {"itemNm":"'.$fetch['menu_name'].'",
- "tin":"111477597",
+ "tin":"'.$company_tin.'",
    "bhfId":"00",
     "itemStdNm":null,
     "btchNo":null,

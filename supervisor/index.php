@@ -146,7 +146,15 @@ switch ($view) {
         $title="Request Row materials";
     	$page='addrequest.php';
     	break;
-    	
+		
+	case 'norder' :
+		$title="Take Order";
+		$page='takeOrder.php';
+		break;
+    case 'lorder' :
+		$title="List of Orders";
+		$page='viewOrder.php';
+		break;
     	
 	default :
 	    $title="Home";

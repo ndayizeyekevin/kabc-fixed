@@ -142,7 +142,7 @@ if ($result->num_rows > 0) {
             <div class="print-header">
                 <div style="text-align:center;">
                     <img src="../img/logo.png" alt="Company Logo" style="height:80px; margin-bottom:10px;">
-                    <h2 style="margin:0;">Saint Paul Hotel</h2>
+                    <h2 style="margin:0;"><?= $company_name ?></h2>
                     <div style="font-size:16px; margin-bottom:5px;">TIN: 123456789 | Tel: +250 788 123 456 | Email: info@saintpaulhotel.com</div>
                     <div style="font-size:16px; margin-bottom:5px;">Address: Kigali, Rwanda</div>
                     <h3 style="margin:10px 0 0 0;">Cost Of Goods Sold Report By Category</h3>
@@ -311,12 +311,12 @@ document.addEventListener("DOMContentLoaded", function () {
                     }
                 </style>
                 <center>
-                    <img src='https://saintpaul.gope.rw/img/logo.png' style='height:80px; margin-bottom:10px;'>
-                    <div>Centre Saint Paul Kigali Ltd<br>
-                    KN 31 St, Kigali, Rwanda<br>
-                    TIN/VAT Number: 111477597<br>
-                    <br>
-                    Phone: +250 785 285 341 / +250 789 477 745 <br>
+                    <img src='<?= $logo_png ?>' style='height:80px; margin-bottom:10px;'>
+                    <div><?= $company_name ?><br>
+                    TIN/VAT :<?= $company_tin ?><br>
+                    Tel: <?= $company_phone ?><br>
+                    <?= $company_email ?><br>
+
                     </div>
                 </center>
                 <br>

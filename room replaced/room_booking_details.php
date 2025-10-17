@@ -1785,7 +1785,7 @@ if (isset($_POST['addpayment'])) {
                     <table width="100%">
             <tr>
                 <td width="40%" class="logo">
-                    <img src="https://saintpaul.gope.rw/img/logo.png" alt="Company Logo">
+                    <img src="<?= $logo_png; ?>" alt="Company Logo">
                 </td>
                 <td width="60%" class="company-info">
                     <h2>Centre Saint Paul Kigali Ltd</h2>

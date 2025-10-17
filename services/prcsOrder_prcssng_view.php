@@ -891,16 +891,15 @@ $_SESSION['servant_name']= $_SESSION['f_name']. " ".$_SESSION['l_name'];
         <tr><td>
         <?php
         // Company details
-  $logoUrl = 'https://rms.nsportsclub.rw/img/logo.png'; // Change to your logo path if needed
+  $logoUrl = $logo_png; // Change to your logo path if needed
   echo '<div style="text-align:center;margin-bottom:8px;"><img src="' . $logoUrl . '" alt="Logo" style="max-width:120px;max-height:120px;display:inline-block;" /></div>';
   $thankYou = '<div style="margin-top:5px;font-size:12px;text-align:center;color:#28a745;">Thank you, you are always welcome!</div>';
   $companyInfo = '<div style="font-size:14px;line-height:1.4;text-align:center;margin-bottom:4px;">
-CENTRE SAINT-PAUL KIGALI Ltd<br>
-TIN/VAT :111477597<br>
-Tel: +250785285341/ +250789477745<br>
-cpsaintpaulkgl@gmail.com<br>
-www.centrestpaul.com
-</div>';
+  '. $company_name. '<br>
+  TIN/VAT :'. $company_tin .'<br>
+  Tel: '. $company_phone .'<br>
+  '. $company_email .'<br>
+  </div>';
   $momo = '<div style="margin-top:8px;font-size:15px;text-align:center;"><strong>MOMO : 007972</strong></div>';
 
   echo $companyInfo;
@@ -1059,7 +1058,7 @@ if ($result->num_rows > 0) {
 }
 
 
-$img = '<img src="https://rms.nsportsclub.rw/img/logo.jpeg" style="width: 100px;height: 100px;">';
+$img = '<img src="<?= $logo_png ?>" style="width: 100px;height: 100px;">';
 
 echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">
@@ -1174,7 +1173,7 @@ $printedIdresto = substr($printedIdresto, 0, -1);
 
 
 
-$img = '<img src="https://rms.nsportsclub.rw/img/logo.jpeg" style="width: 100px;height: 100px;">';
+$img = '<img src="<?= $logo_png ?>" style="width: 100px;height: 100px;">';
 
 echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">
@@ -1266,7 +1265,7 @@ include  '../inc/conn.php';
 
 
 
-$img = '<img src="https://rms.nsportsclub.rw/img/logo.jpeg" style="width: 100px;height: 100px;">';
+$img = '<img src="<?= $logo_png ?>" style="width: 100px;height: 100px;">';
 
 echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">
@@ -1342,7 +1341,7 @@ echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; 
 
 									    <div class="col-md-6">
 										 <h5 class="mb-0">  <center>Invoice</center></h5>
-					<center><img src="https://rms.nsportsclub.rw/img/logo.jpeg" style="width:60px">
+					<center><img src="<?= $logo_png ?>" style="width:60px">
 
 
 										</center>
@@ -1463,6 +1462,7 @@ echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; 
         </div>
     </div>
     </div>
+    
 
     <script src="https://code.jquery.com/jquery-3.6.0.js" integrity="sha256-H+K7U5CnXl1h5ywQfKtSj8PCmoN9aaq30gDh27Xc0jk=" crossorigin="anonymous"></script>
 

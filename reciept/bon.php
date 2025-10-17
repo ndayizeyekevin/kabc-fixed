@@ -43,17 +43,17 @@ include  '../inc/conn.php';
 
 
 
-$img = '<img src="https://saintpaul.gope.rw/img/logo.png" style="width: 100px;height: 100px;">';
+$img = '<img src="<?= $logo_png; ?>" style="width: 100px;height: 100px;">';
 
 $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">
 
- <center>   <img width="100" height="100" src="https://saintpaul.gope.rw/img/logo.png"/> <br> <br>
-Centre Saint Paul Kigali Ltd<br>
-KN 31 St, Kigali, Rwanda<br>
-TIN/VAT Number: 111477597<br>
-<br>
-Phone: +250 785 285 341 / +250 789 477 745 <br>
+ <center>   <img width="100" height="100" src="<?= $logo_png; ?>"/> <br> <br>
+    '.$company_address.'<br>
+    KN 31 St, Kigali, Rwanda<br>
+    TIN/VAT Number: '.$company_tin.'<br>
+    <br>
+    Phone: '.$company_phone.'<br>
 </p>
 </center>
  

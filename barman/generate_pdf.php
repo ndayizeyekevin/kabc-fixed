@@ -51,13 +51,13 @@ foreach($salesData as $row) {
 }
 
 // Company information
-$companyName = "Centre Saint Paul Kigali Ltd";
-$companyAddress = "KN 31 St, Kigali, Rwanda";
-$companyPhone = "+250 785 285 341 / +250 789 477 745";
-$companyEmail = "TIN/VAT Number: 111477597";
+$companyName = $company_name;
+$companyAddress = $company_address;
+$companyPhone = $company_phone;
+$companyEmail = "TIN/VAT Number: ". $company_tin;
 
 // Get logo as base64 encoded string
-$logoUrl = 'https://saintpaul.gope.rw/img/logo.png';
+$logoUrl = $logo_png;
 $logoData = @file_get_contents($logoUrl);
 $logoBase64 = $logoData ? base64_encode($logoData) : '';
 

@@ -15,12 +15,12 @@ display: none;
              <p style="padding-top: 6pt;padding-left: 128pt;text-indent: 0pt;line-height: 11pt;text-align: left;">
        
    
-<center>   <img width="100" height="100" src="https://saintpaul.gope.rw/img/logo.png"/> <br> <br>
-Centre Saint Paul Kigali Ltd<br>
-KN 31 St, Kigali, Rwanda<br>
-TIN/VAT Number: 111477597<br>
+<center>   <img width="100" height="100" src="<?= $logo_png; ?>"/> <br> <br>
+<?= $company_name ?><br>
+<?= $company_address ?><br>
+TIN/VAT Number: <?= $company_tin ?> <br>
 <br>
-Phone: +250 785 285 341 / +250 789 477 745 <br>
+Phone: <?= $company_phone ?><br>
 </p>
 </center>
       </td>

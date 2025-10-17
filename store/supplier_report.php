@@ -126,7 +126,9 @@ function getSupplierName($id) {
 
                 <!-- Print header (only visible when printing) -->
                 <div class="printHeader">
-                    <img src="https://saintpaul.gope.rw/img/logo.png" alt="Logo" class="print-logo" />
+                    
+                     <img src="<?= $logo_png ?>" alt="Logo" class="print-logo">
+                   
                     <h2>Supplier Report</h2>
                     <div style="font-size:15px; margin:8px 0;">
                         <strong>Date Range: <?php echo htmlspecialchars($_POST['date_from'] ?? '') . ' to ' . htmlspecialchars($_POST['date_to'] ?? ''); ?></strong>
@@ -408,12 +410,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     .signature-box .sig-line { margin-top: 50px; border-top: 1px solid #000; height: 0; }
                 </style>
                 <center>
-                    <img src='https://saintpaul.gope.rw/img/logo.png'>
-                    <div>Centre Saint Paul Kigali Ltd<br>
-                    KN 31 St, Kigali, Rwanda<br>
-                    TIN/VAT Number: 111477597<br>
-                    <br>
-                    Phone: +250 785 285 341 / +250 789 477 745 <br>
+                     <img src='<?= $logo_png ?>' style='height:80px; margin-bottom:10px;'>
+                    <div><?= $company_name ?><br>
+                    TIN/VAT :<?= $company_tin ?><br>
+                    Tel: <?= $company_phone ?><br>
+                    <?= $company_email ?><br>
                     </div>
                 </center>
                 <br>

@@ -229,10 +229,10 @@ include "switch_role.php";
         	             <li><a href="?resto=users" >Users</a></li>
         	                 <li><a href="?resto=suppliers" >Suppliers</a></li>
                              <li><a href="?resto=corporates" >Corporates</a></li>
-        	                       <li><a href="?resto=void" >Pending voided Items</a></li>
+        	                       <!-- <li><a href="?resto=void" >Pending voided Items</a></li> -->
         	                 <li><a href="?resto=StoreRequests" >Store Requests</a></li>
                          <li><a data-toggle="tab" href="#rep"><i class="fa fa-cutlery"></i> Reports <i class="fa fa-angle-down"></i></a></li>
-                         <li><a data-toggle="tab" href="#ebm"><i class="fa fa-cutlery"></i> EBM <i class="fa fa-angle-down"></i></a></li>
+                         <!-- <li><a data-toggle="tab" href="#ebm"><i class="fa fa-cutlery"></i> EBM <i class="fa fa-angle-down"></i></a></li> -->
                          <li><a data-toggle="tab" href="#access"><i class="fa fa-chart-line"></i> Access As <i class="fa fa-angle-down"></i></a></li>
                           <li><a href="#" data-toggle="modal" data-target="#mySettingModel" data-placement="left" >Settings</a></li>
 
@@ -636,7 +636,8 @@ include "switch_role.php";
                        <?php
                      if($_SESSION['log_role'] == '12'){
                          ?>
-                         <li><a href="/reception/index?resto=norder">New Order</a></li>
+                         <li><a href="?resto=norder"><i class="fa fa-edit"></i>New Order</a></li>
+                        <li><a href="?resto=lorder"><i class="fa fa-list"></i>Order List <div class="spinner4 spinner-4 budge-spinner" style="margin-left:-15px;"></div><div class="ntd-ctn budge" style="margin-left:-15px;"><span style="color: #f2f2f2;"><?php echo $ordercount; ?></span></div></a></li>
                        <?php }?>
 
 

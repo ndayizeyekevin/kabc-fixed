@@ -33,3 +33,20 @@ $conn;
 include 'function.php';
 include 'functions.php';
 include 'rra_functions.php';
+
+// fetch system info from db table system_info
+$info = $db->prepare("SELECT * FROM system_info WHERE id = :id");
+$info->execute(['id' => 1]);
+$system_info = $info->fetch();
+
+$company_name = $system_info['company'];
+$company_tin = $system_info['tin'];
+$company_address = $system_info['address'];
+$company_phone = $system_info['phone'];
+$company_email = $system_info['email'];
+$company_logo = $system_info['logo_jpeg'];
+$logo_png = $system_info['logo_png'];
+
+// Display system info for in alert box (for debugging purposes)
+
+    

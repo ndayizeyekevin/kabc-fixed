@@ -109,12 +109,13 @@ foreach ($results as $row) {
     <div id="waiter-print-content">  
         <div class="printHeader" style="display:none;">
             <center>
-                <img src='https://saintpaul.gope.rw/img/logo.png' style='max-height:80px;'>
-                <div>Centre Saint Paul Kigali Ltd<br>
-                KN 31 St, Kigali, Rwanda<br>
-                TIN/VAT Number: 111477597<br>
-                <br>
-                Phone: +250 785 285 341 / +250 789 477 745 <br>
+                <img src='<?= $logo_png; ?>' style='max-height:80px;'>
+                <div>
+                    <?= $company_name ?><br>
+                    <?= $company_address ?><br>
+                    TIN/VAT Number: <?= $company_tin ?><br>
+                    <br>
+                    Phone: <?= $company_phone ?><br>
                 </div>
                 <h2 style="margin-top:20px;">Waiters Report</h2>
                 <div style="font-size:18px; margin-bottom:10px;">

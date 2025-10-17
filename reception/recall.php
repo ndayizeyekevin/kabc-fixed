@@ -864,7 +864,7 @@ if($last== 0){
 
 <tr>
   <td><?php echo $fetchs['salesId'];?></td>
-  <td><a href ='https://saintpaul.gope.rw/reception/index?resto=gstDet&c=<?php echo $fetchs['transaction_id'];?>'><?php echo $fetchs['transaction_id'];?></a></td>
+  <td><a href ='../reception/index?resto=gstDet&c=<?php echo $fetchs['transaction_id'];?>'><?php echo $fetchs['transaction_id'];?></a></td>
   <td><?php echo $fetchs['custNm']; ?></td>
   <td><a href="checkInvoiceNo.php?no=<?php echo  $fetchs['invcNo']?>"><?php echo $fetchs['invcNo'];?></a></td>
   <td><?php echo  $fetchs['totAmt']; ?></td>

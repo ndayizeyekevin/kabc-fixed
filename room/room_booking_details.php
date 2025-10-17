@@ -985,92 +985,17 @@ $total = 0;
                             <div class="tab-pane fade" id="navs-top-messages" role="tabpanel">
                                 <div class="row">
                                     <div class="col-xl">
-                                        <!-- Payment Form (Static - Always Visible) -->
-                                        <div class="card mb-4">
-                                            <div class="card-header">
-                                                <h5 class="mb-0">Add Payment</h5>
-                                            </div>
-                                            <div class="card-body">
-                                                <form method="POST">
-                                                    <div class="mb-3">
-                                                        <label class="form-label" for="amounts">Payment</label>
-                                                        <div class="input-group input-group-merge">
-                                                            <span class="input-group-text"></span>
-                                                            <input
-                                                                type="number"
-                                                                class="form-control"
-                                                                name="amount"
-                                                                id="amounts"
-                                                                placeholder="Amount"
-                                                                value="<?php echo $due_amount ?>"
-                                                                required />
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="mb-3">
-                                                        <label class="form-label" for="payment_method">Payment method</label>
-                                                        <div class="input-group input-group-merge">
-                                                            <select
-                                                                class="form-control"
-                                                                name="method"
-                                                                id="payment_method"
-                                                                required>
-                                                                <option value='cash'>Cash</option>
-                                                                <option value='card'>Card</option>
-                                                                <option value='momo'>MTN Mobile Money</option>
-                                                                <option value='airtelmoney'>Airtel Money</option>
-                                                                <option value='Credit'>Credit</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="mb-3">
-                                                        <label class="form-label" for="currency">Currency</label>
-                                                        <div class="input-group input-group-merge">
-                                                            <span class="input-group-text"></span>
-                                                            <select id="currency" onchange="convert()"
-                                                                class="form-control"
-                                                                name="currency"
-                                                                required>
-                                                                <?php
-                                                                $sql = $db->prepare("SELECT * FROM  currencies");
-                                                                $sql->execute();
-                                                                while ($row = $sql->fetch()) {
-                                                                ?><option value='<?php echo $row['currency_id'] ?>'><?php echo $row['name'] ?> - (Rate: <?php echo $row['currency_exchange'] ?>)</option><?php
-                                                                }
-                                                                ?>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-
-                                                    <div class="mb-3">
-                                                        <label class="form-label" for="payment_remark">Payment Remark</label>
-                                                        <div class="input-group input-group-merge">
-                                                            <select
-                                                                class="form-control"
-                                                                name="remark"
-                                                                id="payment_remark"
-                                                                required>
-                                                                <option value='Advance'>Advance payment</option>
-                                                                <option value='Partial'>Partial Payment</option>
-                                                                <option value='Full'>Full Payment</option>
-                                                                <option value='Credit'>On Credit</option>
-                                                            </select>
-                                                        </div>
-                                                    </div>
-
-                                                    <div>
-                                                        <input type="submit" class="btn btn-info btn-primary colr " name="addpayment" value="Create Payment">
-                                                    </div>
-                                                </form>
-                                            </div>
-                                        </div>
 
                                         <!-- Payment Table -->
                                         <div class="card mb-4">
                                             <div class="card-header d-flex justify-content-between align-items-center">
                                                 <h5 class="mb-0">Payments</h5>
-                                             
+                                                <?php //if(!$due_amount==0){
+                                                ?> <button type="button" id="addpayment" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addpaymentModal">
+                                                    <i class="bx bx-plus"></i> New Payment
+                                                </button>
+                                                <?php //} 
+                                                ?>
                                             </div>
                                             <div class="card-body">
                                                 <!-- Venues List -->
@@ -2100,9 +2025,8 @@ while ($row = $sql->fetch()) {
 </div>
 
 
-
-
-
+<!-- modals -->
+ 
 <div class="modal fade" id="addpaymentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
@@ -2117,9 +2041,25 @@ while ($row = $sql->fetch()) {
                         <label class="form-label" for="venue_name">Payment</label>
                         <div class="input-group input-group-merge">
                             <span id="venue_name_label" class="input-group-text"></i></span>
-                            <input type="number" class="form-control" name="amount" id="amounts" placeholder="Amount"
-                                value="<?php ////?>" required />
+                            <input
+                                type="number"
+                                class="form-control"
+                                name="amount"
+                                id="amounts"
+                                placeholder="Amount"
+                                value="<?php echo $due_amount ?>"
+                                required
+
+                                />
+                                <!-- Add this near your amount input -->
+                                <button type="button" onclick="setFullAmount()" class="btn btn-sm btn-outline-secondary">
+                                    Pay Full Amount (<?php echo number_format($due_amount) ?> RWF)
+                                </button>
                         </div>
+
+
+                        <!-- Optional: Add a small conversion message display -->
+                        <div id="conversionMessage" class="small text-muted mt-1"></div>
 
 
                         <div class="mb-3">
@@ -2154,14 +2094,12 @@ while ($row = $sql->fetch()) {
 
 
                                     <?php
-    $sql = $db->prepare("SELECT * FROM  currencies");
-$sql->execute();
-while ($row = $sql->fetch()) {
-    ?>
-                                        <option value='<?php echo $row['currency_id'] ?>'><?php echo $row['name'] ?> -
-                                            (Rate: <?php echo $row['currency_exchange'] ?>)</option><?php
-}
-?>
+                                    $sql = $db->prepare("SELECT * FROM  currencies");
+                                    $sql->execute();
+                                    while ($row = $sql->fetch()) {
+                                    ?><option value='<?php echo $row['currency_id'] ?>'><?php echo $row['name'] ?> - (Rate: <?php echo $row['currency_exchange'] ?>)</option><?php
+                                    }
+                                    ?>
 
                                 </select>
                             </div>
@@ -2191,7 +2129,7 @@ while ($row = $sql->fetch()) {
 
                         <div class="modal-footer">
                             <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
-                            <input type="submit" class="btn btn-outline-info" name="addpayment" value="Create">
+                            <input type="submit" class="btn btn-outline-info colr" name="addpayment" value="Create New Payment">
                         </div>
                 </form>
             </div>
@@ -2200,9 +2138,6 @@ while ($row = $sql->fetch()) {
 </div>
 
 
-
-
-<!-- modals -->
 <!-- change price modal -->
 <div class="modal fade" id="changePriceModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -2267,6 +2202,10 @@ while ($row = $sql->fetch()) {
             }
         });
     });
+    function setFullAmount() {
+        document.getElementById("amounts").value = <?php echo $due_amount ?>;
+        convert(); // Trigger conversion after setting full amount
+    }
 </script>
 <script>
     // Wait for the DOM to be fully loaded

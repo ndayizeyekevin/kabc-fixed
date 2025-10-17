@@ -294,7 +294,7 @@ $msge = '';
             <?php } ?>
             </div>
 				<div class="col-sm-5 col-sm-offset-3" style="margin-bottom:50px;margin-top:100px;">
-				   <center> <img src="https://saintpaul.gope.rw/img/logo.png"></center>
+				   <center> <img src="<?= $logo_png; ?>"></center>
 					<div class="login-form"><!--login form-->
 						<h2></h2>
 						<form action="log_success" method="POST">

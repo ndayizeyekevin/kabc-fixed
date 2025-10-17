@@ -4,7 +4,7 @@
             <div class="row">
                 <div class="col-lg-4 col-md-4 col-sm-12 col-xs-12">
                     <div class="logo-area">
-                        <a href="#"><img src="https://saintpaul.gope.rw/img/logo.png" alt="Logo" style="width:70px;height:70px;"></a>
+                        <a href="#"><img src="<?= $logo_png; ?>" alt="Logo" style="width:70px;height:70px;"></a>
                     </div>
                 </div>
                 <div class="col-lg-6 col-md-6 col-sm-12 col-xs-12">

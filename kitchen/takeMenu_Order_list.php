@@ -148,7 +148,7 @@
                           <button type="submit" name="proccess" id="proccess" class="btn btn-info btn-sm" style="border-radius: 5px;"><i class="fa fa-step-forward"></i> Proceed</button>
                       </form>
                       <hr>
-                        <a href="https://saintpaul.gope.rw/reciept/bon.php?ref=<?php echo $_REQUEST['c']?>" 
+                        <a href="../reciept/bon.php?ref=<?php echo $_REQUEST['c']?>" 
    class="btn btn-secondary btn-sm" 
    onclick="if(!confirm('Print bon?')) return false; else return true;">
    <i class="fa fa-cutlery"></i> Kitchen

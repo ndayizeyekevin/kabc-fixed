@@ -982,7 +982,7 @@ if($last== 0){
                             ?>
                            <tr>
 
-                            <td><a href="https://saintpaul.gope.rw/reception/index?resto=gstDet&c=<?php echo  $fetch['cmd_code']?>"><?php echo getInvoiceNo($fetch['cmd_code']) ?></a></td>
+                            <td><a href="../reception/index?resto=gstDet&c=<?php echo  $fetch['cmd_code']?>"><?php echo getInvoiceNo($fetch['cmd_code']) ?></a></td>
                             <td><?php echo getServantName($fetch['Serv_id']); ?></td>
                             <td><?php echo getOrderTotal($fetch['cmd_code']); ?></td>
                             <td><?php echo getTotalPaidByMethod($fetch['cmd_code'],'01') ?></td>

@@ -86,7 +86,7 @@ $msg = 'We have sent you an email with reset link';
             <?php } ?>
             </div>
 				    
-				   <center> <img src="https://saintpaul.gope.rw/img/logo.png"></center>
+				   <center> <img src="<?= $logo_png; ?>"></center>
 					<div class="login-form">
 						<h2></h2>
 						<form action="" method="POST">

@@ -676,7 +676,7 @@ $_SESSION['servant_name']= $_SESSION['f_name']. " ".$_SESSION['l_name'];
                         <button type="submit" name="update" id="update" class="btn btn-primary btn-sm" style="border-radius: 5px;" onclick="if(!confirm('Do you really want to update order quantity?'))return false;else return true;"><i class="fa fa-edit"></i> Confirm Order Quantity</button>
                         <?php } ?>
                         <a href="?resto=lorder" class="btn btn-secondary btn-sm" onclick="if(!confirm('Do you really want to go back?'))return false;else return true;"><i class="fa fa-step-backward"></i> Back</a>
-                        <a  target="_blank" href="https://saintpaul.gope.rw/reciept/pro-forma.php?ref=<?php echo $_REQUEST['s']?>" class="btn btn-secondary btn;-sm" onclick="if(!confirm('Do you really generate invice?'))return false;else return true;"><i class="fa fa-step-invoice"></i>Invoice</a>
+                        <a  target="_blank" href="../reciept/pro-forma.php?ref=<?php echo $_REQUEST['s']?>" class="btn btn-secondary btn;-sm" onclick="if(!confirm('Do you really generate invice?'))return false;else return true;"><i class="fa fa-step-invoice"></i>Invoice</a>
                         
                          <?php if($bonbar){?>
                        <button type="button" class="btn btn-info " data-toggle="modal" data-target="#myModal">Bar</button>
@@ -733,7 +733,7 @@ if ($result->num_rows > 0) {
 }
 
 $date = date('Y-m-d');
-$img = '<img src="https://saintpaul.gope.rw/img/logo.png" style="width: 100px;height: 100px;">';
+$img = $logo_png;;
 
 echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">
@@ -843,7 +843,7 @@ $printedIdresto = substr($printedIdresto, 0, -1);
 
 
 
-$img = '<img src="https://saintpaul.gope.rw/img/logo.png" style="width: 100px;height: 100px;">';
+$img = '<img src="<?= $logo_png; ?>" style="width: 100px;height: 100px;">';
 $date = date('Y-m-d');
 echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">
@@ -931,7 +931,7 @@ include  '../inc/conn.php';
 
 
 
-$img = '<img src="https://saintpaul.gope.rw/img/logo.png" style="width: 100px;height: 100px;">';
+$img = '<img src="<?= $logo_png; ?>" style="width: 100px;height: 100px;">';
 $date = date('Y-m-d');
 $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">
@@ -1004,7 +1004,7 @@ $html .= '<div id="container" style="width: 100%; border: 0px solid black; margi
  
 									    <div class="col-md-6">
 										 <h5 class="mb-0">  <center>Invoice</center></h5>
-					<center><img src="https://saintpaul.gope.rw/img/logo.png" style="width:60px">
+					<center><img src="<?= $logo_png; ?>" style="width:60px">
 					
 	
 										</center>

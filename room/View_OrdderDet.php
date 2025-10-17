@@ -176,7 +176,7 @@ $_SESSION['total']= $totprice;
                                     <tr>
                                         <th colspan="3"></th>
                                         <th colspan="1">Total: <?php echo number_format($totprice); ?></th>
-                                        <th> <a href="https://saintpaul.gope.rw/reciept/pro-forma.php?ref=<?php echo $_REQUEST['c']?>" class="btn btn-secondary btn-sm" onclick="if(!confirm('Do you really generate invice?'))return false;else return true;"><i class="fa fa-step-invoice"></i>Invoice</a></th>
+                                        <th> <a href="../reciept/pro-forma.php?ref=<?php echo $_REQUEST['c']?>" class="btn btn-secondary btn-sm" onclick="if(!confirm('Do you really generate invice?'))return false;else return true;"><i class="fa fa-step-invoice"></i>Invoice</a></th>
                                     </tr>
                                 </tfoot>
                             </table>

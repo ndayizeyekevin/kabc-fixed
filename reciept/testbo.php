@@ -33,7 +33,7 @@ if ($conn->query($sql) === TRUE) {
 
 
 
-$img = '<img src="https://saintpaul.gope.rw/img/logo.png" style="width: 100px;height: 100px;">';
+$img = '<img src="<?= $logo_png; ?>" style="width: 100px;height: 100px;">';
 
 $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">

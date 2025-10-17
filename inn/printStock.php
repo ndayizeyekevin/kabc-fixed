@@ -213,10 +213,9 @@ if ($result->num_rows > 0) {
       
       <td>
           <p style="padding-top: 6pt;padding-left: 128pt;text-indent: 0pt;line-height: 11pt;text-align: left;">
-        <center> CENTRE SAINT-PAUL KIGALI Ltd<br>
-TEL:+250 785 285 341 / +250 789 477 745<br>
-www.centrestpaul.com<br>
-TIN/VAT: 111477597</p>
+        <center> <?= $company_address ?><br>
+        TEL: <?= $company_phone ?><br>
+        TIN/VAT: <?= $company_tin ?></p>
 </center>
       </td>
       

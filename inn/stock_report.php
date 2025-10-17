@@ -140,10 +140,10 @@ function generatePDFReport($db, $from, $to, $item, $itemname, $stock_data, $tota
     
     // Company Header
     $pdf->SetFont('helvetica', 'B', 16);
-    $pdf->Cell(0, 10, 'CENTRE SAINT-PAUL KIGALI Ltd', 0, 1, 'C');
+    $pdf->Cell(0, 10, 'KABC HOTEL', 0, 1, 'C');
     $pdf->SetFont('helvetica', '', 10);
-    $pdf->Cell(0, 6, 'TEL: +250 785 285 341 / +250 789 477 745', 0, 1, 'C');
-    $pdf->Cell(0, 6, 'www.centrestpaul.com | TIN/VAT: 111477597', 0, 1, 'C');
+    $pdf->Cell(0, 6, 'TEL: <?= $company_phone ?>', 0, 1, 'C');
+    $pdf->Cell(0, 6, 'TIN/VAT: <?= $company_tin ?>', 0, 1, 'C');
     $pdf->Ln(8);
     
     // Report Header
@@ -564,9 +564,9 @@ function printReport() {
         </head>
         <body>
             <div class="header">
-                <h1>CENTRE SAINT-PAUL KIGALI Ltd</h1>
-                <p>TEL: +250 785 285 341 / +250 789 477 745</p>
-                <p>www.centrestpaul.com | TIN/VAT: 111477597</p>
+                <h1><?php echo htmlspecialchars($company_name); ?></h1>
+                <p>TEL: <?= $company_phone ?></p>
+                <p>TIN/VAT: <?= $company_tin ?></p>
                 <h2>STOCK REPORT</h2>
                 <p>Period: ${from} - ${to}</p>
                 <p>Item: <?php echo htmlspecialchars($itemname); ?></p>

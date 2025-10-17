@@ -57,7 +57,7 @@ function callCURL1($jsonData, $endpoint) {
     $jsonMaster[] = '
     {
     
-    "tin":"111477597",
+    "tin":"'.$company_tin.'",
     "bhfId":"00",
     "itemCd":"'.$fetch['itemCd'].'",
     "itemClsCd":"90101500",

@@ -100,13 +100,12 @@ $html = '
   <body> <table>
   <tr>
   <td>
-  <img src="https://saintpaul.gope.rw/img/logo.png" style="width: 100px;height: 100px;">
+  <img src="<?= $logo_png; ?>" style="width: 100px;height: 100px;">
   </td>
   <td>
- <center> CENTRE SAINT-PAUL KIGALI Ltd<br>
-TEL:+250 785 285 341 / +250 789 477 745<br>
-www.centrestpaul.com<br>
-  TIN/VAT: 111477597</p>
+ <center> '.$company_address.'<br>
+TEL: '.$company_phone.'<br>
+  TIN/VAT: '.$company_tin.'</p>
   </td>
   </tr> </table>
 

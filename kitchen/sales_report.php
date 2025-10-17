@@ -163,7 +163,7 @@ if (!isset($_SESSION['date_from']) && !isset($_SESSION['date_to'])) {
             html += '</head><body>';
             var startDate = document.getElementById('date_from').value || '<?php echo isset($_SESSION['date_from']) ? $_SESSION['date_from'] : date('Y-m-d'); ?>';
             var endDate = document.getElementById('date_to').value || '<?php echo isset($_SESSION['date_to']) ? $_SESSION['date_to'] : date('Y-m-d'); ?>';
-            html += '<center><img src="https://saintpaul.gope.rw/img/logo.png" style="max-width:180px; margin-bottom:10px;"></center>';
+            html += '<center><img src="<?= $logo_png; ?>" style="max-width:180px; margin-bottom:10px;"></center>';
             html += '<div style="text-align:center;font-size:12px;margin-bottom:10px;">Printed on: ' + new Date().toLocaleString() + '</div>';
             html += '<div style="text-align:center;font-size:14px;margin-bottom:10px;">Date Range: ' + startDate + ' to ' + endDate + '</div>';
             html += divToPrint.innerHTML;

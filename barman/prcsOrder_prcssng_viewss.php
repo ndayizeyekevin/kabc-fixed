@@ -711,7 +711,7 @@ if ($result->num_rows > 0) {
 }
 
 
-$img = '<img src="https://saintpaul.gope.rw/img/logo.png" style="width: 100px;height: 100px;">';
+$img = '<img src="<?= $logo_png; ?>" style="width: 100px;height: 100px;">';
 
 echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">
@@ -819,7 +819,7 @@ $printedIdresto = substr($printedIdresto, 0, -1);
 
 
 
-$img = '<img src="https://saintpaul.gope.rw/img/logo.png" style="width: 100px;height: 100px;">';
+$img = '<img src="<?= $logo_png; ?>" style="width: 100px;height: 100px;">';
 
 echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">
@@ -906,7 +906,7 @@ include  '../inc/conn.php';
 
 
 
-$img = '<img src="https://saintpaul.gope.rw/img/logo.png" style="width: 100px;height: 100px;">';
+$img = '<img src="<?= $logo_png; ?>" style="width: 100px;height: 100px;">';
 
 echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">
@@ -977,7 +977,7 @@ echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; 
  
 									    <div class="col-md-6">
 										 <h5 class="mb-0">  <center>Invoice</center></h5>
-					<center><img src="https://saintpaul.gope.rw/img/logo.png" style="width:60px">
+					<center><img src="<?= $logo_png; ?>" style="width:60px">
 					
 	
 										</center>

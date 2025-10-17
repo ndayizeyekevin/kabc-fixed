@@ -13,6 +13,20 @@ $(document).ready(function () {
     let finalRoomPrice = 0;
     let finalVatAmount = 0;
 
+    // Updated currentTransaction structure
+    let currentTransaction = {
+        rooms: 0,
+        adults: 0,
+        children: 0,
+        amount: 0,
+        roomID: null,          // Will store ACTUAL room ID (e.g., 305)
+        roomClassID: null,     // Store room class ID separately
+        roomPrice: 0,          // Base price per night
+        checkinDate: null,
+        checkoutDate: null,
+        selectedRoomNumber: null
+    };
+
     // Function to fetch and store all guests
     const fetchGuests = () => {
         $.ajax({
@@ -22,28 +36,21 @@ $(document).ready(function () {
                 const data = JSON.parse(response);
                 if (data.status == 200) {
                     allGuests = data.guests;
-                } else {
-                    // console.log(data.message);
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
                 console.error('AJAX error:', textStatus, errorThrown);
-                Swal.fire({
-                    title: 'Error',
-                    text: 'An error occurred while fetching the guests.',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
+                showToast('Error', 'An error occurred while fetching guests.', 'danger');
             }
         });
     };
 
-    fetchGuests(); // Fetch guests on page load
+    fetchGuests();
 
     // Function to filter and display guest results
     const filterGuests = (searchTerm) => {
         const filteredGuests = allGuests.filter(guest => {
-            const guestName = `${guest.first_name +' '+guest.last_name} (${guest.email_address})`.toLowerCase();
+            const guestName = `${guest.first_name} ${guest.last_name} (${guest.email_address})`.toLowerCase();
             return guestName.includes(searchTerm.toLowerCase());
         });
 
@@ -52,7 +59,7 @@ $(document).ready(function () {
 
         if (filteredGuests.length > 0) {
             filteredGuests.forEach(guest => {
-                const guestElement = $(`<a href="#" class="dropdown-item" data-guest='${JSON.stringify(guest)}'>${guest.first_name + ' ' +guest.last_name} (${guest.email_address})</a>`);
+                const guestElement = $(`<a href="#" class="dropdown-item" data-guest='${JSON.stringify(guest)}'>${guest.first_name} ${guest.last_name} (${guest.email_address})</a>`);
                 resultsDiv.append(guestElement);
             });
             resultsDiv.show();
@@ -114,7 +121,6 @@ $(document).ready(function () {
             url: paymentStatusesApi,
             method: 'GET',
             success: function (data) {
-                // console.log(data)
                 const response = data;
                 const paymentStatusSelect = $('#payment_status_id');
                 paymentStatusSelect.empty();
@@ -137,7 +143,6 @@ $(document).ready(function () {
             url: paymentModesApi,
             method: 'GET',
             success: function (data) {
-                // console.log(data)
                 const response = data;
                 const paymentModeSelect = $('#mode_of_payment_id');
                 paymentModeSelect.empty();
@@ -161,7 +166,6 @@ $(document).ready(function () {
             method: 'GET',
             success: function (data) {
                 const response = JSON.parse(data);
-                // console.log(response)
                 const bookingStatusSelect = $('#bookStatus');
                 bookingStatusSelect.empty();
 
@@ -179,10 +183,9 @@ $(document).ready(function () {
 
     const fetchRoomOptions = () => {
         $.ajax({
-            url: roomOptionsApi, // Make sure this URL is correct
+            url: roomOptionsApi,
             method: 'GET',
             success: function (data) {
-                // console.log(data);
                 const response = JSON.parse(data);
                 const roomOptionsContainer = $('#roomOptionsContainer');
                 roomOptionsContainer.empty();
@@ -191,7 +194,7 @@ $(document).ready(function () {
                     response.data.forEach(option => {
                         const optionElement = `
                             <div class="form-check form-check-inline mt-2">
-                                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="option_${option.id}" value="${option.id}" />
+                                <input class="form-check-input" type="radio" name="inlineRadioOptions" id="option_${option.id}" value="${option.id}" required />
                                 <label class="form-check-label" for="option_${option.id}">${option.option_code}</label>
                             </div>
                         `;
@@ -204,6 +207,7 @@ $(document).ready(function () {
             }
         });
     };
+    
     fetchRoomOptions();
 
     const fetchBookings = () => {
@@ -224,9 +228,8 @@ $(document).ready(function () {
                         bookings.forEach(booking => {
                             let booking_amount = booking.booking_amount;
                             let changed_booking_amount = parseInt(booking_amount).toLocaleString();
-                             let room_price = parseInt(bookings.bookings).toLocaleString();
-                             let consumed = getDiff(booking.checkin_date, booking.booking_status_id, booking.checkout_date);
-                             
+                            let consumed = getDiff(booking.checkin_date, booking.booking_status_id, booking.checkout_date);
+                            
                             let actionData = `
                             <div class="dropdown">
                                 <button type="button" class="btn p-0 dropdown-toggle hide-arrow" data-bs-toggle="dropdown"><i class="bx bx-dots-vertical-rounded"></i></button>
@@ -235,42 +238,25 @@ $(document).ready(function () {
                                 </div>
                             </div>
                             `;
-                            // handle booking statuses [Pending, Confirmed, Cancelled, No-Show]  by asigning them colors
+                            
+                            // Booking status colors
                             let statusColor = '';
                             switch (booking.booking_status_name) {
-                                case 'Pending':
-                                    statusColor = 'badge bg-label-warning';
-                                    break;
-                                case 'Confirmed':
-                                    statusColor = 'badge bg-label-success';
-                                    break;
-                                case 'Cancelled':
-                                    statusColor = 'badge bg-label-danger';
-                                    break;
-                                case 'No-Show':
-                                    statusColor = 'badge bg-label-secondary';
-                                    break;
-                                default:
-                                    statusColor = 'badge bg-label-secondary';
-                                    break;
+                                case 'Pending': statusColor = 'badge bg-label-warning'; break;
+                                case 'Confirmed': statusColor = 'badge bg-label-success'; break;
+                                case 'Cancelled': statusColor = 'badge bg-label-danger'; break;
+                                case 'No-Show': statusColor = 'badge bg-label-secondary'; break;
+                                default: statusColor = 'badge bg-label-secondary'; break;
                             }
 
-                            // handle payment statuses [Pending, Paid, Cancelled]  by asigning them colors
-                            const payment_status = booking.payment_status_name == null ? 'Pending' : booking.payment_status_name;
+                            // Payment status colors
+                            const payment_status = booking.payment_status_name || 'Pending';
                             let paymentColor = '';
                             switch (payment_status) {
-                                case 'Pending':
-                                    paymentColor = 'badge bg-label-warning';
-                                    break;
-                                case 'Paid':
-                                    paymentColor = 'badge bg-label-success';
-                                    break;
-                                case 'Cancelled':
-                                    paymentColor = 'badge bg-label-danger';
-                                    break;
-                                default:
-                                    paymentColor = 'badge bg-label-secondary';
-                                    break;
+                                case 'Pending': paymentColor = 'badge bg-label-warning'; break;
+                                case 'Paid': paymentColor = 'badge bg-label-success'; break;
+                                case 'Cancelled': paymentColor = 'badge bg-label-danger'; break;
+                                default: paymentColor = 'badge bg-label-secondary'; break;
                             }                            
 
                             tableBookings.row.add([
@@ -280,8 +266,8 @@ $(document).ready(function () {
                                 booking.duration,
                                 booking.checkin_date,
                                 booking.checkout_date,
-                                 parseInt(booking.room_price).toLocaleString() + ' RWF',
-                                '+' + parseInt(booking.room_price)  * parseInt(consumed).toLocaleString()+ ' RWF', // the balance amount will be calculated with real data once payment impremented
+                                parseInt(booking.room_price).toLocaleString() + ' RWF',
+                                '+' + (parseInt(booking.room_price) * parseInt(consumed)).toLocaleString() + ' RWF',
                                 `<span class="${statusColor}">${booking.booking_status_name}</span>`,
                                 `<span class="${paymentColor}">${payment_status}</span>`,
                                 `<button type="button" class="btn rounded-pill me-2 btn-outline-secondary btn-sm details-btn" data-id="${booking.booking_id}" data-booking='${JSON.stringify(booking)}'>Details</button>`
@@ -290,35 +276,22 @@ $(document).ready(function () {
                     } else {
                         tableBookings.draw(false);
                     }
-                } else {
-                    // console.log(res.message);
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                // console.error('AJAX error:', textStatus, errorThrown);
-                Swal.fire({
-                    title: 'Error',
-                    text: 'An error occurred while fetching the data.',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
+                showToast('Error', 'An error occurred while fetching bookings.', 'danger');
             }
         });
     };
 
     $(document).on('click','.details-btn', function(){
         const bookingId = $(this).data('id');
-        const bookingData = $(this).data('booking');
-        
-        // Create a URL with query parameters
-        const url = window.location.href.split('/').slice(0, -1).filter(a => a !== 'rm').join('/') +
-        '?resto=room_booking_details&&booking_id=' + bookingId;
-
-        // Navigate to the details page
+        const url = window.location.href.split('/').slice(0, -1).join('/') +
+                    '?resto=room_booking_details&&booking_id=' + bookingId;
         window.location.href = `${url}`;
     });
 
-    // compute duration days
+    // Compute duration days
     const calculateDuration = () => {
         const checkinDate = new Date($('#checkin_date').val());
         const checkoutDate = new Date($('#checkout_date').val());
@@ -328,133 +301,47 @@ $(document).ready(function () {
     };
     $('#checkin_date, #checkout_date').on('change', calculateDuration);
 
+    // Initialize all data fetches
     fetchGuests();
     fetchPaymentStatuses();
     fetchPaymentModes();
     fetchBookingStatuses();
-    fetchRoomOptions();
-    fetchBookings(); // Initial fetch
+    fetchBookings();
 
-    // Create and update booking
-    $('#booking-form').on('submit', function (event) {
-        event.preventDefault();
-        const bookingId = $('#booking_id').val();
-        const method = bookingId ? 'PUT' : 'POST';
-        const data = bookingId ? {
-            id: bookingId,
-            guest_id: $('#guest_id').val(),
-            payment_status_id: $('#payment_status_id').val(),
-            checkin_date: $('#checkin_date').val(),
-            checkout_date: $('#checkout_date').val(),
-            duration: $('#duration').val(),
-            num_adults: $('#num_adults').val(),
-            num_children: $('#num_children').val(),
-            booking_amount: $('#booking_amount').val(),
-            coming_from: $('#coming_from').val(),
-            going_to: $('#going_to').val(),
-            mode_of_payment_id: $('#mode_of_payment_id').val(),
-            booked_from: $('#booked_from').val(),
-            company: $('#company').val(),
-            other_note: $('#other_note').val()
-        } : {
-            guest_id: $('#guest_id').val(),
-            payment_status_id: $('#payment_status_id').val(),
-            checkin_date: $('#checkin_date').val(),
-            checkout_date: $('#checkout_date').val(),
-            duration: $('#duration').val(),
-            num_adults: $('#num_adults').val(),
-            num_children: $('#num_children').val(),
-            booking_amount: $('#booking_amount').val(),
-            coming_from: $('#coming_from').val(),
-            going_to: $('#going_to').val(),
-            mode_of_payment_id: $('#mode_of_payment_id').val(),
-            booked_from: $('#booked_from').val(),
-            company: $('#company').val(),
-            other_note: $('#other_note').val()
-        };
+    // Function to update current transaction tab
+    const updateCurrentTransactionTab = () => {
+        $('.current-transaction-tab #curr_rooms').text(`${currentTransaction.rooms} room(s)`);
+        $('.current-transaction-tab #curr_adults').text(`${currentTransaction.adults} Adult(s)`);
+        $('.current-transaction-tab #curr_childrens').text(`${currentTransaction.children} Child(ren)`);
+        $('.current-transaction-tab #curr_amount').text(`${currentTransaction.amount.toLocaleString()} RWF`);
+    };
 
-        $.ajax({
-            url: globalApi,
-            method: method,
-            data: JSON.stringify(data),
-            contentType: 'application/json',
-            success: function (response) {
-                // console.log(response);
-                const data = response;
-                
-                if (data.status == 201 || data.status == 200) {
-                    showBookingAlert('Well done!', data.message, data.msg_type);
-                    // fetchBookings();
-                    $('#booking-form')[0].reset();
-                    $('#booking_id').val('');
-                    $('#booking-form button').text('Add Booking');
-                    $('#addBookingModal').modal('hide');
-                } else {
-                    showBookingAlert('Error', data.message, data.msg_type);
-                }
-            },
-            error: function (jqXHR, textStatus, errorThrown) {
-                console.error('AJAX error:', textStatus, errorThrown);
-                showBookingAlert('Error', 'An error occurred while processing your request.', 'error');
-            }
+    // Display toast notification
+    function showToast(title, message, type) {
+        const toastContainer = $('#showToast');
+        toastContainer.html('');
+        
+        const toast = `
+        <div class="bs-toast toast toast-placement-ex m-2 fade bg-${type} top-0 end-0" role="alert" aria-live="assertive" aria-atomic="true">
+            <div class="toast-header">
+                <i style="font-size:35px" class="bx ${type === 'success' ? 'bx-check-double' : 'bx-error'} me-2"></i>
+                <div class="me-auto fw-semibold">${title}</div>
+                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
+            </div>
+            <div class="toast-body">${message}</div>
+        </div>
+        `;
+
+        toastContainer.append(toast);
+
+        const toastElement = toastContainer.find('.toast');
+        const toastInstance = new bootstrap.Toast(toastElement, {
+            delay: 3000
         });
-    });
+        toastInstance.show();
+    }
 
-    // Populate form with data
-    $('#bookings-list').on('click', '.edit-btn', function () {
-        const booking = $(this).data('booking');
-        $('#booking_id').val(booking.id);
-        $('#guest_id').val(booking.guest_id);
-        $('#payment_status_id').val(booking.payment_status_id);
-        $('#checkin_date').val(booking.checkin_date);
-        $('#checkout_date').val(booking.checkout_date);
-        $('#duration').val(booking.duration);
-        $('#num_adults').val(booking.num_adults);
-        $('#num_children').val(booking.num_children);
-        $('#booking_amount').val(booking.booking_amount);
-        $('#coming_from').val(booking.coming_from);
-        $('#going_to').val(booking.going_to);
-        $('#mode_of_payment_id').val(booking.mode_of_payment_id);
-        $('#booked_from').val(booking.booked_from);
-        $('#company').val(booking.company);
-        $('#other_note').val(booking.other_note);
-        $('#booking-form button').text('Update Booking');
-        $('#addBookingModal').modal('show');
-    });
-
-    // Delete booking
-    $('#bookings-list').on('click', '.delete-btn', function () {
-        const id = $(this).data('id');
-
-        const confirmation = confirm('Are you sure you want to delete this booking?');
-        if (confirmation) {
-            $.ajax({
-                url: globalApi,
-                method: 'DELETE',
-                data: JSON.stringify({
-                    id: id
-                }),
-                contentType: 'application/json',
-                success: function (response) {
-                    
-                    const data = response;
-                    if (data.status == 200) {
-                        showBookingAlert('Well done!', data.message, data.msg_type);
-                        fetchBookings();
-                    } else {
-                        showBookingAlert('Error', data.message, data.msg_type);
-                    }
-                },
-                error: function (jqXHR, textStatus, errorThrown) {
-                    console.error('AJAX error:', textStatus, errorThrown);
-                    showBookingAlert('Error', 'An error occurred while processing your request.', 'error');
-                }
-            });
-        }
-    });
-
-    // ++++++++++++++++++++++++++++++++++++++++++++++++++
-    // booking process    
+    // Handle room search
     $('#searchRoom').on('click', function () {
         const dateRange = $('input[name="daterange"]').val().split(' - ');
         const checkinDate = dateRange[0];
@@ -462,7 +349,6 @@ $(document).ready(function () {
         const numAdults = $('#adults').val();
         const numChildren = $('#children').val();
 
-        // validate numAdults to not be 0
         if (numAdults == 0) {
             showToast('Validation Error', 'Please select at least one adult.', 'danger');
             return;
@@ -479,22 +365,17 @@ $(document).ready(function () {
             }),
             contentType: "application/json",
             success: function (response) {
-                // console.log(response)
-                
                 const res = response;
                 
                 if (res.status == 200) {
-                    const totalGuests = currentTransaction.adults + currentTransaction.children;
-                    const rooms = res.data;
                     availableRoomsByClass = res.data;
                     const resultsTable = $('#room-search-result-tb tbody');
                     resultsTable.empty();
 
-                    // check if rooms empty
-                    if (rooms.length == 0) {
-                        resultsTable.append('<tr style=""><td colspan="8"><span class="alert alert-info text-black" role="alert">No rooms found.</span></td></tr>');
+                    if (res.data.length == 0) {
+                        resultsTable.append('<tr><td colspan="8"><span class="alert alert-info text-black">No rooms found.</span></td></tr>');
                     } else {
-                        rooms.forEach(room => {
+                        res.data.forEach(room => {
                             let basePrice = parseInt(room.base_price).toLocaleString();
                             const row = `
                             <tr>
@@ -512,366 +393,293 @@ $(document).ready(function () {
                                 <td>${room.bed_types}</td>
                                 <td>${room.bed_details}</td>                                
                                 <td>
-                                    <button type="button" class="btn btn-sm btn-primary add-room" data-room-id="${room.id}" data-room-class-id="${room.room_class_id}" data-capacity="${room.capacity}" data-room-price="${room.base_price}">Add</button>
+                                    <button type="button" class="btn btn-sm btn-primary add-room" 
+                                        data-room-class-id="${room.room_class_id}" 
+                                        data-capacity="${room.capacity}" 
+                                        data-room-price="${room.base_price}">
+                                        Add
+                                    </button>
                                 </td>
                             </tr>
                         `;
                             resultsTable.append(row);
                         });
                     }
-                } else {
-                    // console.log(res.message);
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                console.error('AJAX error:', textStatus, errorThrown, jqXHR.responseText);
-                Swal.fire({
-                    title: 'Error',
-                    text: 'An error occurred while fetching the data.',
-                    icon: 'error',
-                    confirmButtonText: 'OK'
-                });
+                console.error('AJAX error:', textStatus, errorThrown);
+                showToast('Error', 'Failed to search for rooms.', 'danger');
             }
         });
     });
 
-    let currentTransaction = {
-        rooms: 0,
-        adults: 0,
-        children: 0,
-        amount: 0,
-        roomID: null,
-        roomClass: null,
-        checkinDate: null,
-        checkoutDate: null,
-    };
-
-    // Function to update current transaction tab
-    const updateCurrentTransactionTab = () => {
-        $('.current-transaction-tab #curr_rooms').text(`${currentTransaction.rooms} room(s)`);
-        $('.current-transaction-tab #curr_adults').text(`${currentTransaction.adults} Adult(s)`);
-        $('.current-transaction-tab #curr_childrens').text(`${currentTransaction.children} Child(ren)`);
-        $('.current-transaction-tab #curr_amount').text(`${currentTransaction.amount} RWF`);
-    };
-
-    // Function to show toast
-    // Display toast notification
-    function showToast(title, message, msgType) {
-        $('#showToast').html('');
-        const type = msgType === 'success' ? 'success' : 'danger';
-        const icon = msgType === 'success' ? 'check-double' : 'error';
-        const toast = `
-        <div class="bs-toast toast toast-placement-ex m-2 fade bg-${type} top-0 end-0" role="alert" aria-live="assertive" aria-atomic="true" data-delay="2000">
-            <div class="toast-header">
-                <i style="font-size:35px" class="bx bx-${icon} me-2"></i>
-                <div class="me-auto fw-semibold">${title}</div>
-                <button type="button" class="btn-close" data-bs-dismiss="toast" aria-label="Close"></button>
-            </div>
-            <div class="toast-body">${message}</div>
-        </div>
-        `;
-
-        $('#showToast').append(toast);
-
-        // Ensure the toast element is in the DOM before initializing Bootstrap Toast
-        var toastElement = document.querySelector('#showToast .toast');
-        var toastInstance = new bootstrap.Toast(toastElement, {
-            delay: 3000
-        });
-        toastInstance.show();
-    }
-
     // Handle Add Room button click
     $('table').on('click', '.add-room', function () {
-        const roomId = $(this).data('room-id');
-        const roomClass = $(this).data('room-class-id');
+        const roomClassID = $(this).data('room-class-id');
         const capacity = $(this).data('capacity');
+        const roomPrice = $(this).data('room-price');
 
-        // if total adults and children is greater than capacity show toast
-        if (currentTransaction.adults + currentTransaction.children > capacity) {
-            showToast('Error', `Total adults and children cannot be greater than ${capacity}`, 'danger');
+        // Validate capacity
+        if (parseInt($('#adults').val()) > capacity) {
+            showToast('Error', `Total guests exceed room capacity (${capacity})`, 'danger');
+            console.log(`Total guests exceed room capacity (${capacity})`)
             return;
         }
 
-        currentTransaction.roomID = roomId;
-        currentTransaction.roomClass = roomClass;
+        currentTransaction.roomClassID = roomClassID;
+        currentTransaction.roomPrice = roomPrice;
+        currentTransaction.roomID = null;
 
-        // disable all add-room buttons
+        // Disable all add-room buttons
         $('table').find('.add-room').prop('disabled', true);
 
-        const quantity = 1;
-        // const roomPrice = $(`.add-room[data-room-id="${roomId}"]`).closest('tr').find('td:nth-child(4)').text().split(' ')[0].replace(/,/g, '');
-        const roomPrice = $(this).data('room-price');
+        // Update counts
+        currentTransaction.rooms = 1;
+        currentTransaction.adults = parseInt($('#adults').val());
+        currentTransaction.children = parseInt($('#children').val());
 
-        currentTransaction.rooms += parseInt(quantity);
-        currentTransaction.amount += (parseInt(roomPrice) * parseInt(quantity));
-
-        // Assuming num_adults and num_children are available per room; update as required
-        currentTransaction.adults += parseInt($('#adults').val());
-        currentTransaction.children += parseInt($('#children').val());
-
-        // initialize checkin and checkout dates
+        // Get dates
         const dateRange = $('input[name="daterange"]').val().split(' - ');
         currentTransaction.checkinDate = dateRange[0];
         currentTransaction.checkoutDate = dateRange[1];
 
+        // Calculate amount
+        const nights = getNumberofNights();
+        currentTransaction.amount = (roomPrice * nights);
+
         updateCurrentTransactionTab();
-        showToast('Success', 'Room added to the booking.', 'success');
+        showToast('Success', 'Room added to booking', 'success');
     });
 
-    // handle clear button click
-    $('.clear-span').each(function () {
-        $(this).on('click', function () {
-            currentTransaction = {
-                rooms: 0,
-                adults: 0,
-                children: 0,
-                amount: 0,
-                roomID: null,
-                roomClass: null,
-                checkinDate: null,
-                checkoutDate: null
-            };
+    // Handle clear button click
+    $('.clear-span').on('click', function () {
+        currentTransaction = {
+            rooms: 0,
+            adults: 0,
+            children: 0,
+            amount: 0,
+            roomID: null,
+            roomClassID: null,
+            roomPrice: 0,
+            checkinDate: null,
+            checkoutDate: null,
+            selectedRoomNumber: null
+        };
 
-            // go back to book-content tab
-            $('#book-content').tab('show');
+        // Go back to book-content tab
+        $('#book-content').tab('show');
 
-            // set all add-room button back to enabled
-            $('table').find('.add-room').prop('disabled', false);
+        // Enable add-room buttons
+        $('table').find('.add-room').prop('disabled', false);
 
-            updateCurrentTransactionTab();
-            showToast('Success!', 'Booking details cleared', 'success');
-        })
+        updateCurrentTransactionTab();
+        showToast('Cleared', 'Booking details reset', 'success');
     });
 
+    // Calculate number of nights
     const getNumberofNights = () => {
         const dateRange = $('input[name="daterange"]').val().split(' - ');
-        const checkinDate = dateRange[0];
-        const checkoutDate = dateRange[1];
-
-        // calculate duration
-        const checkinDateParts = checkinDate.split('-');
-        const checkoutDateParts = checkoutDate.split('-');
-        const checkinDateObj = new Date(checkinDateParts[0], checkinDateParts[1] - 1, checkinDateParts[2]);
-        const checkoutDateObj = new Date(checkoutDateParts[0], checkoutDateParts[1] - 1, checkoutDateParts[2]);
-        const duration = checkoutDateObj - checkinDateObj;
-        const numberOfNights = Math.ceil(duration / (1000 * 60 * 60 * 24));
-        return numberOfNights;
-
+        if (dateRange.length < 2) return 0;
+        
+        const checkinDate = new Date(dateRange[0]);
+        const checkoutDate = new Date(dateRange[1]);
+        
+        if (isNaN(checkinDate) || isNaN(checkoutDate)) return 0;
+        
+        const diffTime = Math.abs(checkoutDate - checkinDate);
+        return Math.ceil(diffTime / (1000 * 60 * 60 * 24)) || 1;
     }
 
     // Function to populate booking summary table
     const populateBookingSummaryTable = () => {
-        const dateRange = $('input[name="daterange"]').val().split(' - ');
-        const checkinDate = dateRange[0];
-        const checkoutDate = dateRange[1];
-
         const summaryTableBody = $('#confirm-content table tbody');
-        summaryTableBody.empty(); // Clear existing rows
+        summaryTableBody.empty();
 
-        availableRoomsByClass.forEach((room, index) => {
-            if (room.id == currentTransaction.roomID) {
-                const totalGuests = currentTransaction.adults + currentTransaction.children;
+        const room = availableRoomsByClass.find(r => r.room_class_id == currentTransaction.roomClassID);
+        if (!room) return;
 
-                fetchAvailableRoomNumbers(room.room_class_id, currentTransaction.checkinDate, currentTransaction.checkoutDate, totalGuests, room.id);
+        const nights = getNumberofNights();
+        const vatAmount = (currentTransaction.roomPrice * nights * 0.1);
+        // Vat amout removed
+        totalBookingAmount = (currentTransaction.roomPrice * nights);
+        finalRoomPrice = currentTransaction.roomPrice;
+        finalVatAmount = vatAmount;
 
-                const nights = getNumberofNights() == 0 ? 1 : getNumberofNights();
-                const vatAmount = (room.base_price * nights * 0.1);
-                let basePrice = parseInt(room.base_price).toLocaleString();
-                // total booking price
-                const totalBookingPrice = (room.base_price * nights);
-                totalBookingAmount = totalBookingPrice;
-                finalRoomPrice = room.base_price;
-                finalVatAmount = vatAmount;
-                const totalBookingPriceFormatted = totalBookingPrice.toLocaleString();
-                $('#total-booking-price').text(totalBookingPriceFormatted);
+        $('#total-booking-price').text(totalBookingAmount.toLocaleString());
 
-                const roomRow = `
-                <tr>
-                    <td>
-                        <div class="d-flex align-items-center">
-                            <i class="bi bi-house-door-fill me-2"></i>
-                            ${room.room_class}
-                        </div>
-                        
-                    </td>
-                    <td>${checkinDate} -<br>${checkoutDate}</td>
-                    <td>${getNumberofNights()}</td>
-                    <td>
-                        <span id="confirm-room-price">${basePrice}</span> RWF <br>
-                     
-                    </td>
-                    <td>${room.features}</td>
-                    <td>${room.bed_types}</td>
-                    <td>
-                        <select id="room-number-select-${room.id}" class="form-select form-select-sm room-number-select" data-room-class="${room.room_class}" data-room-id="${room.id}">
-                            <!-- Room numbers will be dynamically populated here -->
-                            
-                        </select>
-                    </td>
-                    <td>${room.floor_number}</td>
-                    <td>
-                        <button type="button" id="change=price" class="btn change-price-btn">
-                            <span class="text-primary fs-6 fw-semibold"><i class='bx bx-edit-alt' style='color:#ffffff' ></i> Change Price</span>
-                        </button>
-                    </td>
-                </tr>
-            `;
-                summaryTableBody.append(roomRow);
+        const roomRow = `
+            <tr>
+                <td>
+                    <div class="d-flex align-items-center">
+                        <i class="bi bi-house-door-fill me-2"></i>
+                        ${room.room_class}
+                    </div>
+                </td>
+                <td>${currentTransaction.checkinDate} -<br>${currentTransaction.checkoutDate}</td>
+                <td>${nights}</td>
+                <td>
+                    <span id="confirm-room-price">${currentTransaction.roomPrice.toLocaleString()}</span> RWF
+                </td>
+                <td>${room.features}</td>
+                <td>${room.bed_types}</td>
+                <td>
+                    <select id="room-number-select" class="form-select form-select-sm">
+                        <!-- Room numbers will populate here -->
+                    </select>
+                </td>
+                <td>${room.floor_number}</td>
+                <td>
+                    <button type="button" class="btn change-price-btn">
+                        <span class="text-primary fs-6 fw-semibold">
+                            <i class='bx bx-edit-alt' style='color:#ffffff'></i> Change Price
+                        </span>
+                    </button>
+                </td>
+            </tr>
+        `;
+        summaryTableBody.append(roomRow);
+
+        // Fetch available room numbers
+        fetchAvailableRoomNumbers(
+            room.room_class_id, 
+            currentTransaction.checkinDate, 
+            currentTransaction.checkoutDate, 
+            currentTransaction.adults + currentTransaction.children
+        );
+    };
+
+    // Fetch available room numbers
+    const fetchAvailableRoomNumbers = (roomClassID, checkinDate, checkoutDate, totalGuests) => {
+        $.ajax({
+            url: '../api/rooms/get_available_rooms_per_booking.php',
+            method: 'GET',
+            data: {
+                room_class: roomClassID,
+                checkin_date: checkinDate,
+                checkout_date: checkoutDate,
+                total_guests: totalGuests,
+            },
+            success: function (response) {
+                const responses = response;
+                const selectElement = $('#room-number-select');
+                selectElement.empty();
+
+                if (responses.status == 200 && responses.data.length > 0) {
+                    const rooms = responses.data;
+                    
+                    // Set first room as default
+                    const firstRoom = rooms[0];
+                    selectElement.append(`<option value="${firstRoom.room_number}" data-id="${firstRoom.id}" selected>
+                        ${firstRoom.room_number}
+                    </option>`);
+                    
+                    // Update transaction with actual room ID
+                    currentTransaction.roomID = firstRoom.id;
+                    currentTransaction.selectedRoomNumber = firstRoom.room_number;
+
+                    // Add other rooms
+                    rooms.slice(1).forEach(room => {
+                        selectElement.append(`<option value="${room.room_number}" data-id="${room.id}">
+                            ${room.room_number}
+                        </option>`);
+                    });
+                } else {
+                    selectElement.append('<option>No rooms available</option>');
+                }
+            },
+            error: function (jqXHR, textStatus, errorThrown) {
+                console.error('AJAX error:', textStatus, errorThrown);
+                showToast('Error', 'Failed to fetch room numbers', 'danger');
             }
         });
     };
 
-    // toggle chnage proce modal when change-price-btn is clicked
-    $(document).on('click', '.change-price-btn', function () {
-        $('#changePriceModal').modal('show');
-
-        const currentPrice = $('#confirm-room-price').text();
-        const currentPriceFormatted = parseInt(currentPrice.replace(/,/g, ''));
-        $('#changed-price').val(parseInt(currentPriceFormatted));
+    // Handle room selection change
+    $(document).on('change', '#room-number-select', function() {
+        const selectedRoomID = $(this).find(':selected').data('id');
+        const selectedRoomNumber = $(this).val();
+        currentTransaction.roomID = selectedRoomID;
+        currentTransaction.selectedRoomNumber = selectedRoomNumber;
     });
 
-    // recalculate vat amount
+    // Toggle change price modal
+    $(document).on('click', '.change-price-btn', function () {
+        $('#changePriceModal').modal('show');
+        const currentPrice = $('#confirm-room-price').text();
+        $('#changed-price').val(parseInt(currentPrice.replace(/,/g, '')));
+    });
+
+    // Save changed price
     $(document).on('click', '#save-price-btn', function () {
         const changedPrice = $('#changed-price').val();
-        const nights = getNumberofNights() == 0 ? 1 : getNumberofNights();
+        const nights = getNumberofNights();
         const vatAmount = (changedPrice * nights * 0.1);
 
         $('#confirm-room-price').text(changedPrice);
-        $('#confirm-vat-amount').text(vatAmount);
-
-        const totalAmount = changedPrice * nights + vatAmount;
-        totalBookingAmount = totalAmount;
-        finalRoomPrice = changedPrice;
+        finalRoomPrice = parseInt(changedPrice);
         finalVatAmount = vatAmount;
-        const totalBookingPriceFormatted = totalAmount.toLocaleString();
-        $('#total-booking-price').text(totalBookingPriceFormatted);
-
-
+        
+        // With vat
+        // const totalAmount = (changedPrice * nights) + vatAmount;
+        // without Vat
+        const totalAmount = changedPrice * nights;
+        
+        totalBookingAmount = totalAmount;
+        $('#total-booking-price').text(totalAmount.toLocaleString());
+        $('.current-transaction-tab #curr_amount').text(`${totalAmount.toLocaleString()} RWF`);
         $('#changePriceModal').modal('hide');
-        showToast('Success!', 'Price Change Successfully!', 'success');
+        showToast('Success', 'Price updated successfully', 'success');
     });
 
-
-    // Function to fetch available room numbers based on room class
-    // const fetchAvailableRoomNumbers = (roomClass, checkinDate, checkoutDate, totalGuests, selectElement) => {
-    //     $.ajax({
-    //         url: '../../api/rooms/get_available_rooms_per_booking.php',
-    //         method: 'GET',
-    //         data: {
-    //             room_class: roomClass,
-    //             checkin_date: checkinDate,
-    //             checkout_date: checkoutDate,
-    //             total_guests: totalGuests,
-    //         },
-    //         success: function (response) {
-                
-    //             // const responses = JSON.parse(response);
-    //             const responses = response;
-    //             if (responses.status == 200) {
-    //                 const rooms = responses.data;
-    //                 const selectElement = $('#room-number-select');
-    //                 selectElement.empty();
-    //                 rooms.forEach(room => {
-    //                     const option = `<option data-index="${room.id}" value="${room.room_number}">${room.room_number}</option>`;
-    //                     selectElement.append(option);
-    //                 });
-    //             } else {
-    //                 // console.log(responses.message);
-    //             }
-    //         },
-    //         error: function (jqXHR, textStatus, errorThrown) {
-    //             console.error('AJAX error:', textStatus, errorThrown, jqXHR.responseText);
-    //             Swal.fire({
-    //                 title: 'Error',
-    //                 text: 'An error occurred while fetching the room numbers.',
-    //                 icon: 'error',
-    //                 confirmButtonText: 'OK'
-    //             });
-    //         }
-    //     });
-    // };
-    const fetchAvailableRoomNumbers = (roomClass, checkinDate, checkoutDate, totalGuests, roomId) => {
-    $.ajax({
-        // url: '../../api/rooms/get_available_rooms_per_booking.php',
-        url: '../api/rooms/get_available_rooms_per_booking.php',
-        method: 'GET',
-        data: {
-            room_class: roomClass,
-            checkin_date: checkinDate,
-            checkout_date: checkoutDate,
-            total_guests: totalGuests,
-        },
-        success: function (response) {
-            const responses = response;
-            if (responses.status == 200) {
-                const rooms = responses.data;
-                const selectElement = $(`#room-number-select-${roomId}`);
-                selectElement.empty();
-                rooms.forEach(room => {
-                    const option = `<option data-id="${room.id}" value="${room.room_number}">${room.room_number}</option>`;
-                    selectElement.append(option);
-                });
-            }
-        },
-        error: function (jqXHR, textStatus, errorThrown) {
-            console.error('AJAX error:', textStatus, errorThrown, jqXHR.responseText);
-            Swal.fire({
-                title: 'Error',
-                text: 'An error occurred while fetching the room numbers.',
-                icon: 'error',
-                confirmButtonText: 'OK'
-            });
-        }
-    });
-};
-
-// UPDATE CURRENT ROOM SELECTION
-$(document).on('change', '.room-number-select', function () {
-    // Get the selected room number (value of <option>) 
-    const selectedRoomNumber = $(this).val();
-
-    // Get the room ID stored in the selected option's data-id attribute
-    const selectedRoomId = $(this).find(':selected').data('id');
-
-    // Get additional attributes
-    const roomClass = $(this).data('room-class');
-    const roomDataId = $(this).data('room-id');
-
-    // Update currentTransaction.roomID with the selected room ID
-    currentTransaction.roomID = selectedRoomId;
-
-    // (Optional) Also keep track of selected room details by room ID
-    if (!currentTransaction.selectedRooms) {
-        currentTransaction.selectedRooms = {};
-    }
-
-    currentTransaction.selectedRooms[roomDataId] = {
-        roomNumber: selectedRoomNumber,
-        roomId: selectedRoomId,
-        roomClass: roomClass,
-    };
-});
-
-
-
-    // Remove room from booking summary
-    $(document).on('click', '.remove-room-btn', function () {
-        const index = $(this).data('index');
-        currentTransaction.rooms.splice(index, 1); // Remove room from transaction
-        populateBookingSummaryTable(); // Re-populate table
-        updateCurrentTransactionTab(); // Update the current transaction summary
-    });
-
-    // Navigate to Confirm tab and populate summary
+    // Navigate to Confirm tab
     $('button[data-bs-target="#confirm-content"]').on('click', function () {
+        if (currentTransaction.rooms === 0) {
+            showToast('Error', 'Please add a room first', 'danger');
+            return;
+        }
         populateBookingSummaryTable();
     });
 
     // Handle booking confirmation
     $('#confirm-btn').on('click', function () {
-        // get total booking price
+        // Validate required fields
+        const requiredFields = [
+            '#firstName', '#lastName', '#phone', 
+            '#nationality', '#residence', '#adress'
+        ];
+        
+        let isValid = true;
+        requiredFields.forEach(field => {
+            if ($(field).val().trim() === '') {
+                isValid = false;
+                $(field).addClass('is-invalid');
+            } else {
+                $(field).removeClass('is-invalid');
+            }
+        });
+
+        // Validate room selection
+        if (!currentTransaction.roomID) {
+            showToast('Error', 'Please select a room number', 'danger');
+            isValid = false;
+        }
+
+        // Validate room option
         const selectedOption = $('input[name="inlineRadioOptions"]:checked').val();
+        if (!selectedOption) {
+            $('#roomOptionsContainer').addClass('is-invalid');
+            isValid = false;
+        } else {
+            $('#roomOptionsContainer').removeClass('is-invalid');
+        }
+
+        if (!isValid) {
+            showToast('Error', 'Please fill in all required fields', 'danger');
+            return;
+        }
+
+        // Prepare booking data
         const bookingData = {
             booking_type: $('input[name="btnradio"]:checked').val(),
             guest_type: $('#guest-type').val(),
@@ -904,36 +712,12 @@ $(document).on('change', '.room-number-select', function () {
             booking_status: $('#bookStatus').val(),
             duration: getNumberofNights(),
             room_id: currentTransaction.roomID,
+            room_number: currentTransaction.selectedRoomNumber,
             room_option: selectedOption,
-            room_price: parseInt(finalRoomPrice),
+            room_price: finalRoomPrice,
             vat_amount: finalVatAmount,
             total_booking_amount: totalBookingAmount,
         };
-
-        // Validate required fields
-        const requiredFields = ['#firstName', '#lastName', '#phone', '#nationality', '#residence', '#adress'];
-        let isValid = true;
-        requiredFields.forEach(field => {
-            if ($(field).val().trim() === '') {
-                isValid = false;
-                $(field).addClass('is-invalid');
-            } else {
-                $(field).removeClass('is-invalid');
-            }
-        });
-
-        // Room option validation        
-        if (!selectedOption) {
-            isValid = false;
-            $('#roomOptionsContainer').addClass('is-invalid');
-        } else {
-            $('#roomOptionsContainer').removeClass('is-invalid');
-        }
-
-        if (!isValid) {
-            showToast('Error', 'Please fill in all required fields', 'error');
-            return;
-        }
 
         $.ajax({
             url: globalApi,
@@ -941,54 +725,28 @@ $(document).on('change', '.room-number-select', function () {
             data: JSON.stringify(bookingData),
             contentType: 'application/json',
             success: function (response) {
-                
-                 const res= response;
+                const res = response;
                 if (res.status == 201) {
-                    
                     $('#addBookingOffcanvas').offcanvas('hide');
-                    window.location.reload();
                     Swal.fire({
                         title: 'Success',
                         text: 'Room booked successfully!',
                         icon: 'success',
                         confirmButtonText: 'OK'
                     }).then(() => {
-                        // Optionally, you can reset the form and transaction details
-                        // $('#search-room-form')[0].reset();
-                        // $('#searchGuestInput').val('');
-                        // currentTransaction = {
-                        //     rooms: 0,
-                        //     adults: 0,
-                        //     children: 0,
-                        //     amount: 0,
-                        //     roomID: null,
-                        //     roomClass: null,
-                        //     checkinDate: null,
-                        //     checkoutDate: null,
-                        // };
-                        // updateCurrentTransactionTab();
-                        alert('Booked Successfully');
                         window.location.reload();
-                        
                     });
                 } else {
-                    $('#addBookingOffcanvas').offcanvas('hide');
-                     window.location.reload();
-                     alert(res.message);
                     Swal.fire({
                         title: 'Error',
-                        text: res.message,
+                        text: res.message || 'Booking failed',
                         icon: 'error',
                         confirmButtonText: 'OK'
-                    }).then((result) => {
-                        if (result.value) {
-                            $('#addBookingOffcanvas').offcanvas('show');
-                        }
-                    });;
+                    });
                 }
             },
             error: function (jqXHR, textStatus, errorThrown) {
-                console.error('AJAX error:', textStatus, errorThrown, jqXHR.responseText);
+                console.error('AJAX error:', textStatus, errorThrown);
                 Swal.fire({
                     title: 'Error',
                     text: 'An error occurred while confirming the booking.',
@@ -999,75 +757,20 @@ $(document).on('change', '.room-number-select', function () {
         });
     });
 
-    // Get alert div
-    const getBookingAlert = document.getElementById('getBookingAlert');
+    // Helper function for date difference
+    function getDiff(checkedin, st, dayClosedAt) {
+        const date1 = new Date(checkedin);
+        const date2 = new Date(dayClosedAt);
 
-    // Display message
-    function showBookingAlert(title, message, msgType) {
-        const type = msgType === 'success' ? 'success' : 'danger';
-        const icon = msgType === 'success' ? 'check' : 'error';
-        const alert = `
-        <div class="alert alert-${type} alert-dismissible" role="alert">
-            <h4 class="alert-heading d-flex align-items-center">
-                <span class="alert-icon rounded-circle">
-                    <i class="bx bx-${icon}"></i>
-                </span>
-                ${title}
-            </h4>
-            <hr>
-            <p class="mb-0">${message}</p>
-            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-        </div>
-        `;
-        getBookingAlert.innerHTML = alert; // Use innerHTML to render the alert
+        if (isNaN(date1.getTime()) || isNaN(date2.getTime())) {
+            return 0;
+        }
+
+        const diffTime = Math.abs(date2 - date1);
+        const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
+        return st == 6 ? diffDays : 0;
     }
 
-    fetchBookings(); // Initial fetch
-    
-    
-// function getDiff(checkedin, st, dayClosedAt){
-    
-    
-// var today = new Date();
-// var dd = String(today.getDate()).padStart(2, '0');
-// var mm = String(today.getMonth() + 1).padStart(2, '0'); //January is 0!
-// var yyyy = today.getFullYear();
-
-// var now = dayClosedAt;
-    
-// const date1 = new Date(checkedin);
-// const date2 = new Date(now);
-// const diffTime = Math.abs(date2 - date1);
-// const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24)); 
-
-// if(st==6){
-// return diffDays;
-//     }else{
-//         return 0;
-//     }
-    
-// }
-
-
-function getDiff(checkedin, st, dayClosedAt) {
-
-    const date1 = new Date(checkedin);
-    const date2 = new Date(dayClosedAt);
-
-    if (isNaN(date1.getTime()) || isNaN(date2.getTime())) {
-        console.log("Invalid date(s)");
-        return 0;
-    }
-
-    const diffTime = Math.abs(date2 - date1);
-    const diffDays = Math.floor(diffTime / (1000 * 60 * 60 * 24));
-
-
-    return st == 6 ? diffDays : 0;
-}
-
-
-
-
+    // Initialize DataTable
+    $('#tableBookings').DataTable();
 });
-

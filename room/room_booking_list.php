@@ -1,10 +1,14 @@
 
 <?php
-error_reporting(E_ALL);
+ 
 ini_set("display_errors", 1);
 ?>
 
-
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.css">
+<script src="https://cdn.jsdelivr.net/momentjs/latest/moment.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/daterangepicker/daterangepicker.min.js"></script>
+<script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
 <!-- styles -->
 <style>
@@ -227,12 +231,15 @@ ini_set("display_errors", 1);
                                                     <div class="row">
                                                         <div class="col-lg-2 col-md-2 col-sm-12 col-xs-12">
                                                             <div class="mb-3">
-                                                                <label class="form-label" for="booking-type">Booking Type</label>
+                                                                <label class="form-label text-primary" for="booking-type">Booking Type</label>
                                                                 <div id="booking-type" class="btn-group" role="group" aria-label="Basic radio toggle button group">
                                                                     <input type="radio" class="btn-check" name="btnradio" id="btnradio1" value="Single" checked>
-                                                                    <label class="btn btn-outline-primary" for="btnradio1">Individual</label>
-                                                                    <input type="radio" class="btn-check" name="btnradio" id="btnradio2" value="Group">
-                                                                    <label class="btn btn-outline-primary" for="btnradio2">Group</label>
+                                                                    <label class="btn btn-outline-primary" for="btnradio1">Single</label>
+
+                                                                    <!-- Remove Group Booking -->
+
+                                                                    <!-- <input type="radio" class="btn-check" name="btnradio" id="btnradio2" value="Group">
+                                                                    <label class="btn btn-outline-primary" for="btnradio2">Group</label> -->
                                                                 </div>
 
                                                             </div>
@@ -242,7 +249,7 @@ ini_set("display_errors", 1);
                                                                 <label for="guest-type" class="form-label">Guest Type</label>
                                                                 <select class="form-select" id="guest-type" aria-label="Default select example">
                                                                     <option value="individual_guest">Individual Guest</option>
-                                                                    <option value="company_guest">Company Guest</option>
+                                                                    <!-- <option value="company_guest">Company Guest</option> -->
                                                                 </select>
                                                             </div>
                                                         </div>
@@ -539,7 +546,7 @@ ini_set("display_errors", 1);
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div style="display:none;" class="mt-4 card">
+                                                                <div class="mt-4 card">
                                                                     <div class="p-3">
                                                                         <span>Notify guest ?</span>
                                                                         <!-- Toggle Switch -->
@@ -709,9 +716,10 @@ ini_set("display_errors", 1);
             });
         });
     </script>
+
+    
     
     
 </body>
-
 
 </html>

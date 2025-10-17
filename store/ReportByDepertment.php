@@ -365,12 +365,11 @@ document.addEventListener("DOMContentLoaded", function () {
                     .signature-box .sig-line { margin-top: 50px; border-top: 1px solid #000; height: 0; }
                 </style>
                 <center>
-                    <img src='https://saintpaul.gope.rw/img/logo.png'>
-                    <div>Centre Saint Paul Kigali Ltd<br>
-                    KN 31 St, Kigali, Rwanda<br>
-                    TIN/VAT Number: 111477597<br>
-                    <br>
-                    Phone: +250 785 285 341 / +250 789 477 745 <br>
+                     <img src='<?= $logo_png ?>' style='height:80px; margin-bottom:10px;'>
+                    <div><?= $company_name ?><br>
+                    TIN/VAT :<?= $company_tin ?><br>
+                    Tel: <?= $company_phone ?><br>
+                    <?= $company_email ?><br>
                     </div>
                 </center>
                 <br>
