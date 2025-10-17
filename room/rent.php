@@ -1,62 +1,218 @@
+
 <?php 
+
+
 include '../inc/conn.php';
-// ...existing PHP logic...
-?>
-<style>
-  .printHeader { display: none !important; }
-  @media print {
-    body * { visibility: hidden; }
-    .print-section, .print-section *, .printHeader, .printHeader * { visibility: visible; }
-    .print-section { position: absolute; left: 0; top: 80px; width: 100%; }
-    .printHeader { display: block !important; position: absolute; top: -15rem; left: 0; width: 100%; text-align: center; margin-bottom: 2rem; border:none !important; }
-    .signature-section { display: block !important; margin-top: 40px; }
-    .signature-row { display: flex; justify-content: space-between; gap: 20px; }
-    .signature-box { width: 32%; text-align: center; }
-    .signature-box .sig-line { margin-top: 50px; border-top: 1px solid #000; height: 0; }
-    .no-print { display: none !important; }
-    table, td { border: 1px solid black !important; font-size: 20px !important; }
-    a { text-decoration: none !important; text-transform: capitalize !important; color: #000 !important; }
-    a[href]:after { content: none !important; }
-    h4{ display: block !important; text-align: center; padding: 5px 0; }
-  }
-</style>
-<div class="printHeader">
-  <?php 
-  if (file_exists("../holder/printHeader.php")) {
-    include "../holder/printHeader.php";
-  } else {
-    echo '<h2>Saint Paul Hotel</h2>';
-  }
-  ?>
-</div>
+
+$room_booking = 0;
+$today = date('Y-m-d');
+$sql = "SELECT * FROM tbl_acc_booking where booking_status_id = 2";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()){
+	  
+	  if(time() <= strtotime($row['checkout_date'])){
+		 $room_booking = $room_booking + 1; 
+	  }
+	  
+	  
+}}
+
+
+$active_amount = 0;
+$sql = "SELECT * FROM tbl_acc_booking where booking_status_id = 2";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()){
+	  
+	  if(time() <= strtotime($row['checkout_date'])){
+		 $active_amount = $active_amount + $row['room_price']; 
+	  }
+	  
+	  
+}}
+
+
+
+
+
+
+
+
+
+$event_booking = 0;
+$sql = "SELECT * FROM tbl_ev_venue_reservations where status = 'Confirmed'";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()){
+	  
+	  if($today==$row['reservation_date']){
+		 $event_booking = $event_booking + 1; 
+	  }
+	  
+	  
+}}
+
+
+
+$event_booking = 0;
+$sql = "SELECT * FROM tbl_ev_venue_reservations where status = 'Confirmed'";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()){
+	  
+	  if($today==$row['reservation_date']){
+		 $event_booking = $event_booking + 1; 
+	  }
+	  
+	  
+}}
+
+
+
+
+$room_sum = 0;
+$sql = "SELECT * FROM  payments ";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+ if($today==date('Y-m-d',$row['payment_time'])){   
+$room_sum  =  $room_sum + $row['amount'];
+	 }	
+}}
+
+
+
+
+
+$accoupied = 0;
+$sql = "SELECT * FROM  tbl_acc_room  where status_id = 2";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+	  
+	  
+$accoupied  =  $accoupied + 1;
+	 	
+	   
+
+	  	
+}}
+
+
+
+$available = 0;
+$sql = "SELECT * FROM  tbl_acc_room  where status_id = 3";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+	  
+	  
+$available  =  $available + 1;
+	 	
+	   
+
+	  	
+}}
+
+
+
+$customers = 0;
+$sql = "SELECT * FROM tbl_acc_guest ";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+	  
+$date = strtotime($row['created_at']);
+if($today==date('Y-m-d',$date)){   
+$customers  =  $customers + 1;
+	 }	
+	   
+
+	  	
+}}
+
+$venue_customer = 0;
+$sql = "SELECT * FROM tbl_ev_customers ";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+  $date = strtotime($row['created_at']);
+	  	 if($today==date('Y-m-d',$date)){   
+$venue_customer  =  $venue_customer + 1;
+	 }	
+	   
+
+	  	
+}}
+
+
+
+
+
+$expenses_payments = 0;
+$sql = "SELECT * FROM 	expenses ";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+if($today==date('Y-m-d',$row['create_time'])){      
+$expenses_payments  =  $expenses_payments + $row['price'];
+		 }
+	  	
+}}
+
+
+
+
+	?>
+	
+
+
+
+
+
+
+
              <div class="colr-area">
         <div class="container">
             
             
          
-                <!-- Date Range Filter (Client-side only) -->
-                <form class="row g-3 align-items-end mb-3 no-print" id="dateRangeForm" onsubmit="return false;">
-                  <div class="col-auto">
-                    <label for="fromDate" class="form-label mb-0">From</label>
-                    <input type="date" class="form-control" id="fromDate" name="fromDate">
-                  </div>
-                  <div class="col-auto">
-                    <label for="toDate" class="form-label mb-0">To</label>
-                    <input type="date" class="form-control" id="toDate" name="toDate">
-                  </div>
-                  <div class="col-auto">
-                    <button type="button" class="btn btn-primary" onclick="filterByDate()">Filter</button>
-                    <button type="button" class="btn btn-secondary" onclick="resetDateFilter()">Reset</button>
-                  </div>
+                <form method="POST">
+                    <label>Select Date</label>
+                    <input type="date" class="form-control" name="searchdate" required>
+                    <br>
+                    <button type="submit" name="searchdatebtn" class="btn btn-info"> search</button>
+                    
+                    
                 </form>
-              <h5 class="card-header">RENTAL REPORT <button type="button" class="btn btn-success no-print" onclick="window.print()"><i class="fa fa-print"></i> Print</button></h5>
-              <div class="text-nowrap table-responsive print-section">
-                <h4 style="font-size: 28px;font-weight:bold;">Rental Report as on <strong><?php echo date('Y-m-d'); ?></strong></h4>
+              <h5 class="card-header">RENTAL REPORT <a href="print.php?page=rent" class="btn btn-info">Print</a ></h5>
+              <div class="text-nowrap table-responsive">
                 <table class="table">
                   <thead>
                     <tr>
                         <th>No</th>
-                        <th>Room Type</th>
+                        <th colspan="2">Room Type</th>
                       <th>Guest Names</th>
                           <th>Company</th>
                    
@@ -65,74 +221,67 @@ include '../inc/conn.php';
                       <th>Count</th>
                     
                       <th>Room Rate</th>
-                      
+                      <th>Debtor </th>
                     </tr>
                   </thead>
 <tbody class="table-border-bottom-0">		  
 <?php 
 $no = 0;
-$total_amount = 0; // Initialize total amount variable
-$sql = $db->prepare("SELECT * FROM tbl_acc_booking WHERE booking_status_id = 6");
-$sql->execute();
-while($row = $sql->fetch()){
-  $checkin = htmlspecialchars($row['checkin_date'] ?? '');
-  $total_amount += $row['room_price']; // Add room price to total
-?>
-<tr data-checkin="<?php echo $checkin; ?>">
-    <td><strong><?php echo $no = $no+1?></strong></td>
-    <td><?php echo getRoomName(getBookedRoom($row['id'])) ?></td>
-    <td><strong><?php echo getGuestNames($row['guest_id'])?></strong></td>
-    <td><?php echo $row['company']?></td>
-    <td><?php echo $row['checkin_date']?></td>
-    <td><?php echo $row['checkout_date']?></td>
-    <td><?php  
-      $date1 =date('Y-m-d');
-      $date2 = $row['checkin_date'];
-      $diff = abs(strtotime($date2) - strtotime($date1));
-      $years = floor($diff / (365*60*60*24));
-      $months = floor(($diff - $years * 365*60*60*24) / (30*60*60*24));
-      $days = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24)/ (60*60*24));
-      echo $days;
-    ?></td>
-    <td><?php echo number_format($row['room_price'])?></td>
 
-</tr>
-<?php }
-?>
-<!-- Total Row -->
-<tr style="background-color: #f8f9fa; font-weight: bold;">
-    <td colspan="7" style="text-align: right; padding: 10px;"><strong>TOTAL AMOUNT:</strong></td>
-    <td style="padding: 10px;"><strong>RWF <?php echo number_format($total_amount); ?></strong></td>
-</tr>
-<script>
-// Date range filter for table rows (client-side only)
-function filterByDate() {
-  var from = document.getElementById('fromDate').value;
-  var to = document.getElementById('toDate').value;
-  var rows = document.querySelectorAll('#bookingTableBody tr');
-  rows.forEach(function(row) {
-    var checkin = row.getAttribute('data-checkin');
-    if (!from && !to) {
-      row.style.display = '';
-      return;
-    }
-    if (from && checkin < from) {
-      row.style.display = 'none';
-      return;
-    }
-    if (to && checkin > to) {
-      row.style.display = 'none';
-      return;
-    }
-    row.style.display = '';
-  });
+
+if(isset($_POST['searchdatebtn'])){
+    
+ 
+ $date = $_POST['searchdate'];   
+}else{
+   $date =  date('Y-m-d');
 }
-function resetDateFilter() {
-  document.getElementById('fromDate').value = '';
-  document.getElementById('toDate').value = '';
-  filterByDate();
+$sql = $db->prepare("SELECT * FROM tbl_acc_booking WHERE booking_status_id = 6");
+                        		$sql->execute();
+                        		while($row = $sql->fetch()){
+	 if($date >= $row['checkin_date']){
+	      
+	      
+		 ?>
+   <tr>
+       <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong><?php echo $no = $no+1?></strong></td>
+        <td><?php echo getRoomName(getBookedRoom($row['id'])) ?></td>
+                        <td><?php echo getRoomClassType(getRoomClass(getBookedRoom($row['id']))) ?></td>
+                      <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong><?php echo getGuestNames($row['guest_id'])?></strong></td>
+                     <td><?php echo $row['company']?></td>
+                      <td><?php echo $row['checkin_date']?></td>
+                      <td><?php echo $row['checkout_date']?></td>
+                     
+                   
+                       <td><?php  
+                       
+$date1 =date('Y-m-d');
+$date2 = $row['checkin_date'];
+
+$diff = abs(strtotime($date2) - strtotime($date1));
+
+$years = floor($diff / (365*60*60*24));
+$months = floor(($diff - $years * 365*60*60*24) / (30*60*60*24));
+$days = floor(($diff - $years * 365*60*60*24 - $months*30*60*60*24)/ (60*60*24));
+                       
+             echo $days;          
+                       
+                       ?>
+                       
+                       </td>
+                       <td><?php echo number_format($row['room_price'])?></td>
+                      <td>
+				Him/herself
+					  </td>
+                
+                    </tr>		
+		
+		 <?php
+	  }
+	  
+	  
 }
-</script>
+			?>	  
 				  
 				  
                  
@@ -140,38 +289,4 @@ function resetDateFilter() {
                    
                   </tbody>
                 </table>
-                <!-- Print-only signature footer placed right after the table -->
-                <div class="signature-section" style="display:none;">
-                  <div class="signature-row">
-                    <div class="signature-box" style="text-align:left;">
-                      <strong>Printed by:</strong><br>
-                      <?php 
-                      $printedBy = '';
-                      if (isset($_SESSION['user_fullname'])) { $printedBy = $_SESSION['user_fullname']; }
-                      elseif (isset($_SESSION['fullname'])) { $printedBy = $_SESSION['fullname']; }
-                      elseif (isset($_SESSION['name'])) { $printedBy = $_SESSION['name']; }
-                      elseif (isset($_SESSION['username'])) { $printedBy = $_SESSION['username']; }
-                      elseif (isset($_SESSION['f_name']) || isset($_SESSION['l_name'])) { $printedBy = trim(($_SESSION['f_name'] ?? '') . ' ' . ($_SESSION['l_name'] ?? '')); }
-                      echo htmlspecialchars($printedBy ?? '', ENT_QUOTES, 'UTF-8');
-                      ?><br>
-                      <div class="sig-line"></div>
-                      <small>Name & Signature</small>
-                    </div>
-                    <div class="signature-box">
-                      <strong>Received by:</strong><br>
-                      <br>
-                      <div class="sig-line"></div>
-                      <small>Name & Signature</small>
-                    </div>
-                    <div class="signature-box" style="text-align:right;">
-                      <strong>Approved by:</strong><br>
-                      <br>
-                      <div class="sig-line"></div>
-                      <small>Name & Signature</small>
-                    </div>
-                  </div>
-                </div>
-                <div style="text-align:center;font-size:10px;margin-top:20px;">
-                  Printed on: <?php echo date("Y-m-d H:i:s"); ?>
-                </div>
               </div>  </div>

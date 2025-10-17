@@ -1,9 +1,7 @@
 <?php 
 // session_start(); 
 
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+ 
 ?>
 
 <?php
@@ -15,7 +13,7 @@ $end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
 $start_datetime = $start_date . ' 00:00:00';
 $end_datetime = $end_date . ' 23:59:59';
 
-error_reporting(E_ALL);
+ 
 date_default_timezone_set('Africa/Kigali');
 // include '../inc/function.php';
 include '../inc/conn.php';	
@@ -50,10 +48,9 @@ $today = date('Y-m-d');
 
 <?php 
 // Define common date conditions
-// $inhouse_condition = "booking_status_id = 6 
-//     AND checkin_date <= '$end_datetime' 
-//     AND checkout_date >= '$start_datetime'";
-$inhouse_condition = "booking_status_id = 6";
+$inhouse_condition = "booking_status_id = 6 
+    AND checkin_date <= '$end_datetime' 
+    AND checkout_date >= '$start_datetime'";
     
 $checkout_condition = "booking_status_id = 5";
 
@@ -63,7 +60,7 @@ $expected_condition = "booking_status_id = 2
 $departure_condition = "booking_status_id = 6 
     AND checkout_date BETWEEN '$start_datetime' AND '$end_datetime'";
 
-$booking_condition = "booking_status_id IN (1, 2,6) 
+$booking_condition = "(booking_status_id = 1 OR booking_status_id = 2 OR booking_status_id = 6) 
     AND created_at BETWEEN '$start_datetime' AND '$end_datetime'";
 
 $roomstatus_condition = "booking_status_id IN (1,2,6) 
@@ -197,7 +194,9 @@ $report_titles = [
 $today = Date('Y-m-d');
 
 // $sql = $db->prepare("SELECT * FROM tbl_acc_booking where booking_status_id =2");
-$sql = "SELECT * FROM tbl_acc_booking WHERE checkin_date = '$today' AND booking_status_id NOT IN (3,5)";
+$sql = "SELECT * FROM tbl_acc_booking 
+    WHERE booking_status_id = 6
+    AND checkin_date BETWEEN '$start_date' AND '$end_date'";
           // die(var_dump($sql));
                 $result = $conn->query($sql);
                 while($row = $result->fetch_assoc()): 
@@ -218,44 +217,62 @@ $sql = "SELECT * FROM tbl_acc_booking WHERE checkin_date = '$today' AND booking_
             </tbody>
         </table>
 
-    <?php elseif($_REQUEST['page']=='breakfast'): ?>
-        <table class="table table-bordered">
-            <thead>
-                <tr>
-                    <th>No</th>
-                    <th>Guest Names</th>
-                    <th>Company</th>
-                    <th>Nationality</th>
-                    <th>Room Name</th>
-                    <th>Room Type</th>
-                    <th>Adults</th>
-                    <th>Children</th>
-                </tr>
-            </thead>
-            <tbody>
-                <?php 
-                $no = 0;
-        //         $sql = "SELECT * FROM tbl_acc_booking 
-        //                 WHERE $inhouse_condition
-        //   /* AND booking_option = 1 */";
-                $sql = "SELECT * FROM tbl_acc_booking 
-                        WHERE booking_status_id = 6";
-                $result = $conn->query($sql);
-                while($row = $result->fetch_assoc()): 
-                ?>
-                <tr>
-                    <td><?= ++$no ?></td>
-                    <td><?= getGuestNames($row['guest_id']) ?></td>
-                    <td><?= $row['company'] ?></td>
-                    <td><?= getGuestNationality($row['guest_id']) ?></td>
-                    <td><?= getRoomName(getBookedRoom($row['id'])) ?></td>
-                    <td><?= getRoomClassType(getRoomClass(getBookedRoom($row['id']))) ?></td>
-                    <td><?= $row['num_adults'] ?></td>
-                    <td><?= $row['num_children'] ?></td>
-                </tr>
-                <?php endwhile; ?>
-            </tbody>
-        </table>
+    <?php elseif($_REQUEST['page'] == 'breakfast'): ?>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>No</th>
+                <th>Guest Names</th>
+                <th>Company</th>
+                <th>Nationality</th>
+                <th>Room Name</th>
+                <th>Room Type</th>
+                <th>Adults</th>
+                <th>Children</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php 
+            $no = 0;
+            $total_adults = 0;
+            $total_children = 0;
+
+            // Fetch only in-house guests for breakfast within the date range
+            $sql = "SELECT * FROM tbl_acc_booking 
+                    WHERE booking_status_id = 6
+                    AND checkin_date BETWEEN '$start_datetime' AND '$end_datetime'
+                    ";
+            $result = $conn->query($sql);
+
+            while($row = $result->fetch_assoc()): 
+                $total_adults += $row['num_adults'];
+                $total_children += $row['num_children'];
+            ?>
+            <tr>
+                <td><?= ++$no ?></td>
+                <td><?= getGuestNames($row['guest_id']) ?></td>
+                <td><?= $row['company'] ?></td>
+                <td><?= getGuestNationality($row['guest_id']) ?></td>
+                <td><?= getRoomName(getBookedRoom($row['id'])) ?></td>
+                <td><?= getRoomClassType(getRoomClass(getBookedRoom($row['id']))) ?></td>
+                <td><?= $row['num_adults'] ?></td>
+                <td><?= $row['num_children'] ?></td>
+            </tr>
+            <?php endwhile; ?>
+        </tbody>
+        <tfoot>
+            <tr>
+                <th colspan="6">Total</th>
+                <th><?= $total_adults ?></th>
+                <th><?= $total_children ?></th>
+            </tr>
+            <tr>
+                <th colspan="6">Grand Total</th>
+                <th colspan="2"><?= $total_adults + $total_children ?></th>
+            </tr>
+        </tfoot>
+    </table>
+
 
     <?php elseif($_REQUEST['page']=='dep'): ?>
         <table class="table table-bordered">
