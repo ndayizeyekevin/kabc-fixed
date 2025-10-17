@@ -546,7 +546,7 @@ ini_set("display_errors", 1);
                                                                         </div>
                                                                     </div>
                                                                 </div>
-                                                                <div class="mt-4 card">
+                                                                <div class="mt-4 card d-none">
                                                                     <div class="p-3">
                                                                         <span>Notify guest ?</span>
                                                                         <!-- Toggle Switch -->
