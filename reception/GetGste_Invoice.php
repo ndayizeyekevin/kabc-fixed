@@ -1691,17 +1691,20 @@ $sql = $db->prepare("
 		g.id as userbooking,
         b.checkin_date,
         b.checkout_date,
-        b.payment_status_id
+        b.payment_status_id,
+        r.room_number
     FROM tbl_acc_booking b
     JOIN tbl_acc_guest g ON b.guest_id = g.id
-    WHERE b.booking_status_id = 6
+    JOIN tbl_acc_booking_room br ON b.id = br.booking_id
+    JOIN tbl_acc_room r ON br.room_id = r.id
+    WHERE b.booking_status_id = 6 AND b.checkout_date >= CURRENT_DATE
 ");
 $sql->execute();
 
 if ($sql->rowCount()) {
     while ($row = $sql->fetch()) { ?>
 
-		<option value="<?php echo $row['booking_id']; ?> "><?php   echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) ?> -  <?php echo getRoomName(getBookedRoom($row['userbooking'])) ?> </option>
+		<option value="<?php echo $row['booking_id']; ?> "><?php   echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) ?> -  <?php echo $row['room_number']; ?> </option>
 
 
 		<?php }

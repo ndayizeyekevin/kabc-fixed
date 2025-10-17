@@ -12,7 +12,7 @@ function prepareStmt($conn, $sql) {
     return $stmt;
 }
 
-if ($_SERVER['REQUEST_METHOD'] === 'GET') {
+if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['corporate_id'])) {
     // GET: corporate booking confirmation
     $booking_id     = intval($_GET['booking_id'] ?? 0);
     $room_id        = intval($_GET['room_ids'] ?? 0);
@@ -95,11 +95,11 @@ if ($_SERVER['REQUEST_METHOD'] === 'GET') {
         die("Error: Room not found for ID " . htmlspecialchars($room_id));
     }
 
-} else {
+} else if ($_SERVER['REQUEST_METHOD'] === 'GET' && isset($_GET['action']) ) {
     // POST: checkout confirmation
-    $booking_id = intval($_POST['booking_id'] ?? 0);
-    $balance    = floatval($_POST['balance'] ?? 0);
-    $room       = mysqli_real_escape_string($conn, $_POST['room'] ?? '');
+    $booking_id = intval($_GET['booking_id'] ?? 0);
+    $balance    = floatval($_GET['balance'] ?? 0);
+    $room       = mysqli_real_escape_string($conn, $_GET['room'] ?? '');
     $today      = date('Y-m-d');
 
     if ($booking_id === 0) die("Error: Invalid booking ID.");
