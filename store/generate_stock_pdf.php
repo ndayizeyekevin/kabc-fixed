@@ -85,12 +85,12 @@ $html = '
 <body>
     <div class="header">
     <div class="company-logo">
-            <img src="https://saintpaul.gope.rw/img/logo.png" alt="Company Logo" style="width: 100px; height: auto;">
-            </div>
-        <div class="company-name">Centre Saint Paul Kigali Ltd</div>
-        <div>KN 31 St., Kigali, Rwanda</div>
-        <div>TIN/VAT Number: 111477397</div>
-        <div>Phone: +250 785 285 341 / +250 789 477 745</div>
+            <img src="<?= $logo_png ?>" alt="Company Logo" style="width: 100px; height: auto;">
+        </div>
+        <div class="company-name"><?= $company_name ?></div>
+        <div><?= $company_address ?></div>
+        <div>TIN/VAT Number: <?= $company_tin ?></div>
+        <div>Phone: <?= $company_phone ?></div>
         <h2>COST REPORT BY CATEGORY</h2>
         <p>From: '.$from.' To: '.$to.'</p>
     </div>';

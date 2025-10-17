@@ -205,10 +205,10 @@ function getClientOrder($booking_id)
 <div class="header">
     <img src="../img/logo.png" alt="Logo" class="logo" onerror="this.style.display='none'">
     <div class="company-info center bold">
-        CENTRE SAINT PAUL KIGALI LTD<br>
-        Kigali, Rwanda<br>
-        TIN: 111477597<br>
-        Tel: +250 785 285 341
+        <?= $company_name ?><br>
+                    TIN/VAT :<?= $company_tin ?><br>
+                    Tel: <?= $company_phone ?><br>
+                    <?= $company_email ?><br>
     </div>
     <div class="receipt-title center">PAYMENT RECEIPT</div>
     <div class="center">Booking ID: <?php echo $booking_id; ?></div>

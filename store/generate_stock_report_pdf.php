@@ -154,12 +154,12 @@ $pdf_html = '
 <body>
     <div class="pdf-header">
         <div class="company-logo">
-            <img src="https://saintpaul.gope.rw/img/logo.png" alt="Company Logo" style="width: 100px; height: auto;">
+            <img src="<?= $logo_png ?>" alt="Company Logo" style="width: 100px; height: auto;">
         </div>
-        <div class="company-name">Centre Saint Paul Kigali Ltd</div>
-        <div>KN 31 St., Kigali, Rwanda</div>
-        <div>TIN/VAT Number: 111477397</div>
-        <div>Phone: +250 785 285 341 / +250 789 477 745</div>
+        <div class="company-name"><?= $company_name ?></div>
+        <div><?= $company_address ?></div>
+        <div>TIN/VAT Number: <?= $company_tin ?></div>
+        <div>Phone: <?= $company_phone ?></div>
         <div class="report-title">STOCK REPORT BY DEPARTMENT</div>
         <div class="period">Period: From ' . htmlspecialchars($from) . ' To ' . htmlspecialchars($to) . '</div>';
 
