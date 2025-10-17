@@ -1822,7 +1822,7 @@ $night = $diff->format("%a");
 
                                                                     } ?>
                                                                     <a class="btn btn-info"
-                                                                        href="confirmCheckout.php?balance=<?php echo $balance ?>&&booking_id=<?php echo $_REQUEST['booking_id'] ?>&&room=<?php echo getRoomName(getBookedRoom($row['id'])) ?>&&booking_amount=<?php echo $accomodation ?>">
+                                                                        href="confirmCheckout.php?balance=<?php echo $balance ?>&&booking_id=<?php echo $_REQUEST['booking_id'] ?>&&room=<?php echo getRoomName(getBookedRoom($row['id'])) ?>&&booking_amount=<?php echo $accomodation ?>&action=checkout">
                                                                         Confirm checkout</a>
 
                                                                 <?php }
