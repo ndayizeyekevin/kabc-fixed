@@ -1,0 +1,7 @@
+test
+err_log
+*.xlsx
+*old.*
+*.scss
+*.zip
+.htaccess
