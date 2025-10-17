@@ -24,7 +24,7 @@ $options->set('defaultFont', 'Arial');
 $dompdf = new Dompdf($options);
 
 // Include the database connection file
-include '../inc/conn.php';
+include '../inc/DBController.php';
 
 // Get data from session and calculate totals
 $_SESSION['servant_name'] = $_SESSION['f_name'] . " " . $_SESSION['l_name'];
@@ -203,15 +203,15 @@ $html = '<!DOCTYPE html>
         <table width="100%">
             <tr>
                 <td width="40%" class="logo">
-                    <img src="https://rms.nsportsclub.rw/logo.jpg" alt="Company Logo">
+                    <img src="'.$company_logo.'" alt="Company Logo">
                 </td>
                 <td width="60%" class="company-info">
-                    <h2>Centre Saint Paul Kigali Ltd</h2>
+                    <h2>'.$company_name.'</h2>
                     <p>
-                        Kigali, Rwanda<br>
-                        TIN: 111477597<br>
-                        Email: info@saintpaul.rw<br>
-                        Tel: +250 785 285 341
+                        '.$company_address.'<br>
+                        TIN: '.$company_tin.'<br>
+                        Email: '.$company_email.'<br>
+                        Tel: '.$company_phone.'
                     </p>
                 </td>
             </tr>
@@ -288,19 +288,19 @@ $html = '<!DOCTYPE html>
         
         <div class="footer">
             <p><strong>Thank You for using our services</strong></p>
-            <p><strong>Centre Saint Paul Kigali Ltd</strong> | Kigali, Rwanda | TIN: 111477597</p>
+            <p><strong>'.$company_name.'</strong> | '.$company_address.' | TIN: '.$company_tin.'</p>
             <div class="bank-info">
                 <table>
                     <tr>
                         <td width="50%">
                             <strong style="color:black;">BANK NAME:</strong> <u>BANK OF KIGALI (BK)</u><br>
                             <strong style="color:black;">SWIFT CODE:</strong> BKIGRWRW<br>
-                            <strong style="color:black;">ACCOUNT NUMBER:</strong> 00041-07763514-45 /RW
+                            <strong style="color:black;">ACCOUNT NUMBER:</strong> XXXXX-XXXXXXX-XX /RW
                         </td>
                         <td width="50%">
                             <strong style="color:black;">BANK NAME:</strong> <u>BANK OF KIGALI (BK)</u><br>
                             <strong style="color:black;">SWIFT CODE:</strong> BKIGRWRW<br>
-                            <strong style="color:black;">ACCOUNT NUMBER:</strong> 00041-07763515-46 /USD
+                            <strong style="color:black;">ACCOUNT NUMBER:</strong> XXXXX-XXXXXXX-XX /USD
                         </td>
                     </tr>
                 </table>

@@ -471,12 +471,12 @@ if ($printedBy === '') {
                     .signature-box .sig-line { margin-top: 50px; border-top: 1px solid #000; height: 0; }
                 </style>
                 <center>
-                    <img src='https://saintpaul.gope.rw/img/logo.png'>
-                    <div>Centre Saint Paul Kigali Ltd<br>
-                    KN 31 St, Kigali, Rwanda<br>
-                    TIN/VAT Number: 111477597<br>
+                    <img src='<?= htmlspecialchars($company_logo ?? 'logo.png', ENT_QUOTES, 'UTF-8'); ?>' alt='Company Logo' style='max-width:150px;'><br>
+                    <div><?= htmlspecialchars($company_name ?? 'Centre Saint Paul Kigali Ltd', ENT_QUOTES, 'UTF-8'); ?><br>
+                    <?= $company_address ?>
+                    TIN/VAT Number: <?= $company_tin ?><br>
                     <br>
-                    Phone: +250 785 285 341 / +250 789 477 745 <br>
+                    Phone: <?= $company_phone ?><br>
                     </div>
                 </center>
                 <br>
