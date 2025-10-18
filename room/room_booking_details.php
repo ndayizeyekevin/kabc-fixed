@@ -458,10 +458,10 @@ if (isset($_POST['add'])) {
 
 
 
+    
 
 
-
-
+                            
                                         $menutotal = 0;
 
                                         $i = 0;
@@ -1070,8 +1070,10 @@ while ($row = $sql->fetch()) {
 
 
                             </div>
+                            
 
                             <?php
+                            $clientPhone = 
 $purchase_code='123214';
 // Handle VSDC Sale
 $lastSale = getLastId();
@@ -1411,7 +1413,9 @@ try {
             $sql = $db->prepare("SELECT * FROM tbl_acc_guest WHERE id='$guest_id'");
 $sql->execute();
 while ($row = $sql->fetch()) {
+    $clientPhone = $row['phone_number'];
     ?>
+    
                                                         <p class="mb-0 small">
                                                             <strong>Guest:</strong> <?php echo $client_name = $row['first_name'] . " " . $row['last_name']; ?><br>
                                                             <strong>Phone:</strong> <?php echo $row['phone_number'] ?>

@@ -52,7 +52,7 @@ if(isset($_POST['saveConfig'])){
      `receipt_msg`='".$_POST['receipt_msg']."',
       `version`='".$_POST['version']."',
       `ebm_version`='".$_POST['ebm_version']."',
-      `printer`='".$_POST['printer']."'
+      `printer`='".$_POST['printer']."' WHERE id = 1
     ");
     $stmt->execute();
     echo "<script>

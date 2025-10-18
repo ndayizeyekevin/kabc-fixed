@@ -1,204 +1,256 @@
-<div class="container-fluid py-4">
-      <style>
-        .printHeader {
-          display: none !important;
-        }
-        @media print {
-          body * {
-            visibility: hidden;
-          }
-          .print-section, .print-section *,
-          .printHeader, .printHeader * {
-            visibility: visible;
-          }
-          .print-section {
-            position: absolute;
-            left: 0;
-            top: 80px;
-            width: 100%;
-          }
-          .printHeader {
-            display: block !important;
-            position: absolute;
-            top: -15rem;
-            left: 0;
-            width: 100%;
-            text-align: center;
-            margin-bottom: 2rem;
-            border:none !important;
-          }
-          .signature-section { display: block !important; margin-top: 40px; }
-          .signature-row { display: flex; justify-content: space-between; gap: 20px; }
-          .signature-box { width: 32%; text-align: center; }
-          .signature-box .sig-line { margin-top: 50px; border-top: 1px solid #000; height: 0; }
-          .no-print {
-            display: none !important;
-          }
-          table, td {
-            border: 1px solid black !important;
-            font-size: 20px !important;
-          }
-          a {
-            text-decoration: none !important;
-            text-transform: capitalize !important;
-            color: #000 !important;
-          }
-          a[href]:after {
-            content: none !important;
-          }
-          h4{
-            display: block !important;
-            text-align: center;
-            padding: 5px 0;
-          }
-        }
-      </style>
-      <div class="printHeader">
-        <?php 
-        if (file_exists("../holder/printHeader.php")) {
-          include "../holder/printHeader.php";
-        } else {
-          echo '<h2>Saint Paul Hotel</h2>';
-        }
-        ?>
-      </div>
+
+<!-- header -->
+<?php 
+include '../inc/conn.php';
+
+$room_booking = 0;
+$today = date('Y-m-d');
+$sql = "SELECT * FROM tbl_acc_booking where booking_status_id = 2";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()){
+	  
+	  if(time() <= strtotime($row['checkout_date'])){
+		 $room_booking = $room_booking + 1; 
+	  }
+	  
+	  
+}}
+
+
+$active_amount = 0;
+$sql = "SELECT * FROM tbl_acc_booking where booking_status_id = 2";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()){
+	  
+	  if(time() <= strtotime($row['checkout_date'])){
+		 $active_amount = $active_amount + $row['room_price']; 
+	  }
+	  
+	  
+}}
 
 
 
 
 
-<div class="container-fluid py-4">
-  <div class="card shadow-sm">
-    <div class="card-header d-flex justify-content-between align-items-center bg-primary text-white">
-      <span style="font-size:1.3rem;font-weight:600;">Checkout Report</span>
-      <button type="button" class="btn btn-light btn-sm no-print" onclick="window.print()">
-        <i class="fa fa-print"></i> Print
-      </button>
-    </div>
-    <div class="card-body print-section">
-      <h4 class="mb-4" style="font-size: 1.5rem;font-weight:bold;">Checkout Report as on <strong><?php echo date('Y-m-d'); ?></strong></h4>
-      <!-- Date Range Filter (Client-side only) -->
-      <form class="row g-3 align-items-end mb-3 no-print" id="dateRangeForm" onsubmit="return false;">
-        <div class="col-auto">
-          <label for="fromDate" class="form-label mb-0">From</label>
-          <input type="date" class="form-control" id="fromDate" name="fromDate">
-        </div>
-        <div class="col-auto">
-          <label for="toDate" class="form-label mb-0">To</label>
-          <input type="date" class="form-control" id="toDate" name="toDate">
-        </div>
-        <div class="col-auto">
-          <button type="button" class="btn btn-primary" onclick="filterByDate()">Filter</button>
-          <button type="button" class="btn btn-secondary" onclick="resetDateFilter()">Reset</button>
-        </div>
-      </form>
-      <div class="table-responsive">
-        <table class="table table-bordered table-hover table-striped align-middle mb-0">
-          <thead class="table-dark">
-            <tr>
-              <th scope="col">No</th>
-              <th scope="col">Guest Names</th>
-              <th scope="col">Room Name</th>
-              <th scope="col">Room Type</th>
-              <th scope="col">Checked In at</th>
-              <th scope="col">Checked Out at</th>
-              <th scope="col">Count</th>
-              <th scope="col">Room Rate</th>
-              <th scope="col">Pax</th>
-            </tr>
-          </thead>
-          <tbody id="bookingTableBody">
-            <?php
-            $total = 0;
-            $no = 0;
-            $sql = $db->prepare("SELECT * FROM tbl_acc_booking where booking_status_id = 5 ORDER BY checkout_date DESC");
-            $sql->execute();
-            while($row = $sql->fetch()){
-              $checkin = new DateTime($row['checkin_date']);
-              $checkout = new DateTime($row['checkout_date']);
-              $duration = $checkin->diff($checkout)->days;
-              $checkin_str = htmlspecialchars($row['checkin_date']);
-            ?>
-            <tr data-checkin="<?php echo $checkin_str; ?>">
-              <td><strong><?php echo ++$no?></strong></td>
-              <td><strong><?php echo getGuestNames($row['guest_id'])?></strong></td>
-              <td><?php echo getRoomName(getBookedRoom($row['id'])) ?></td>
-              <td><?php echo getRoomClassType(getRoomClass(getBookedRoom($row['id']))) ?></td>
-              <td><?php echo $row['checkin_date']?></td>
-              <td><?php echo $row['checkout_date']; ?></td>
-              <td><?php echo $duration?></td>
-              <td><?php echo number_format($row['room_price'])?></td>
-              <td><?php echo $row['num_adults'] + $row['num_children']?></td>
-            </tr>
-            <?php }
-            ?>
-          </tbody>
-        </table>
-      </div>
-      <!-- Print-only signature footer placed right after the table -->
-      <div class="signature-section" style="display:none;">
-        <div class="signature-row">
-          <div class="signature-box" style="text-align:left;">
-            <strong>Printed by:</strong><br>
-            <?php 
-            $printedBy = '';
-            if (isset($_SESSION['user_fullname'])) { $printedBy = $_SESSION['user_fullname']; }
-            elseif (isset($_SESSION['fullname'])) { $printedBy = $_SESSION['fullname']; }
-            elseif (isset($_SESSION['name'])) { $printedBy = $_SESSION['name']; }
-            elseif (isset($_SESSION['username'])) { $printedBy = $_SESSION['username']; }
-            elseif (isset($_SESSION['f_name']) || isset($_SESSION['l_name'])) { $printedBy = trim(($_SESSION['f_name'] ?? '') . ' ' . ($_SESSION['l_name'] ?? '')); }
-            echo htmlspecialchars($printedBy ?? '', ENT_QUOTES, 'UTF-8');
-            ?><br>
-            <div class="sig-line"></div>
-            <small>Name & Signature</small>
-          </div>
-          <div class="signature-box">
-            <strong>Received by:</strong><br>
-            <br>
-            <div class="sig-line"></div>
-            <small>Name & Signature</small>
-          </div>
-          <div class="signature-box" style="text-align:right;">
-            <strong>Approved by:</strong><br>
-            <br>
-            <div class="sig-line"></div>
-            <small>Name & Signature</small>
-          </div>
-        </div>
-      </div>
-      <div style="text-align:center;font-size:10px;margin-top:20px;">
-        Printed on: <?php echo date("Y-m-d H:i:s"); ?>
-      </div>
-    </div>
-  </div>
-</div>
+$event_booking = 0;
+$sql = "SELECT * FROM tbl_ev_venue_reservations where status = 'Confirmed'";
+$result = $conn->query($sql);
 
-<script>
-// Date range filter for table rows (client-side only)
-function filterByDate() {
-  var from = document.getElementById('fromDate').value;
-  var to = document.getElementById('toDate').value;
-  var rows = document.querySelectorAll('#bookingTableBody tr');
-  rows.forEach(function(row) {
-    var checkin = row.getAttribute('data-checkin');
-    if (!from && !to) {
-      row.style.display = '';
-      return;
-    }
-    if (from && checkin < from) {
-      row.style.display = 'none';
-      return;
-    }
-    if (to && checkin > to) {
-      row.style.display = 'none';
-      return;
-    }
-    row.style.display = '';
-  });
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()){
+	  
+	  if($today==$row['reservation_date']){
+		 $event_booking = $event_booking + 1; 
+	  }
+	  
+	  
+}}
+
+
+
+$event_booking = 0;
+$sql = "SELECT * FROM tbl_ev_venue_reservations where status = 'Confirmed'";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()){
+	  
+	  if($today==$row['reservation_date']){
+		 $event_booking = $event_booking + 1; 
+	  }
+	  
+	  
+}}
+
+
+
+
+$room_sum = 0;
+$sql = "SELECT * FROM  payments ";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+ if($today==date('Y-m-d',$row['payment_time'])){   
+$room_sum  =  $room_sum + $row['amount'];
+	 }	
+}}
+
+
+
+
+
+$accoupied = 0;
+$sql = "SELECT * FROM  tbl_acc_room  where status_id = 2";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+	  
+	  
+$accoupied  =  $accoupied + 1;
+	 	
+	   
+
+	  	
+}}
+
+
+
+$available = 0;
+$sql = "SELECT * FROM  tbl_acc_room  where status_id = 3";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+	  
+	  
+$available  =  $available + 1;
+	 	
+	   
+
+	  	
+}}
+
+
+
+$customers = 0;
+$sql = "SELECT * FROM tbl_acc_guest ";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+	  
+$date = strtotime($row['created_at']);
+if($today==date('Y-m-d',$date)){   
+$customers  =  $customers + 1;
+	 }	
+	   
+
+	  	
+}}
+
+$venue_customer = 0;
+$sql = "SELECT * FROM tbl_ev_customers ";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+  $date = strtotime($row['created_at']);
+	  	 if($today==date('Y-m-d',$date)){   
+$venue_customer  =  $venue_customer + 1;
+	 }	
+	   
+
+	  	
+}}
+
+
+
+
+
+$expenses_payments = 0;
+$sql = "SELECT * FROM 	expenses ";
+$result = $conn->query($sql);
+
+if ($result->num_rows > 0) {
+  // output data of each row
+  while($row = $result->fetch_assoc()) {
+if($today==date('Y-m-d',$row['create_time'])){      
+$expenses_payments  =  $expenses_payments + $row['price'];
+		 }
+	  	
+}}
+
+
+
+
+	?>
+	
+
+
+
+
+
+
+<!-- / header -->
+
+
+
+        <div class="container">
+              <h5 class="card-header">Checkout Report<a href="print.php?page=checkutrepo" class="btn btn-info">Print</a ></h5>
+              <div class="text-nowrap table-responsive">
+                <table class="table">
+                  <thead>
+                    <tr>
+                    <th>No</th>
+                    <th>Guest Names</th>
+                    <th colspan="2">Room Type</th>
+                    <th>Checked In at</th>
+                    <th>Checked Out at</th>
+                    <th>Count</th>
+                    <th>Room Rate</th>
+                    <th>Pax</th>
+                    </tr>
+                  </thead>
+<tbody class="table-border-bottom-0">		  
+<?php
+$total = 0;
+$no = 0;
+$sql = $db->prepare("SELECT * FROM tbl_acc_booking where booking_status_id = 5 ORDER BY checkout_date DESC");
+                        		$sql->execute();
+                        		while($row = $sql->fetch()){
+	   //if(date('Y-m-d') >= $row['checkin_date']){
+	$checkin = new DateTime($row['checkin_date']);
+    $checkout = new DateTime($row['checkout_date']);
+    $duration = $checkin->diff($checkout)->days;
+	      
+		 ?>
+   <tr>
+       <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong><?php echo $no = $no+1?></strong></td>
+                      <td><i class="fab fa-angular fa-lg text-danger me-3"></i> <strong><?php echo getGuestNames($row['guest_id'])?></strong></td>
+                      <td><?php echo getRoomName(getBookedRoom($row['id'])) ?></td>
+                        <td><?php echo getRoomClassType(getRoomClass(getBookedRoom($row['id']))) ?></td>
+                      <td><?php echo $row['checkin_date']?></td>
+                        <td><?php  echo $row['checkout_date']; ?></td>
+                     
+                   
+                      <td><?php echo $duration?></td>
+                       <td><?php echo number_format($row['room_price'])?></td>
+                      <td>
+				<?php echo $row['num_adults'] + $row['num_children']?>
+					  </td>
+                
+                    </tr>		
+		
+		 <?php
+// 	  }
+	  
+	  
 }
-function resetDateFilter() {
-  document.getElementById('fromDate').value = '';
-  document.getElementById('toDate').value = '';
-  filterByDate();
-}
-</script>   
+			?>	  
+				  
+				  
+                 
+                 
+                   
+                  </tbody>
+                </table>
+                
+              </div>
+            </div>
+			
