@@ -1,7 +1,12 @@
 <?php
 
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+
+// Get values from get request
+
+$max = isset($_GET['max']) ? $_GET['max'] : 0;
+$price = isset($_GET['price']) ? $_GET['price'] : 0;
+ 
+ 
 ini_set('display_startup_errors', 1);
 
 include '../inc/conn.php';	
@@ -220,140 +225,85 @@ function fill_product($db){
     
         return getReqCode($_SESSION['user_id']);
     }
-    $pcode=productcode();
+    $pcode='REQ-'.productcode();
     ?>
 	
 	
 	<?php 
 	if(isset($_POST['addRequest'])){
 		
-		try {
-			$db->beginTransaction();
-			
-			$qty = floatval($_POST['qty']);
-			$price = floatval($_POST['price']);
-			$date = date("Y-m-d");
-			
-			// Step 1: Get the item_id, old values, and request status
-			$sql_chk = $db->prepare("SELECT rsi.*, sr.request_date, sr.status as request_status 
-			                          FROM request_store_item rsi 
-			                          LEFT JOIN store_request sr ON rsi.req_id = sr.req_id 
-			                          WHERE rsi.id = ?");
-			$sql_chk->execute([$_REQUEST['item']]);
-			
-			if($sql_chk->rowCount() > 0){
-				$rows = $sql_chk->fetch();
-				$item = $rows['item_id'];
-				$old_qty = floatval($rows['del_qty']);
-				$old_price = floatval($rows['del_price']);
-				$request_status = $rows['request_status'];
-				$delivery_date = $rows['updated_at'];
-				
-				// Step 2: Update request_store_item with new values (ALWAYS)
-				$sql = $db->prepare("UPDATE request_store_item SET del_qty = ?, del_price = ?, updated_at = NOW() WHERE id = ?");
-				$sql->execute([$qty, $price, $_REQUEST['item']]);
-				
-				// Check if request is confirmed (status = 1)
-				if($request_status == 1){
-					// REQUEST IS CONFIRMED - Update all 3 tables
-					
-					// Step 3: Find and update the corresponding tbl_progress entry
-					$find_progress = $db->prepare(
-						"SELECT prog_id FROM tbl_progress 
-						 WHERE item = ? 
-						 AND COALESCE(in_qty, 0) = ? 
-						 AND COALESCE(out_qty, 0) = 0
-						 ORDER BY prog_id DESC 
-						 LIMIT 1"
-					);
-					$find_progress->execute([$item, $old_qty]);
-					
-					if($find_progress->rowCount() > 0){
-						$prog_row = $find_progress->fetch();
-						$prog_id = $prog_row['prog_id'];
-						
-						// Update the specific progress entry
-						$update_progress = $db->prepare(
-							"UPDATE tbl_progress 
-							 SET in_qty = ?, new_price = ?
-							 WHERE prog_id = ?"
-						);
-						$update_progress->execute([$qty, $price, $prog_id]);
-						
-						// Step 4: Recalculate ALL tbl_progress transactions for this item
-						$recalc_sql = "
-							UPDATE tbl_progress p
-							INNER JOIN (
-								SELECT 
-									p1.prog_id,
-									(
-										SELECT COALESCE(SUM(COALESCE(p2.in_qty, 0) - COALESCE(p2.out_qty, 0)), 0)
-										FROM tbl_progress p2
-										WHERE p2.item = p1.item
-										  AND (p2.date < p1.date OR (p2.date = p1.date AND p2.prog_id < p1.prog_id))
-									) AS new_last_qty,
-									(
-										SELECT COALESCE(SUM(COALESCE(p2.in_qty, 0) - COALESCE(p2.out_qty, 0)), 0)
-										FROM tbl_progress p2
-										WHERE p2.item = p1.item
-										  AND (p2.date < p1.date OR (p2.date = p1.date AND p2.prog_id <= p1.prog_id))
-									) AS new_end_qty
-								FROM tbl_progress p1
-								WHERE p1.item = ?
-							) calc ON p.prog_id = calc.prog_id
-							SET 
-								p.last_qty = calc.new_last_qty,
-								p.end_qty = calc.new_end_qty
-						";
-						
-						$recalc_stmt = $db->prepare($recalc_sql);
-						$recalc_stmt->execute([$item]);
-						
-						// Step 5: Sync tbl_item_stock with the latest end_qty from tbl_progress
-						$sync_stock = $db->prepare(
-							"UPDATE tbl_item_stock s
-							 INNER JOIN (
-								 SELECT 
-									 p1.item,
-									 p1.end_qty,
-									 p1.date
-								 FROM tbl_progress p1
-								 WHERE p1.item = ?
-								 ORDER BY p1.date DESC, p1.prog_id DESC
-								 LIMIT 1
-							 ) latest ON s.item = latest.item
-							 SET 
-								 s.qty = latest.end_qty,
-								 s.date_tkn = latest.date"
-						);
-						$sync_stock->execute([$item]);
-						
-						$db->commit();
-						
-						echo "<script>alert('✓ CONFIRMED Delivery Updated!\\n\\nOld Qty: $old_qty → New Qty: $qty\\n\\n✓ Updated request_store_item\\n✓ Updated tbl_progress\\n✓ Updated tbl_item_stock\\n\\nAll stock quantities recalculated.'); window.location='index?resto=viewDelivery&&id=".$_REQUEST['pitem']."'</script>";
-						
-					} else {
-						$db->rollBack();
-						echo "<script>alert('⚠ Warning: Could not find matching progress entry.\\n\\nOld Qty: $old_qty not found in tbl_progress for item $item.\\n\\nOnly request_store_item was updated.'); window.location='index?resto=viewDelivery&&id=".$_REQUEST['pitem']."'</script>";
-					}
-					
-				} else {
-					// REQUEST NOT CONFIRMED - Only update request_store_item (already done in Step 2)
-					$db->commit();
-					
-					echo "<script>alert('✓ Delivery Updated (Not Confirmed)\\n\\nOld Qty: $old_qty → New Qty: $qty\\nOld Price: $old_price → New Price: $price\\n\\n✓ Updated request_store_item only\\n\\nNote: Stock tables will be updated when you confirm this delivery.'); window.location='index?resto=viewDelivery&&id=".$_REQUEST['pitem']."'</script>";
-				}
-				
-			} else {
-				throw new Exception("Request item not found");
-			}
-			
-		} catch (Exception $e) {
-			if($db->inTransaction()){
-				$db->rollBack();
-			}
-			echo "<script>alert('❌ Error updating delivery:\\n\\n" . addslashes($e->getMessage()) . "\\n\\nFile: " . addslashes($e->getFile()) . "\\nLine: " . $e->getLine() . "'); history.back();</script>";
-		}
+		
+		
+		$qty = $_POST['qty'];
+		$price= $_POST['price'];
+		
+	
+	
+	
+  $sql_chk = $db->prepare("SELECT * FROM request_store_item WHERE id = '".$_REQUEST['item']."'");
+        $sql_chk->execute();
+        if($sql_chk->rowCount() > 0){
+            $rows = $sql_chk->fetch();
+            $item = $rows['item_id'];
+        }
+
+
+	
+
+	
+$sql = "UPDATE request_store_item SET del_qty='$qty',del_price='$price' WHERE id='".$_REQUEST['item']."'";
+if ($conn->query($sql) === TRUE) {
+    $id= $_REQUEST['delivery'];
+    
+  // echo "<script>window.location='index?resto=viewDelivery&&id=$id'</script>";
+  
+  //echo "<script>alert('$item')</script>";
+} else {
+  echo "Error: " . $sql . "<br>" . $conn->error;
+}
+
+
+    
+		$qty = $_POST['qty'];
+		$date = date("Y-m-d");
+		
+        $sql_chk = $db->prepare("SELECT * FROM tbl_item_stock WHERE item = '".$item."'");
+        $sql_chk->execute();
+        if($sql_chk->rowCount() > 0){
+            $rows = $sql_chk->fetch();
+            $quantity = $rows['qty'];
+            $totqty = $qty+$quantity;
+            
+            $sqlqty = $db->prepare("UPDATE `tbl_item_stock` SET `qty` = '$totqty' WHERE `item` = '".$item."'");
+            $sqlqty->execute();
+
+            $sql_chk2 = $db->prepare("SELECT * FROM tbl_progress WHERE item = '".$item."' ORDER BY prog_id DESC LIMIT 1");
+            $sql_chk2->execute();
+            $rowcount = $sql_chk2->rowCount();
+                $fetch = $sql_chk2->fetch();
+                $lastqty = $fetch['end_qty'];
+                $tot = $lastqty+$qty;
+                
+            $stmts = $db->prepare("INSERT INTO `tbl_progress` (`date`,`in_qty`,`last_qty`,`item`, `end_qty`,new_price) 
+            VALUES ('$date','$qty','$lastqty', '$item','$tot','$price')");
+            $stmts->execute();
+            
+        }else{
+		
+			 $conn->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            $sql = "INSERT INTO `tbl_item_stock`(`item`, `qty`,`date_tkn`) 
+            VALUES ('$item', '$qty','$date')";
+            $conn->exec($sql);
+        }
+        
+        // echo getAverage($_REQUEST['item']);
+        // echo "<script>window.location=history.go(-1);</scrript>";
+        echo "<script>window.location='index?resto=viewDelivery&&id=".$_REQUEST['pitem']."'</script>";
+ 
+ 
+//  echo "<script>window.location=history.go(-1);</scrript>";
+//  echo "<script>window.location='index?resto=viewDelivery&&id=$id'</script>";
+		
 		
 	}?>
 	
@@ -419,20 +369,20 @@ function fill_product($db){
 
 	
                 <div class="col-md-4">
-<input type="number" name="qty" placeholder="enter Quantity" step=".01" class="form-control">	
-	
+                  <input type="number" name="qty" value="<?php echo $max; ?>" placeholder="enter Quantity" step=".01" class="form-control" min='0'>	
                 </div>
-                    <label class="col-md-2 control-label" for=""><strong>Unit price</strong></label>
+                    <label class="col-md-2 control-label" for=""><strong>Unit price</strong>
+                    <span class="text-danger">*</span></label>
                 <div class="col-md-4">
-                             <input type="number" name="price" step=".01" placeholder="enter Unit Price" class="form-control">	
+                             <input type="number" required name="price" value="<?php echo $price; ?>" step=".01" placeholder="enter Unit Price" min="0" class="form-control">	
 		
   </select>	
                 </div>
             </div>
             </div>
             <br>
-       
-              <input type="submit" name="addRequest" Value="Save">
+
+              <input type="submit" class="btn bg-info text-dark" name="addRequest" Value="Save" onclick="return confirm('Are you sure you want to save this delivery of <?php echo $item_name; ?>?')">
             </form>
 			
             </div>

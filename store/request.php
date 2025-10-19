@@ -3,6 +3,7 @@ include '../inc/conn.php';
 if(ISSET($_GET['ac'])){
     $code = $_GET['ac'];
     $date = date("Y-m-d");
+    $supplier = $_GET['supplier'];
     
     $sql = $db->prepare("SELECT * FROM tbl_request_details WHERE req_code = '".$code."'");
     $sql->execute();
@@ -28,8 +29,8 @@ if(ISSET($_GET['ac'])){
           $lastqty = $fetch['end_qty'];
           $tot = $lastqty-$currqty;
           
-      $stmts = $db->prepare("INSERT INTO `tbl_progress` (`date`,`out_qty`,`last_qty`,`item`, `end_qty`) 
-      VALUES ('$date','$currqty','$lastqty', '".$rows['items']."','$tot')");
+      $stmts = $db->prepare("INSERT INTO `tbl_progress` (`date`,`out_qty`,`last_qty`,`item`, `end_qty`, `supplier`) 
+      VALUES ('$date','$currqty','$lastqty', '".$rows['items']."','$tot', '$supplier')");
       $stmts->execute();
     }
     $msg = "Confirmed Successfully";
@@ -154,10 +155,24 @@ if ($conn->query($sql) === TRUE) {
                     <label class="col-md-2 control-label" for=""><strong>Remark</strong></label>
                    <textarea class="form-control" name="remark" name="remark" required></textarea>
                   </div>
+
+                  <div class="col-md-12 col-12">
+                    <label class="col-md-2 control-label" for=""><strong>Supplier</strong></label>
+                    <select class="form-control" name="supplier" required>
+                      <option value="">Select Supplier</option>
+                      <?php
+                      $supplierQuery = $db->query("SELECT * FROM suppliers");
+                      while ($supplier = $supplierQuery->fetch(PDO::FETCH_ASSOC)) {
+                          echo "<option value='{$supplier['id']}'>{$supplier['name']}</option>";
+                      }
+                      ?>
+                    </select>
+                  </div>
+
                   
                   <div class="col-md-12 col-12">
                    <hr>
-                   <input type="submit" class="form-control" name="addRequest" Value="Create Request">
+                   <input type="submit" class="form-control bg-info" name="addRequest" Value="Create Request">
                   </div>
 
                  

@@ -69,7 +69,7 @@ foreach ($rows as $row) {
         </h5>
 
         <!-- Date Filter Form -->
-        <form method="GET" action="/pms/room/index" class="mb-3" style="margin: 20px 0;">
+        <form method="GET" action="./index?resto=breakfast&" class="mb-3" style="margin: 20px 0;">
             <input type="hidden" name="resto" value="breakfast">
             
             <label><strong>Start Date:</strong></label>

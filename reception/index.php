@@ -185,6 +185,12 @@ switch ($view) {
         $title = "New Order";
         $page = 'takeOrder.php';
         break;
+    
+    case 'printInternal':
+		$title = 'Print Internal Request';
+		$page = 'print_internal.php';
+		break;
+        
     default:
         $title = "Home";
         $page = 'Manage_CheckIn_guest.php';

@@ -462,6 +462,9 @@ if ($conn->query($sql) === TRUE) {
                            $daf = isset($fetch['daf']) ? trim($fetch['daf']) : '';
                            $md = isset($fetch['md']) ? trim($fetch['md']) : '';
 
+                          //  
+                          // echo "<script>alert('Status: $status, DAF: $daf, MD: $md');</script>";
+
                            if($status == 0 && !empty($daf) && !empty($md)){
                                // Approved by MD - show confirm button
                            ?>
@@ -514,7 +517,7 @@ if ($conn->query($sql) === TRUE) {
 					
                         <?php if(empty($_GET['req'])){ ?>
                         <div id="content">
-                            <a href="?resto=addDeliveryItem&&req=<?php echo $_REQUEST['id']?>" class="btn btn-primary">Add Item</a>
+                            <!-- <a href="?resto=addDeliveryItem&&req=<?php echo $_REQUEST['id']?>" class="btn btn-primary">Add Item</a> -->
                         <div class="table-responsive">
                             <table id="data-table-basic" class="table table-striped table-bordered" id="content">
                                  <thead>
@@ -581,10 +584,45 @@ if ($conn->query($sql) === TRUE) {
                                              <td><?php echo number_format((float)$fetch['del_qty'],3); ?> </td>
                                              <td><?php echo number_format((float)$fetch['del_price'],3); ?></td>
                                               <td><?php echo number_format((float)($fetch['del_qty'] * $fetch['del_price']), 3); ?></td>
-                                                 <td><a class="btn btn-primary" href="?resto=editDelivery&&delivery=5&&item=<?php echo $fetch['id']?>&&pitem=<?php echo $_REQUEST['id']; ?>">Edit</a></td>
-                                                 <td><a class="btn btn-danger" href="?resto=viewDelivery&&req_id=<?php echo $fetch['id']?>&delete=true" 
-                                               onclick="return confirm('Are you sure you want to delete?')"
-                                                 >Delete</a></td>
+                                              
+                                              <?php
+                                              // echo "<script>alert('Status: $status, DAF: $daf, MD: $md');</script>";
+                                              if (!empty($daf) && !empty($md)) {
+                                                  // Approved by MD and DAF - disable edit/delete
+                                                  $max = $fetch['pur_qty'] - $fetch['del_qty'];
+                                                  ?>
+                                                    <td>
+                                                      <?php
+                                                      if($max <= 0){
+                                                          echo "<span class='text-success'>Fully Delivered</span>";
+                                                      } else {
+                                                          ?>
+                                                      <a class="btn btn-primary" href="?resto=editDelivery&&delivery=5&&item=<?php echo $fetch['id']?>&&pitem=<?php echo $_REQUEST['id']; ?>&max=<?php echo $fetch['pur_qty']; ?>&price=<?php echo $fetch['pur_price']; ?>">Edit</a>
+                                                      <?php
+                                                      }
+                                                      ?>
+                                                    </td>
+                                                    
+                                                  <?php
+                                              } else {
+                                                if(empty($fetch['daf'])) {
+                                                  ?>
+                                                  <td colspan='2'><span class="text-danger">Not Approved, Waiting for DAF's Approval</span></td>
+                                                  <?php
+                                                } else if(empty($fetch['md'])) {
+                                                  ?>
+                                                  <td colspan='2'><span class="text-danger">Not Approved, Waiting for MD's Approval</span></td>
+                                                  <?php
+                                                }
+                                                ?>
+                                                <td>
+                                                      <a class="btn btn-danger" href="?resto=viewDelivery&&req_id=<?php echo $fetch['id']?>&delete=true" 
+                                                  onclick="return confirm('Are you sure you want to delete?')"
+                                                    >Delete</a>
+                                                  </td>
+                                                <?php
+                                              }
+                                              ?>
                                           
                                          
                                      	</tr>

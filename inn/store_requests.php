@@ -227,7 +227,7 @@ if ($conn->query($sql) === TRUE) {
                                             <td><?php  if($fetch['status']==1){
 												echo 'Approved';
 											}else{
-												echo 'Pedding';
+												echo 'Pending';
 											}; ?></td>
 											
 											                            <td>     
