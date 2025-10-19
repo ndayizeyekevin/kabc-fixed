@@ -240,7 +240,7 @@ if ($conn->query($sql) === TRUE) {
                                 <tbody>
                                     <?php
                                     $i = 0;
-                                		$result = $db->prepare("SELECT * FROM  store_request ORDER BY  req_id DESC");
+                                		$result = $db->prepare("SELECT * FROM store_request ORDER BY req_id DESC");
                                         $result->execute();
                                 		while($fetch = $result->fetch()){
                                 		    $i++;
@@ -252,11 +252,23 @@ if ($conn->query($sql) === TRUE) {
                                             <td><?php echo $fetch['request_date']; ?></td>
                                             <td><?php echo $fetch['required_date']; ?></td>
                                            
-                                            <td><?php  if($fetch['status']==1){
-												echo 'Approved';
-											}else{
-												echo 'Pedding';
-											}; ?></td>
+                                            <td><?php
+												$status = (int)$fetch['status'];
+												$daf = isset($fetch['daf']) ? trim($fetch['daf']) : '';
+												$md = isset($fetch['md']) ? trim($fetch['md']) : '';
+
+												if($status === 1){
+													echo 'Received';
+												} elseif($status === 0 && empty($daf)){
+													echo 'Pending';
+												} elseif($status === 0 && !empty($daf) && empty($md)){
+													echo 'Reviewed by ' . htmlspecialchars($daf);
+												} elseif($status === 0 && !empty($daf) && !empty($md)){
+													echo 'Approved by ' . htmlspecialchars($md);
+												} else {
+													echo 'Unknown Status';
+												}
+											?></td>
                                             <td>
 								
                                               <?php echo getSupplierName($fetch['supplier'])?>
