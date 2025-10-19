@@ -29,10 +29,13 @@ if(isset($_POST['addpayment'])){
 		
 		 $rate = getCurrencyValue($currency);
 		 
+		 //currency_amount
+         $currency_amount = $amount;
+         //  Total in RWF
 		 $amount = $amount * $rate;
-		 
-		 
-$sql = "INSERT INTO `venue_payments` (`payment_id`, `booking_id`, `amount`, `payment_time`, `method`,remark,currency,rate) VALUES (NULL, '$re_id', '$amount', ' $date', '$method','$remark','$currency','$rate');";
+
+
+$sql = "INSERT INTO `venue_payments` (`payment_id`, `booking_id`, `amount`, `payment_time`, `method`,remark,currency, currency_amount, rate) VALUES (NULL, '$re_id', '$amount', ' $date', '$method','$remark','$currency','$currency_amount','$rate');";
 
 if ($conn->query($sql) === TRUE) {
  // echo "<script>alert('Payment Added')</script>";
@@ -481,13 +484,22 @@ $sql = $db->prepare("SELECT * FROM tbl_ev_venue_reservations where id='$re_id'")
 
 
 
-$sql = $db->prepare("SELECT amount FROM tbl_ev_venue_reservations WHERE id = :reservation_id LIMIT 1");
+$sql = $db->prepare("SELECT amount, reservation_date, reservation_end_date FROM tbl_ev_venue_reservations WHERE id = :reservation_id LIMIT 1");
 $sql->bindParam(':reservation_id', $re_id, PDO::PARAM_INT);
 $sql->execute();
 if ($reservationRow = $sql->fetch(PDO::FETCH_ASSOC)) {
-    $booking_amount = (float)$reservationRow['amount'];
+    $daily_rate = (float)$reservationRow['amount'];
+    $start_date = strtotime($reservationRow['reservation_date']);
+    $end_date = strtotime($reservationRow['reservation_end_date']);
+
+    // Calculate number of days (inclusive of both start and end date)
+    $num_days = max(1, (($end_date - $start_date) / 86400) + 1);
+
+    // Calculate total venue cost based on daily rate and number of days
+    $booking_amount = $daily_rate * $num_days;
 } else {
     $booking_amount = 0.0; // No amount found for this reservation
+    $num_days = 0;
 }
 
 
@@ -535,7 +547,7 @@ if ($reservationRow = $sql->fetch(PDO::FETCH_ASSOC)) {
 
 
 
-<?php 
+<?php
 
 
 $amountToPay = 0;
@@ -544,23 +556,23 @@ $sql = $db->prepare("SELECT * FROM venu_orders where booking_id='$re_id'");
                         		$sql->execute();
                         		while($row = $sql->fetch()){
 
- 
- //$amountToPay = $amountToPay + $row['price'] ;
+
+ $amountToPay = $amountToPay + ($row['qty'] * $row['price']);
 
 
 }
 
-// Use venue base rate only
-$amountToPay = (float)$booking_amount;
+// Add venue base rate to items total
+$amountToPay = $amountToPay + (float)$booking_amount;
 $paidAmount = 0;
 $sql = "";
 $sql = $db->prepare("SELECT * FROM venue_payments where booking_id='$re_id'");
                         		$sql->execute();
                         		while($row = $sql->fetch()){
 
- 
+
  $paidAmount = $paidAmount + $row['amount'];
- 
+
 }
 
 
@@ -779,65 +791,80 @@ $sql = $db->prepare("SELECT * FROM tbl_ev_venue_reservations where id='$re_id'")
                                             <i class="bx bx-plus"></i> Add items
                                         </button>
                                         
-                                        <a href="?resto=print_function_sheet&&booking_id=<?php echo $_REQUEST['booking_id']?>">View and Print</a>
+                                        <a target="_blank" href="?resto=print_function_sheet&&booking_id=<?php echo $_REQUEST['booking_id']?>">View and Print</a>
                                     </div>
                                     <div class="card-body">
 
   
-<table class="table table-considered">
-    <thead>
-        <tr>
-            <th>Item</th>
-            <th>Quantity</th>
-            <th>Price</th>
-            <th>Total</th>
-        </tr>
-    </thead>
-    <tbody>
-        <?php
-        $sql = $db->prepare("SELECT * FROM venu_orders where booking_id='".$_REQUEST['booking_id']."'");
-        $sql->execute();
-        $grandTotal = 0;
-        while($row = $sql->fetch()){
-            $total = $row['qty'] * $row['price'];
-            $grandTotal += $total;
-        ?>
-        <tr>
-            <td><?php echo $row['item']; ?></td>
-            <td><?php echo $row['qty']; ?></td>
-            <td><?php echo number_format($row['price'], 2); ?> RWF</td>
-            <td><?php echo number_format($total, 2); ?> RWF</td>
-            <td>
-                <div class="btn-group" role="group">
-                    <button type="button" class="btn btn-sm btn-outline-primary"
-                            onclick="editItem(<?php echo $row['order_id']; ?>, '<?php echo addslashes($row['item']); ?>', <?php echo $row['qty']; ?>, <?php echo $row['price']; ?>)"
-                            title="Edit Item">
-                        <i class="bx bx-edit"></i> Edit
-                    </button>
-                    <button type="button" class="btn btn-sm btn-outline-danger"
-                            onclick="deleteItem(<?php echo $row['order_id']; ?>, '<?php echo addslashes($row['item']); ?>')"
-                            title="Delete Item">
-                        <i class="bx bx-trash"></i> Delete
-                    </button>
-                </div>
-            </td>
-        </tr>
-        <?php
-        }
-        ?>
-        <tr style="border-top: 2px solid #000; font-weight: bold;">
-            <td colspan="3" style="text-align: right;">Grand Total:</td>
-            <td><?php echo number_format($grandTotal, 2); ?> RWF</td>
-        </tr>
-    </tbody>
-</table>
-<br><br>
-<table class="table table-considered">
-<tr> <th> PAX NUMBER</th><th><form method="POST"><input type="text" name="paxnumber" value="<?php echo $pax?>" class="form-control"><br> <input type="submit" name="savepax" value="save" class="btn btn-primary"></form></th> </tr>   
-<tr> <th> OTHER NOTE</th><th><form method="POST"><input type="text" name="functionnotes"  value="<?php echo $note?>" class="form-control"> <br> <input type="submit" name="savenote"  value="save" class="btn btn-primary"></form></th> </tr>    
+    <table class="table table-considered">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Quantity</th>
+                <th>Price</th>
+                <th>Total</th>
+            </tr>
+        </thead>
+        <tbody>
+            <?php
+            $sql = $db->prepare("SELECT * FROM venu_orders where booking_id='".$_REQUEST['booking_id']."'");
+            $sql->execute();
+            $grandTotal = 0;
+            while($row = $sql->fetch()){
+                $total = $row['qty'] * $row['price'];
+                $grandTotal += $total;
+            ?>
+            <tr>
+                <td><?php echo $row['item']; ?></td>
+                <td><?php echo $row['qty']; ?></td>
+                <td><?php echo number_format($row['price'], 2); ?> RWF</td>
+                <td><?php echo number_format($total, 2); ?> RWF</td>
+                <td>
+                    <div class="btn-group" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-info"
+                                onclick="editItem(<?php echo $row['order_id']; ?>, '<?php echo addslashes($row['item']); ?>', <?php echo $row['qty']; ?>, <?php echo $row['price']; ?>)"
+                                title="Edit Item">
+                            <i class="bx bx-edit"></i> Edit
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger"
+                                onclick="deleteItem(<?php echo $row['order_id']; ?>, '<?php echo addslashes($row['item']); ?>')"
+                                title="Delete Item">
+                            <i class="bx bx-trash"></i> Delete
+                        </button>
+                    </div>
+                </td>
+            </tr>
+            <?php
+            }
+            ?>
+            <tr style="border-top: 2px solid #000; font-weight: bold;">
+                <td colspan="3" style="text-align: right;">Grand Total:</td>
+                <td><?php echo number_format($grandTotal, 2); ?> RWF</td>
+            </tr>
+        </tbody>
+    </table>
+    <br><br>
+    <table class="table table-considered">
+        <tr> 
+            <th> PAX NUMBER</th>
+            <th>
+                <form method="POST">
+                <input type="text" name="paxnumber" value="<?php echo $pax?>" class="form-control"><br> 
+                <input type="submit" name="savepax" value="Save Pax Number" class="btn btn-primary text-primary">
+                </form>
+            </th> 
+        </tr>   
+        <tr> 
+            <th> OTHER NOTE</th>
+            <th>
+                <form method="POST">
+                    <input type="text" name="functionnotes"  value="<?php echo $note?>" class="form-control"> <br> <input type="submit" class="btn btn-success text-success" name="savenote"  value="Save Note">
+                </form>
+            </th> 
+        </tr>    
 
-    
-</table>
+        
+    </table>
 								
 										
 										
@@ -865,13 +892,35 @@ $sql = $db->prepare("SELECT * FROM tbl_ev_venue_reservations where id='$re_id'")
 								             <div class="row">
                             <div class="col-xl">
                                 <div class="card mb-4">
+                                    <?php
+                                    if($paidAmount > 0){
+                                        ?>
+                                        <!-- Create Refund Link -->
+                                        <div class="card-header d-flex justify-content-between align-items-center">
+                                            <h5 class="mb-0">Refunds</h5>
+                                            <a href="./?resto=venue_refund&booking_id=<?php echo $re_id; ?>&balance=<?php echo $paidAmount; ?>" class="btn btn-outline-primary">
+                                                <i class="bx bx-minus"></i> Make Refund
+                                            </a>
+                                        </div>
+                                        <?php
+                                    }
+                                    ?>
+
                                     <div class="card-header d-flex justify-content-between align-items-center">
                                         <h5 class="mb-0">Payments</h5>
                                       <?php if(!$due_amount==0){?>  <button type="button" id="addpayment" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addpaymentModal">
                                             <i class="bx bx-plus"></i> New Payment
                                         </button>
-									  <?php } ?>
+									  <?php } else if($due_amount==0){ ?>
+                                        
+                                            <button type="button" class="btn btn-info">
+                                                    <i class="bx bx-check"></i> Fully Paid No Payments Needed
+                                            </button>
+                                        
+                                        <?php }
+                                       ?>
                                     </div>
+                                    
                                     <div class="card-body">
                                         <!-- Venues List -->
                                        
@@ -893,7 +942,7 @@ $sql = $db->prepare("SELECT * FROM tbl_ev_venue_reservations where id='$re_id'")
 											
 											$sum = 0;
 											$sql = " ";
-$sql = $db->prepare("SELECT * FROM venue_payments WHERE booking_id='$re_id'");
+    $sql = $db->prepare("SELECT * FROM venue_payments WHERE booking_id='$re_id'");
                         		$sql->execute();
                         		while($row = $sql->fetch()){
 	?>
@@ -919,7 +968,13 @@ $sql = $db->prepare("SELECT * FROM venue_payments WHERE booking_id='$re_id'");
                                                   
                                             </tbody>
                                         </table>
-
+<div class="card mt-3">
+                                            <div class="card-body text-center">
+                                                <a href="progressive_venue_receipt.php?booking_id=<?php echo $_REQUEST['booking_id']; ?>" target="_blank" class="btn btn-success">
+                                                    <i class="bx bx-printer"></i> Print Progressive Receipt
+                                                </a>
+                                            </div>
+                                        </div>
                                         <!-- Pagination -->
                                         <nav class="mt-2" aria-label="Page navigation">
                                             <ul class="pagination" id="pagination">
@@ -959,10 +1014,18 @@ $sql = $db->prepare("SELECT * FROM venue_payments WHERE booking_id='$re_id'");
 										  <a href="" class="btn btn-danger" >
                                            Unpaid Payments
                                         </a><?php
-									  } ?>
+									  } 
+                                      if ($balance > 0) {
+                                          $payment_status = 'Unpaid';
+                                      } else {
+                                          $payment_status = 'Paid';
+                                      }
+ 
+                                      
+                                      ?>
 							
 							
-							 <?php if($payment_status=='Confirmed' && $due_amount==0)
+							 <?php if($payment_status=='Paid' && $due_amount==0)
   {?>  <button onclick="printInvoice()" class="btn btn-info" >
                                             <i class="bx bx-check"></i> Print Invoice
                                         </button>
@@ -1035,9 +1098,9 @@ if ($result->num_rows > 0) {
 										-------------------------------------
 										<div class="row">
 										<div class="col-md-6">
-										<p>Venue rent</p>
+										<p>Venue rent (<?php echo $num_days; ?> day<?php echo $num_days > 1 ? 's' : ''; ?> @ <?php echo number_format($daily_rate, 2); ?> RWF/day)</p>
 										</div>
-										
+
 											<div class="col-md-6">
 										<p class="pull-end"><?php echo number_format($booking_amount)?> RWF</p>
 										</div>
@@ -1054,8 +1117,8 @@ if ($result->num_rows > 0) {
 										<div class="col-md-6">
 										<p class="pull-end"><?php 
 
-$vat = $booking_amount * 0.18;
-echo number_format($vat)?> RWF
+                                            $vat = $booking_amount * 0.18;
+                                            echo number_format($vat)?> RWF
 										</div>
 										</div>
 						
@@ -1066,7 +1129,7 @@ echo number_format($vat)?> RWF
 										</div>
 										
 										<div class="col-md-6">
-										<p><?php echo number_format($booking_amount + $vat);?> RWF</p>
+										<p><?php echo number_format($booking_amount);?> RWF</p>
 										</div>
 										</div>
 										
@@ -1196,6 +1259,7 @@ echo number_format($vat)?> RWF
                                     class="form-control"
                               name="amount"
                               id="amounts"
+                            
                                     placeholder="Amount"
                                    value="<?php echo $due_amount ?>"
                                     required 
@@ -1224,28 +1288,24 @@ echo number_format($vat)?> RWF
                         </div>
 						
 						
-									             <div class="mb-3">
-                            <label class="form-label" for="venue_type">Currency</label>
-                            <div class="input-group input-group-merge">
-                                <span id="venue_type_label" class="input-group-text"></i></span>
-                                <select
-                                    class="form-control"
-                                   name="currency"
-                                    required>
-									
-									
-<?php $sql = "";
-$sql = $db->prepare("SELECT * FROM currencies");
-                        		$sql->execute();
-                        		while($row = $sql->fetch()){
-?><option value='<?php echo $row['currency_id']?>'><?php echo $row['name']?> - (Rate: <?php echo $row['currency_exchange']?>)</option><?php
-  }
-
-?>
-                                   
-                                </select>
-                            </div>
-                        </div>
+									             
+                            <div class="mb-3">
+                                                        <label class="form-label" for="currency-tab">Currency</label>
+                                                        <div class="input-group input-group-merge">
+                                                            <span class="input-group-text"></span>
+                                                            <select id="currency-tab" onchange="convertCurrency('currency-tab', 'amounts', 'convertedAmount-tab')" class="form-control" name="currency" required>
+                                                                <?php
+                                                                $sql = $db->prepare("SELECT * FROM  currencies");
+                                                                $sql->execute();
+                                                                while ($row = $sql->fetch()) {
+                                                                ?><option value='<?php echo $row['currency_id'] ?>' data-rate='<?php echo $row['currency_exchange'] ?>'><?php echo $row['name'] ?> - (Rate: <?php echo $row['currency_exchange'] ?>)</option><?php
+                                                                }
+                                                                ?>
+                                                            </select>
+                                                        </div>
+                                                    </div>
+                                                    <small id="convertedAmount-tab" class="form-text text-muted"></small>
+                           
 						
 						
 						
@@ -1317,8 +1377,27 @@ $sql = $db->prepare("SELECT * FROM currencies");
   
     <script>
     
+     function convertCurrency(selectId, amountId, convertedId) {
+        var select = document.getElementById(selectId);
+        var rate = parseFloat(select.options[select.selectedIndex].getAttribute('data-rate'));
+        var dueAmount = <?php echo $due_amount ?>;
+        
+        if (!isNaN(rate) && rate > 0) {
+            var convertedAmount = dueAmount / rate;
+            document.getElementById(amountId).value = convertedAmount.toFixed(2);
+            if (convertedId) {
+                document.getElementById(convertedId).innerHTML = 'Equivalent to ' + dueAmount.toFixed(2) + ' RWF at rate ' + rate;
+            }
+        } else {
+            document.getElementById(amountId).value = dueAmount.toFixed(2);
+            if (convertedId) {
+                document.getElementById(convertedId).innerHTML = '';
+            }
+        }
+    }
     
-     function convert(){
+   
+    function convert(){
          var currency = document.getElementById('currency').value;
          var amount = <?php echo $due_amount?>;
         
@@ -1565,3 +1644,4 @@ function deleteItem(orderId, itemName) {
     }
 }
 </script>
+
