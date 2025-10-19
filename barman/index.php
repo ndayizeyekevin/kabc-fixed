@@ -79,6 +79,11 @@ switch ($view) {
 		$title = "request";
 		$page = 'waiter_report.php';
 		break;
+	
+	case 'printInternal':
+		$title = 'Print Internal Request';
+		$page = 'print_internal.php';
+		break;
 
 	default:
 		$title = "Home";

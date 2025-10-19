@@ -300,6 +300,16 @@ case 'venue_inventory':
 		$page = 'venue_refund.php';
 		break;
 
+	// Internal Request
+	case 'request':
+		$title = 'Internal Request';
+		$page = 'request.php';
+		break;
+	
+	case 'printInternal':
+		$title = 'Print Internal Request';
+		$page = 'print_internal.php';
+		break;
 
 
 	default:

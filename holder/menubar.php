@@ -475,7 +475,7 @@ include "switch_role.php";
                        <?php
                      if($_SESSION['log_role'] == '3'){
                     ?>
-                    <ul class="nav nav-tabs notika-menu-wrap menu-it-icon-pro">
+                    <ul class="nav nav-tabs notika-menu-wrap menu-it-icon-pro container px-5">
                         <li><a href="?resto=home"><i class="fa fa-tachometer"></i>Dashboard</a></li>
 
             		      <li><a href="?resto=Guestsr"><i class="fa fa-file"></i> Guests </a></li>
@@ -486,12 +486,14 @@ include "switch_role.php";
             		      <li><a href="?resto=venue_booking_list"><i class="fa fa-sticky-note-o"></i> Venue reservation</a></li>
             		       <li><a href="?resto=groups"><i class="fa fa-sticky-note-o"></i>Groups</a></li>
             		           <li><a href="?resto=credit_account"><i class="fa fa-sticky-note-o"></i>Credits Sales</a></li>
-            		        <li><a href="?resto=customers"><i class="fa fa-sticky-note-o"></i> Venue Customers</a></li>
-            		      <li><a data-toggle="tab" href="#chk"><i class="fa fa-file"></i> Report <i class="fa fa-angle-down"></i></a></li>
+            		        <li class="pt-4"><a href="?resto=customers"><i class="fa fa-sticky-note-o"></i> Venue Customers</a></li>
+                            <!-- Make Internal Request -->
+                            <li class="pt-4"><a href="?resto=request"><i class="fa fa-shopping-cart"></i> Request Materials</a></li>
+            		      <li class="pt-4"><a data-toggle="tab" href="#chk"><i class="fa fa-file"></i> Report <i class="fa fa-angle-down"></i></a></li>
             		     <?php
-            		      if (isset($_SESSION['real_admin_role'])): ?>
-    <li><a href="?access_as=1" class="btn btn-outline-warning">Back to Admin</a></li>
-<?php endif; ?>
+            		        if (isset($_SESSION['real_admin_role'])): ?>
+                            <li class="pt-4"><a href="?access_as=1" class="btn btn-outline-warning">Back to Admin</a></li>
+                         <?php endif; ?>
 	                </ul>
 
                     <div class="tab-content custom-menu-content">
@@ -501,7 +503,7 @@ include "switch_role.php";
                                 <li><a href="?resto=Booking_list"> Booking List</a></li>
                                 <li><a href="?resto=inhouse"> In House</a></li>
                                 <li><a href="?resto=checkutrepo"> Checked out</a></li>
-                                  <li><a href="?resto=expected_arrival"> Expected Arriaval</a></li>
+                                  <li><a href="?resto=expected_arrival"> Expected Arrival</a></li>
                                 <li><a href="?resto=breakfast"> Breakfast Report</a></li>
                                   <li><a href="?resto=rent"> Rental Report</a></li>
                                 <li><a href="?resto=rooming"> Rooming</a></li>
@@ -672,7 +674,7 @@ include "switch_role.php";
 
                      <?php     } ?>
                       <?php if($_SESSION['log_role']==12 || $_SESSION['log_role']==9){ ?>
-                        <li><a href="?resto=requests" >Internal Requestes</a></li>
+                        <li><a href="?resto=requests" >Internal Requests</a></li>
                         <li><a data-toggle="tab" href="#chk2"><i class="fa fa-shopping-cart"></i> Request <i class="fa fa-angle-down"></i></a></li>
 
                         <?php } ?>

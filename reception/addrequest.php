@@ -163,7 +163,6 @@ try {
                                     <tr>
                                         <th>#</th>
                                         <th>Request By</th>
-                                        <th>Items</th>
                                         <th>Requested Date</th>
                                         <th>Required Date</th>
                                         <th>Remark</th>
@@ -174,15 +173,14 @@ try {
                                 <tbody>
                                     <?php
                                     $i = 0;
-                                    $result = $db->prepare("SELECT r.*, u.f_name, u.l_name, s.status_name, GROUP_CONCAT(i.item_name SEPARATOR ', ') AS items FROM tbl_requests AS r INNER JOIN tbl_users AS u ON r.user_id = u.user_id INNER JOIN tbl_status AS s ON r.status = s.id LEFT JOIN tbl_request_details AS rd ON r.req_code = rd.req_code LEFT JOIN tbl_items AS i ON rd.items = i.item_id WHERE r.department = ? GROUP BY r.req_id ORDER BY r.req_id DESC");
-                                    $result->execute([$_SESSION['log_role']]);
+                                    $result = $db->prepare("SELECT r.*, u.f_name, u.l_name, s.status_name, GROUP_CONCAT(i.item_name SEPARATOR ', ') AS items FROM tbl_requests AS r INNER JOIN tbl_users AS u ON r.user_id = u.user_id INNER JOIN tbl_status AS s ON r.status = s.id LEFT JOIN tbl_request_details AS rd ON r.req_code = rd.req_code LEFT JOIN tbl_items AS i ON rd.items = i.item_id WHERE r.department = ? AND r.user_id = ? GROUP BY r.req_id ORDER BY r.req_id DESC");
+                                    $result->execute([$_SESSION['log_role'], $_SESSION['user_id']]);
                                     while ($fetch = $result->fetch()) {
                                         $i++;
                                     ?>
                                         <tr>
                                             <td><?php echo $i; ?></td>
                                             <td><a href="?resto=request&req=<?php echo $fetch['req_code'] ?>"><?php echo $fetch['f_name'] . " " . $fetch['l_name']; ?></a></td>
-                                            <td><?php echo $fetch['items']; ?></td>
                                             <td><?php echo $fetch['requested_date']; ?></td>
                                             <td><?php echo $fetch['required_date']; ?></td>
                                             <td><?php echo htmlentities($fetch['remark']); ?></td>
@@ -447,7 +445,7 @@ try {
                                     <td><?php echo $ii; ?></td>
                                     <td><?php echo $row['item_name']; ?></td>
                                     <td><?php echo $row['quantity']; ?></td>
-                                    <td><a href="?resto=request&req=<?php echo $code; ?>&rmv=<?php echo $row['detail_id']; ?>">Remove</td>
+                                    <td><a href="?resto=request&req=<?php echo $code; ?>&rmv=<?php echo $row['detail_id']; ?>" onclick="return confirm('Are you sure you want to remove this item?');">Remove</td>
                                 </tr>
                             <?php
                             }
