@@ -155,6 +155,10 @@ switch ($view) {
 		$title="List of Orders";
 		$page='viewOrder.php';
 		break;
+	case 'prcsOrder_prcssng':
+		$title="Processing Orders";
+		$page='prcsOrder_prcssng_view.php';
+		break;
     	
 	default :
 	    $title="Home";

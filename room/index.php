@@ -289,12 +289,23 @@ case 'venue_inventory':
 		$page = 'add_to_group.php';
 		break;
 
+	case 'refund_page':
+		$title = "Process Refund";
+		$page = 'refund_page.php';
+		break;
+
+	// Venue Refund
+	case 'venue_refund':
+		$title = "Process Refund";
+		$page = 'venue_refund.php';
+		break;
 
 
 
 	default:
 		$title = "Home";
 		$page = 'dashbaord.php';
+		break;
 }
 
 require_once("../inc/ontouch.php");

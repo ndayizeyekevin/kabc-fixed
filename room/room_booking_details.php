@@ -2363,4 +2363,3 @@ while ($row = $sql->fetch()) {
         }
     });
 </script>
-
