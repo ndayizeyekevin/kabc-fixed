@@ -54,8 +54,7 @@ if ($result->num_rows > 0) {
 
 		
 		
-		
-
+ 
 if(ISSET($_GET['ac'])){
     $code = $_GET['ac'];
     $date = date("Y-m-d");
@@ -108,25 +107,28 @@ function fill_product($db){
 }
 ?>
 <?php
-       function productcode() {
+    function productcode() {
         return getReqCode($_SESSION['user_id']);
     }
     $pcode=productcode();
     ?>
-
-	<?php
-	$start_date = isset($_GET['start_date']) ? $_GET['start_date'] : date('Y-m-d');
-	$end_date = isset($_GET['end_date']) ? $_GET['end_date'] : date('Y-m-d');
-	$search_term = isset($_GET['search']) ? $_GET['search'] : '';
-	?>
-
+	
+	
 	<?php if(isset($_POST['addRequest'])){
 		
 		
-		$tin = $_POST['tin'];
-		$supplier = $_POST['supplier'];
+		$item = $_POST['item'];
+		$qty = $_POST['qty'];
+		$req_code = $_REQUEST['id'];
+	
+		$sql = "INSERT INTO `request_store_item` (`id`, `item_id`, `qty`, `req_id`) VALUES (NULL, '$item', '$qty', '$req_code');";
+
+if ($conn->query($sql) === TRUE) {
+ //echo "window.location='add_item.php?re=$req_code'";
+} else {
+  //echo "Error: " . $sql . "<br>" . $conn->error;
+}
 		
-		$sql = "INSERT INTO `suppliers` (`id`, `name`, `tin_number`) VALUES ('', '$supplier', '$tin');";	
 		
 	}?>
 	
@@ -135,6 +137,7 @@ function fill_product($db){
         margin-bottom:10px;
     }
 </style>
+<!-- Breadcomb area Start-->
 	<div class="breadcomb-area">
 		<div class="container">
 		    
@@ -172,129 +175,69 @@ function fill_product($db){
 			</div>
 		</div>
 	</div>
-
+	<!-- Data Table area Start-->
     <div class="data-table-area">
         <div class="container">
             <div class="row">
                 <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-				
-
-				
-				
                     <div class="data-table-list">
-					
-					
-
-		<h3> Stock Requests </h3>
-
-		<!-- Filter Form -->
-		<div class="panel panel-default" style="margin-bottom: 20px;">
-			<div class="panel-body">
-				<form method="GET" class="form-inline">
-					<input type="hidden" name="resto" value="dashboard">
-					<div class="form-group" style="margin-right: 15px;">
-						<label for="start_date">From Date:</label>
-						<input type="date" id="start_date" name="start_date" class="form-control" value="<?php echo $start_date; ?>" style="margin-left: 10px;">
-					</div>
-					<div class="form-group" style="margin-right: 15px;">
-						<label for="end_date">To Date:</label>
-						<input type="date" id="end_date" name="end_date" class="form-control" value="<?php echo $end_date; ?>" style="margin-left: 10px;">
-					</div>
-					<div class="form-group" style="margin-right: 15px;">
-						<label for="search">Search (Request By / Supplier):</label>
-						<input type="text" id="search" name="search" class="form-control" placeholder="Enter name or supplier" value="<?php echo htmlspecialchars($search_term); ?>" style="margin-left: 10px;">
-					</div>
-					<button type="submit" class="btn btn-primary">Filter</button>
-					<a href="?resto=dashboard" class="btn btn-default" style="margin-left: 10px;">Reset</a>
-				</form>
-			</div>
-		</div>
-
-		<hr>
-					
-					
-					
+			
+			
+			
+			<?php
+                                    $i = 0;
+                                    $req_id=$_REQUEST['id'] ?? null;
+                                		$result = $db->prepare("SELECT * FROM  store_request where  status=0 and req_id = '$req_id'");
+                                        $result->execute();
+                                		while($fetch = $result->fetch()){
+											
+											
+                                		    ?>
+											<div class="col-lg-9">
+											<h4>REQUEST CODE: <?php echo $fetch['req_code']?></H4>
+											</div>
+											<div class="col-lg-3">
+											<a class="btn btn-info" href="approve.php?id=<?php echo $_REQUEST['id']?>">Approve this request</a>
+											</div>
+											<?php
+                                     	}?>
+										
+										
+										
+			
+		
+					<BR>
+										<BR>
+						<hr>
                         <?php if(empty($_GET['req'])){ ?>
                         <div class="table-responsive">
-						
                             <table id="data-table-basic" class="table table-striped">
-                                      <thead>
+                                 <thead>
                                     <tr>
                                         <th>#</th>
-                                        <th>Request By</th>
-                                        <th>Requested Date</th>
-                                        <th>Required Date</th>
-                                        <th>Status</th>
-                                         <th>Supplier</th>
-                                        <th>Action</th>
+                                        <th>Item </th>
+                                        <th>Qty</th>
+                                        <th>Unit</th>
+
+                                     
                                     </tr>
                                 </thead>
                                 <tbody>
                                     <?php
                                     $i = 0;
-
-
-									$where_clause = "WHERE store_request.daf IS NOT NULL AND store_request.daf != ''";
-
-									if (!empty($start_date) && !empty($end_date)) {
-										$start_date_escaped = $conn->real_escape_string($start_date);
-										$end_date_escaped = $conn->real_escape_string($end_date);
-										$where_clause .= " AND DATE(store_request.request_date) BETWEEN '" . $start_date_escaped . "' AND '" . $end_date_escaped . "'";
-									}
-									if (!empty($search_term)) {
-										$search_term_escaped = $conn->real_escape_string($search_term);
-										$where_clause .= " AND (store_request.request_from LIKE '%$search_term_escaped%' OR suppliers.name LIKE '%$search_term_escaped%')";
-									}
-
-									$query = "SELECT * FROM store_request
-											  INNER JOIN request_store_item ON request_store_item.req_id = store_request.req_id
-											  LEFT JOIN suppliers ON store_request.supplier = suppliers.id
-											  $where_clause
-											  GROUP BY request_store_item.req_id";
-
-                                		$result = $db->prepare($query);
+                                    $req_id=$_REQUEST['id'] ?? null;
+                                		$result = $db->prepare("SELECT * FROM  request_store_item WHERE req_id='$req_id'");
                                         $result->execute();
                                 		while($fetch = $result->fetch()){
                                 		    $i++;
                                      	?>
                                      	<tr>
                                      	    <td><?php echo $i; ?></td>
-                                            <td><a  href="?resto=viewRequests&&id=<?php echo $fetch['req_id']?>"><?php echo $fetch['request_from']; ?></a></td>
-                                            <td><?php echo $fetch['request_date']; ?></td>
-                                            <td><?php echo $fetch['required_date']; ?></td>
-                                            <td><?php
-												$status = (int)$fetch['status'];
-												$daf = isset($fetch['daf']) ? trim($fetch['daf']) : '';
-												$md = isset($fetch['md']) ? trim($fetch['md']) : '';
-
-												if($status === 1){
-													echo 'Received';
-												} elseif($status === 0 && empty($daf)){
-													echo 'Pending';
-												} elseif($status === 0 && !empty($daf) && empty($md)){
-													echo 'Reviewed by ' . htmlspecialchars($daf);
-												} elseif($status === 0 && !empty($daf) && !empty($md)){
-													echo 'Approved by ' . htmlspecialchars($md);
-												} else {
-													echo 'error';
-												}
-											?></td>
-											
-											                            <td>     
-                                            
-                                    <?php $results = $db->prepare("SELECT * FROM suppliers where id  = '".$fetch['supplier']."'");
-                                        $results->execute();
-                                		while($row = $results->fetch()){
-echo $suppliername = $row['name'];
-$supplierid = $row['id'];}
-
-	?>			
-                                            
-                                            
-                                            </td>
-                                            <td>
-                                              <a  href="?resto=viewRequests&&id=<?php echo $fetch['req_id']?>">View</a>
-                                            </td>
+                                            <td><a  href=""><?php echo getItemName($fetch['item_id']); ?></a></td>
+                                            <td><?php echo $fetch['qty']; ?></td>
+                                            <td><?php echo getItemUnitName(getItemUnitId($fetch['item_id'])); ?></td>
+                                          
+                                         
                                      	</tr>
          <?php
 	}

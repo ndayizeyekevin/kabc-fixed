@@ -13,16 +13,10 @@ switch ($view) {
         $title="Dashboard";
 		$page='dashboard.php';
 		break;
-		
-	case 'cashier' :
-        $title="Finance";
-		$page='cash.php';
+	case 'viewRequests' :
+        $title="Manage Request";
+		$page='view_requests.php';
 		break;
-		
-	case 'expenses' :
-        $title="Expenses";
-		$page='recExp.php';
-		break;	
 		
 	default :
 	    $title="Home";

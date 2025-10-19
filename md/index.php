@@ -13,6 +13,10 @@ switch ($view) {
         $title="Dashboard";
 		$page='requests.php';
 		break;
+	case 'viewRequests' :
+        $title="Manage Request";
+		$page='view_requests.php';
+		break;
 
 	case 'view_reservation_details' :
         $title="View Reservation";

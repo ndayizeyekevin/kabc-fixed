@@ -14,7 +14,6 @@ $sql = "SELECT * FROM tbl_items where item_id='$id' ";
 $result = $conn->query($sql);
 
 if ($result->num_rows > 0) {
-  // output data of each row
   while($row = $result->fetch_assoc()) {
     return $row['item_name'];
   }
@@ -458,7 +457,14 @@ if ($conn->query($sql) === TRUE) {
 											
 
                       
-                           <?php if($fetch['status'] == 0){ ?> 
+                           <?php
+                           $status = (int)$fetch['status'];
+                           $daf = isset($fetch['daf']) ? trim($fetch['daf']) : '';
+                           $md = isset($fetch['md']) ? trim($fetch['md']) : '';
+
+                           if($status == 0 && !empty($daf) && !empty($md)){
+                               // Approved by MD - show confirm button
+                           ?>
                             <form method="POST" id="confirmRequestForm" onsubmit="return handleConfirmSubmit(this)">
 
                                     <div class="col-lg-2">
@@ -475,8 +481,16 @@ if ($conn->query($sql) === TRUE) {
 										</div>
 
                             </form>
-                           
-										<?php } ?>
+
+										<?php } elseif($status == 0 && (empty($daf) || empty($md))){
+                                            // Pending or Reviewed but not yet approved by MD - show wait button
+                                        ?>
+                                        <div class="col-lg-2">
+                                            <button type="button" class="btn btn-warning" onclick="showWaitMessage()">
+                                                <i class="fa fa-clock-o"></i> Waiting for Approval
+                                            </button>
+                                        </div>
+                                        <?php } ?>
                   
 											<?php
                   }?>
@@ -872,5 +886,10 @@ if ($conn->query($sql) === TRUE) {
 			}
 		}
 	});
-	
+
+	// Show wait message for pending or reviewed requests
+	function showWaitMessage() {
+		alert('Please wait for the Managing Director to approve this request before confirming delivery.');
+	}
+
   </script>
