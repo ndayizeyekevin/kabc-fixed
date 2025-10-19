@@ -193,13 +193,25 @@ if ($conn->query($sql) === TRUE) {
 											
 											
                                 		    ?>
-											<div class="col-lg-9">
-											<h4>REQUEST CODE: <?php echo $fetch['req_code']?></H4>
-											</div>
-											<div class="col-lg-3">
-											<a class="btn btn-info" href="approve.php?id=<?php echo $_REQUEST['id']?>">Approve this request</a>
-											</div>
-											<?php
+                                        <div class="col-lg-9">
+                                        <h4>REQUEST CODE: <?php echo $fetch['req_code']?></H4>
+                                        </div>
+                                        <div class="col-lg-3">
+                                          <?php
+                                          if ($fetch['daf']== '' || $fetch['daf'] == 'NULL') {
+                                            ?>
+                                            <a class="btn btn-info" href="approve.php?id=<?php echo $_REQUEST['id']?>" onclick="return confirm('Are you sure you want to approve this request?');">Approve this request</a>
+                                            </div>
+                                            <?php
+                                          }
+                                          else{
+                                              ?>
+                                              <a class="btn btn-danger" href="#">Request Approved by 
+                                                <?= $fetch['daf'] ?>
+                                              </a>
+                                              </div>
+                                              <?php
+                                          }
                                      	}?>
 										
 										

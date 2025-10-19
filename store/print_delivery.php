@@ -264,7 +264,7 @@ function fill_product($db){
             <td colspan='2' style="text-align:center;">Received by: <br> (Names and signature) <br>
                 <?= htmlspecialchars($_SESSION['f_name'] ?? '') . " " . htmlspecialchars($_SESSION['l_name'] ?? '') ?>
             </td>
-            <td colspan='2' style="text-align:center;">ACCOUNTANT: <br> (Names and signature) <br> _______________ </td>
+            <td colspan='2' style="text-align:center;">DAF: <br> (Names and signature) <br> _______________ </td>
             <td colspan='2' style="text-align:center;">GENERAL MANAGER: <br> (Names and signature) <br> _______________ </td>
         </tr>
                           
