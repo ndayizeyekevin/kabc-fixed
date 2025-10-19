@@ -226,15 +226,16 @@ include "switch_role.php";
                         <li><a data-toggle="tab" href="#accom"><i class="fa fa-table"></i> Table <i class="fa fa-angle-down"></i></a></li>
                         <li><a data-toggle="tab" href="#restrnt"><i class="fa fa-cutlery"></i> Restaurent <i class="fa fa-angle-down"></i></a></li>
 
-        	             <li><a href="?resto=users" >Users</a></li>
-        	                 <li><a href="?resto=suppliers" >Suppliers</a></li>
-                             <li><a href="?resto=corporates" >Corporates</a></li>
+        	             <li><a href="?resto=users"> <i class="fa fa-user"></i> Users</a></li>
+        	                 <li><a href="?resto=suppliers" ><i class="fa fa-truck"></i> Suppliers</a></li>
+                             <li><a href="?resto=corporates" ><i class="fa fa-building"></i> Corporates</a></li>
         	                       <!-- <li><a href="?resto=void" >Pending voided Items</a></li> -->
-        	                 <li><a href="?resto=StoreRequests" >Store Requests</a></li>
+        	                 <li><a href="?resto=StoreRequests"> <i class="fa fa-store"></i> Store Requests</a></li>
                          <li><a data-toggle="tab" href="#rep"><i class="fa fa-cutlery"></i> Reports <i class="fa fa-angle-down"></i></a></li>
                          <!-- <li><a data-toggle="tab" href="#ebm"><i class="fa fa-cutlery"></i> EBM <i class="fa fa-angle-down"></i></a></li> -->
                          <li><a data-toggle="tab" href="#access"><i class="fa fa-chart-line"></i> Access As <i class="fa fa-angle-down"></i></a></li>
-                          <li><a href="#" data-toggle="modal" data-target="#mySettingModel" data-placement="left" >Settings</a></li>
+                          <li><a href="#" data-toggle="modal" data-target="#mySettingModel" data-placement="left" > <i class="fa fa-cog"></i> Settings</a></li>
+                          <li class="py-2 ms-3"><a href="?resto=currencyIssue" class="btn btn-primary text-success py-2 px-3">💸 Manage Currencies</a></li>
 
         	          </ul>
 
@@ -245,90 +246,90 @@ include "switch_role.php";
                             </ul>
                         </div>
 
-<div id="access" class="tab-pane notika-tab-menu-bg animated flipInX">
-    <ul class="notika-main-menu-dropdown">
-    <li class="dropdown">
-        <a href="?access_as=5" >
-            Bar <i class="fa fa-angle-down"></i>
-        </a>
-
-    </li>
-</ul>
-
-
- <!--Receptionist Dropdown -->
-<ul class="notika-main-menu-dropdown">
-<li class="dropdown">
-  <a href="?access_as=3" class="dropdown-toggle" >
-    Receptionist </i>
-  </a>
-</li>
-</ul>
-
-
- <!--Continue with other main menu items -->
- <!--    Restaurant Menu -->
-<ul class="notika-main-menu-dropdown">
-    <li class="dropdown">
-        <a href="?access_as=4" class="dropdown-toggle" >
-            Restaurant </i>
-        </a>
-    </li>
-    </ul>
-
-
-<ul class="notika-main-menu-dropdown">
-     <!--Store Dropdown -->
-    <li class="dropdown">
-        <a href="?access_as=7" class="dropdown-toggle">
-            Store </i>
-        </a>
-    </li>
-</ul>
-
-<!--<li><a href="?../inn/index?resto=home">Admin</a></li>-->
-<li><a href="?access_as=1">Admin</a></li>
-</div>
-
-
-<!-- RESTAURANT -->
- <div id="restrnt" class="tab-pane notika-tab-menu-bg animated flipInX">
+                        <div id="access" class="tab-pane notika-tab-menu-bg animated flipInX">
                             <ul class="notika-main-menu-dropdown">
-                                <li><a href="?resto=menu">Menu</a></li>
-                                <li><a href="?resto=menu_drink">Drinks</a></li>
-                                <li><a href="?resto=categ">Category</a></li>
-                                <li><a href="?resto=subcateg">Sub-Category</a></li>
+                            <li class="dropdown">
+                                <a href="?access_as=5" >
+                                    Bar <i class="fa fa-angle-down"></i>
+                                </a>
+
+                            </li>
+                        </ul>
+
+
+                        <!--Receptionist Dropdown -->
+                        <ul class="notika-main-menu-dropdown">
+                        <li class="dropdown">
+                        <a href="?access_as=3" class="dropdown-toggle" >
+                            Receptionist </i>
+                        </a>
+                        </li>
+                        </ul>
+
+
+                        <!--Continue with other main menu items -->
+                        <!--    Restaurant Menu -->
+                        <ul class="notika-main-menu-dropdown">
+                            <li class="dropdown">
+                                <a href="?access_as=4" class="dropdown-toggle" >
+                                    Restaurant </i>
+                                </a>
+                            </li>
                             </ul>
-</div>
 
 
-<!-- Reports -->
-<div id="rep" class="tab-pane notika-tab-menu-bg animated flipInX">
-                            <ul class="notika-main-menu-dropdown">
-                                <li><a href="?resto=report">Restaurant</a></li>
-                                <li><a href="?resto=reportb">Bar</a></li>
-                                <li><a href="?resto=reportc">Stock</a></li>
-                                      <!--<li><a href="../room/index?resto=reportc">Rooms</a></li>-->
-                                  <li><a href="?resto=waiterReport">Report by waiter</a></li>
-                                  <li><a href="?resto=View_OrdderDet">Order Details</a></li>
-                                  <li><a href="?resto=active_booking">Active Booking</a></li>
-                                  <li><a href="?resto=booking_list">Booking List</a></li>
-                                  <li><a href="?resto=sales_report">Sales Report</a></li>
-                                  <li><a href="?resto=staff_report">Staff Report</a></li>
-                                  <li><a href="?resto=ReportByCategory">Report by Category</a></li>
-                                  <li><a href="?resto=ReportByDepertment">Report by Department</a></li>
-                                  <li><a href="?resto=addrequest">Add Request</a></li>
-                                  <li><a href="?resto=Manage_CheckIn_guest">Manage Check-In Guest</a></li>
-                                  <li><a href="?resto=receipt-checks">Receipt Checks</a></li>
+                        <ul class="notika-main-menu-dropdown">
+                            <!--Store Dropdown -->
+                            <li class="dropdown">
+                                <a href="?access_as=7" class="dropdown-toggle">
+                                    Store </i>
+                                </a>
+                            </li>
+                        </ul>
 
-                            </ul>
-</div>
+                        <!--<li><a href="?../inn/index?resto=home">Admin</a></li>-->
+                        <li><a href="?access_as=1">Admin</a></li>
+                        </div>
 
 
+                        <!-- RESTAURANT -->
+                        <div id="restrnt" class="tab-pane notika-tab-menu-bg animated flipInX">
+                                                    <ul class="notika-main-menu-dropdown">
+                                                        <li><a href="?resto=menu">Menu</a></li>
+                                                        <li><a href="?resto=menu_drink">Drinks</a></li>
+                                                        <li><a href="?resto=categ">Category</a></li>
+                                                        <li><a href="?resto=subcateg">Sub-Category</a></li>
+                                                    </ul>
+                        </div>
+
+
+                        <!-- Reports -->
+                        <div id="rep" class="tab-pane notika-tab-menu-bg animated flipInX">
+                                                    <ul class="notika-main-menu-dropdown">
+                                                        <li><a href="?resto=report">Restaurant</a></li>
+                                                        <li><a href="?resto=reportb">Bar</a></li>
+                                                        <li><a href="?resto=reportc">Stock</a></li>
+                                                            <!--<li><a href="../room/index?resto=reportc">Rooms</a></li>-->
+                                                        <li><a href="?resto=waiterReport">Report by waiter</a></li>
+                                                        <li><a href="?resto=View_OrdderDet">Order Details</a></li>
+                                                        <li><a href="?resto=active_booking">Active Booking</a></li>
+                                                        <li><a href="?resto=booking_list">Booking List</a></li>
+                                                        <li><a href="?resto=sales_report">Sales Report</a></li>
+                                                        <li><a href="?resto=staff_report">Staff Report</a></li>
+                                                        <li><a href="?resto=ReportByCategory">Report by Category</a></li>
+                                                        <li><a href="?resto=ReportByDepertment">Report by Department</a></li>
+                                                        <li><a href="?resto=addrequest">Add Request</a></li>
+                                                        <li><a href="?resto=Manage_CheckIn_guest">Manage Check-In Guest</a></li>
+                                                        <li><a href="?resto=receipt-checks">Receipt Checks</a></li>
+
+                                                    </ul>
+                        </div>
 
 
 
-<!-- EBM -->
+
+
+                        <!-- EBM -->
                           <div id="ebm" class="tab-pane notika-tab-menu-bg animated flipInX">
                               <ul class="notika-main-menu-dropdown">
                                   <li><a href="?resto=ebm_customer">EBM Customer</a></li>
