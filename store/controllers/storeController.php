@@ -238,11 +238,18 @@ class StoreController{
     
     public static function getNewStockItems($db) {
         $sql = "
-            SELECT * FROM tbl_items i
-            WHERE NOT EXISTS (
-                SELECT 1 FROM tbl_item_stock s
-                WHERE s.item = i.item_id
-            )
+            SELECT i.* FROM tbl_items i
+            INNER JOIN tbl_item_stock s ON s.item = i.item_id
+            WHERE s.qty = 0
+            AND (
+                SELECT COUNT(*) FROM tbl_progress p WHERE p.item = i.item_id
+            ) = 1
+            AND (
+                SELECT p.last_qty FROM tbl_progress p 
+                WHERE p.item = i.item_id 
+                ORDER BY p.prog_id DESC 
+                LIMIT 1
+            ) = 0
         ";
         $stmt = $db->prepare($sql);
         $stmt->execute();
