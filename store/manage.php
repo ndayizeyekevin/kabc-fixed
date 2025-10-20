@@ -228,19 +228,18 @@ if ($conn->query($sql) === TRUE) {
 
 	
                 <div class="col-md-5">
-                    
+
                         <label class="col-md-2 control-label" for=""><strong>Select</strong><span class="text-danger">*</span></label>
-                    			<select name="item" class="form-control"><?php
+                    			<select name="item" class="form-control selectpicker" data-live-search="true" required><?php
 			$result = $db->prepare("SELECT * FROM tbl_items");
                                         $result->execute();
                                 		while($fetch = $result->fetch()){
 ?><option value='<?php echo $fetch['item_id']?>'><?php echo $fetch['item_name']?></option>
  <?php }
 
-	?>			
-		
-</select>	
-</select>	
+	?>
+
+</select>
                 </div>
             
                 <div class="col-md-5">
