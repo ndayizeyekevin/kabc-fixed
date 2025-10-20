@@ -68,10 +68,11 @@ function fill_product($db){
 		$required_date = $_POST['required_date'];
 		$req_code = $_POST['req_code'];
 		$remark = $_POST['remark'];
+		$supplierId = $_POST['supplier'];
 		
 		
-		$sql = "INSERT INTO `store_request` (`req_id`, `request_date`, `required_date`, `request_from`, `remark`, `status`, `comment`, `req_code`) 
-		VALUES (NULL, '$requested_date', '$required_date', 'Store', '$remark', '0', 'no comment', '$req_code');";
+		$sql = "INSERT INTO `store_request` (`req_id`, `request_date`, `required_date`, `request_from`, `remark`, `status`, `comment`, `req_code`, `supplier`)
+		VALUES (NULL, '$requested_date', '$required_date', 'Store', '$remark', '0', 'no comment', '$req_code', '$supplierId');";
 
 if ($conn->query($sql) === TRUE) {
   //echo "window.location='add_item.php?re=$req_code'";
@@ -232,7 +233,7 @@ if ($conn->query($sql) === TRUE) {
                                             <td><?php echo $fetch['request_date']; ?></td>
                                             <td><?php echo $fetch['required_date']; ?></td>
                                             <td><?php  if($fetch['status']==1){
-												echo 'Approved';
+												echo 'Received';
 											}else{
 												echo 'Pedding';
 											}; ?></td>
