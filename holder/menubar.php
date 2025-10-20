@@ -624,7 +624,8 @@ include "switch_role.php";
                         <li><a href="?resto=stock"><i class="fa fa-home"></i> Stock</a></li>
                         <li><a href="?resto=stock_balance"><i class="fas fa-balance-scale"></i> Stock Balance</a></li>
                         <li><a href="?resto=suppliers"><i class="fa fa-file"></i> suppliers</a></li>
-                         <li><a href="?resto=purchases"><i class="fa fa-home"></i> Purchase</a></li>
+                         <!-- <li><a href="?resto=purchases"><i class="fa fa-home"></i> Purchase</a></li> -->
+                         <li><a href="?resto=requestStore"><i class="fa fa-home"></i> Purchase</a></li>
                           <li><a href="?resto=delivery"><i class="fa fa-home"></i> Delivery Note</a></li>
                         <li><a data-toggle="tab" href="#chk"><i class="fa fa-shopping-cart"></i> Request <i class="fa fa-angle-down"></i></a></li>
                         <li><a href="?resto=reportc"><i class="fa fa-sticky-note-o"></i>Cost Report</a></li>
