@@ -73,11 +73,21 @@ include "switch_role.php";
                     ?>
                     <ul class="mobile-menu-nav">
                         <li><a data-toggle="collapse" data-target="#Charts" href="#">Home</a></li>
-                        <li><a data-toggle="collapse" data-target="#settings" href="#">Expenses</a>
+                        <!-- <li><a data-toggle="collapse" data-target="#settings" href="#">Expenses</a>
                             <ul id="settings" class="collapse dropdown-header-top">
                                 <li><a href="?resto=expenses">Record Expenses</a></li>
                             </ul>
-                        </li>
+                        </li> -->
+                    </ul>
+
+                    <?php } ?>
+
+                    <!--MD-->
+                    <?php
+                    if($_SESSION['log_role'] == '9'){
+                    ?>
+                    <ul class="mobile-menu-nav">
+                        <li><a data-toggle="collapse" data-target="#Charts" href="#">Home</a></li>
                     </ul>
 
                     <?php } ?>
@@ -358,16 +368,28 @@ include "switch_role.php";
 
                     <ul class="nav nav-tabs notika-menu-wrap menu-it-icon-pro customize">
                         <li><a href="?resto=home"><i class="fa fa-tachometer"></i> Dashboard</a></li>
-                        <li><a data-toggle="tab" href="#setting"><i class="fas fa-cash-register"></i> Expenses <i class="fa fa-angle-down"></i></a></li>
+                        <!-- <li><a data-toggle="tab" href="#setting"><i class="fas fa-cash-register"></i> Expenses <i class="fa fa-angle-down"></i></a></li> -->
                     </ul>
 
-                    <div class="tab-content custom-menu-content">
+                    <!-- <div class="tab-content custom-menu-content">
                         <div id="setting" class="tab-pane notika-tab-menu-bg animated flipInX">
                             <ul class="notika-main-menu-dropdown">
                                 <li><a href="?resto=expenses">Record Expenses</a></li>
                             </ul>
                         </div>
-                    </div>
+                    </div> -->
+
+                    <?php } ?>
+
+                    <!--MD-->
+                    <?php
+                    if($_SESSION['log_role'] == '9'){
+                    ?>
+                    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
+
+                    <ul class="nav nav-tabs notika-menu-wrap menu-it-icon-pro customize">
+                        <li><a href="?resto=home"><i class="fa fa-tachometer"></i> Dashboard</a></li>
+                    </ul>
 
                     <?php } ?>
                     <!--Admin-->
@@ -629,7 +651,7 @@ include "switch_role.php";
                     ?>
 
                      <?php
-                     if($_SESSION['log_role'] == '10' || $_SESSION['log_role']==12  || $_SESSION['log_role']==11 || $_SESSION['log_role']== 9){
+                     if($_SESSION['log_role'] == '10' || $_SESSION['log_role']==12  || $_SESSION['log_role']==11){
                     ?>
                     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha384-HSMxcRTRxnN+Bdg0JdbxYKrThecOKuH5zCYotlSAcp1+c8xmyTe9GYg1l9a69psu" crossorigin="anonymous">
 
