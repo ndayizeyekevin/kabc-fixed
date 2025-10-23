@@ -5,7 +5,7 @@ session_start();
 
 $approver_name = $_SESSION['f_name'] . " " . $_SESSION['l_name'];
 
-$sql = "UPDATE store_request SET md='".$conn->real_escape_string($approver_name)."' WHERE req_id='".$_REQUEST['id']."'";
+$sql = "UPDATE store_request SET  md='".$conn->real_escape_string($approver_name)."', request_status = 'approved' WHERE req_id='".$_REQUEST['id']."'";
 
 if ($conn->query($sql) === TRUE) {
 	$id = $_REQUEST['id'];
