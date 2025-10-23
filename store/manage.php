@@ -218,7 +218,12 @@ if ($conn->query($sql) === TRUE) {
 				
 				  
         <div class="modal-content">
-           <a href="index.php?resto=purchases">Go Back</a>
+          <div class="container p-3">
+            <a href="index.php?resto=requestStore">Go Back</a>
+            <br>
+            <a href="?resto=print_purchase&&id=<?php echo $_REQUEST['id']?>" class="btn btn-primary mt-3">Print Request</a>
+
+          </div>
             <div class="modal-body">
               <form action="" enctype="multipart/form-data" method="POST">
           <div class="row">
@@ -297,7 +302,7 @@ if ($conn->query($sql) === TRUE) {
                                             <td><?php echo getItemUnitName(getItemUnitId($fetch['item_id'])); ?></td>
                                           
                                             <td>
-                                               <a  href="delete.php?id=<?php echo $fetch['id']; ?>">Delete</a>
+                                               <a  href="delete.php?id=<?php echo $fetch['id']; ?>&req=<?= $_REQUEST['id'] ?>" onclick="if(!confirm('Do you really want to remove item?'))return false;else return true;">Delete</a>
                                             </td>
                                      	</tr>
          <?php

@@ -251,16 +251,16 @@ function fill_product($db){
 	
 
 	
-$sql = "UPDATE request_store_item SET del_qty='$qty',del_price='$price' WHERE id='".$_REQUEST['item']."'";
-if ($conn->query($sql) === TRUE) {
-    $id= $_REQUEST['delivery'];
-    
-  // echo "<script>window.location='index?resto=viewDelivery&&id=$id'</script>";
-  
-  //echo "<script>alert('$item')</script>";
-} else {
-  echo "Error: " . $sql . "<br>" . $conn->error;
-}
+      $sql = "UPDATE request_store_item SET del_qty= del_qty + $qty, del_price = $price WHERE id='".$_REQUEST['item']."'";
+      if ($conn->query($sql) === TRUE) {
+          $id= $_REQUEST['delivery'];
+          
+        // echo "<script>window.location='index?resto=viewDelivery&&id=$id'</script>";
+        
+        //echo "<script>alert('$item')</script>";
+      } else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+      }
 
 
     
@@ -369,7 +369,7 @@ if ($conn->query($sql) === TRUE) {
 
 	
                 <div class="col-md-4">
-                  <input type="number" name="qty" value="<?php echo $max; ?>" placeholder="enter Quantity" step=".01" class="form-control" min='0'>	
+                  <input type="number" name="qty" value="<?php echo $max; ?>" placeholder="enter Quantity" step=".01" class="form-control" min='0' max="<?php echo $max; ?>">	
                 </div>
                     <label class="col-md-2 control-label" for=""><strong>Unit price</strong>
                     <span class="text-danger">*</span></label>
@@ -382,7 +382,7 @@ if ($conn->query($sql) === TRUE) {
             </div>
             <br>
 
-              <input type="submit" class="btn bg-info text-dark" name="addRequest" Value="Save" onclick="return confirm('Are you sure you want to save this delivery of <?php echo $item_name; ?>?')">
+              <input type="submit" class="btn bg-info text-dark" name="addRequest" Value="Save" onclick="return confirm('Are you sure you want to save this delivery?')">
             </form>
 			
             </div>
