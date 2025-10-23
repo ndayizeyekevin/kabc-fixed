@@ -116,7 +116,6 @@ include '../inc/conn.php';
         $price = $_POST['price']; 
         $date  = date("Y-m-d");
 
-        // Check if item already exists in stock
         $sql = "SELECT * FROM tbl_item_stock WHERE item = '$item'";
         $result = $conn->query($sql);
         if ($result && $result->num_rows > 0) {
@@ -160,19 +159,7 @@ include '../inc/conn.php';
         <div class="breadcomb-area">
             <div class="container">
                 
-                <?php if($msg){?>
-                <div class="alert alert-success alert-dismissable">
-                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                    <strong>Well Done!</strong> <?php echo htmlentities($msg); ?>
-                </div>
-                <?php } 
-                else if($msge){?>
-                    
-                <div class="alert alert-danger alert-dismissable">
-                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
-                    <strong>Sorry!</strong> <?php echo htmlentities($msge); ?>
-                </div>
-                <?php } ?>
+                
                 <div class="row">
                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <div class="breadcomb-list">
