@@ -38,7 +38,7 @@ if(isset($_GET['delete']) && !empty($_GET['delete'])){
                     </thead>
                     <tbody>
                         <?php
-                        $sql = mysqli_query($conn, "SELECT * FROM tbl_progress, tbl_items WHERE tbl_items.item_id = '" . $_GET['item_id'] . "' AND tbl_progress.item = '" . $_GET['item_id'] . "' ORDER BY tbl_progress.date, tbl_progress.prog_id ASC");
+                        $sql = mysqli_query($conn, "SELECT * FROM tbl_progress, tbl_items WHERE tbl_items.item_id = '" . $_GET['item_id'] . "' AND tbl_progress.item = '" . $_GET['item_id'] . "' ORDER BY tbl_progress.date DESC, tbl_progress.prog_id");
                         $total_in = 0;
                         $Out_qty = 0;
 

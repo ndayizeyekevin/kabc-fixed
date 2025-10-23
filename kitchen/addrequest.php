@@ -338,7 +338,7 @@ function fill_product($db){
                 <div class="col-md-4">
                  <select class="form-control" name="req_type" required>
                    <option value="">-- Select Type --</option>
-                   <option value="Other">Other</option> 
+                   <option value="1">Other</option> 
                     <option value="Staff">Staff Meal</option>
                  </select>
                 </div>

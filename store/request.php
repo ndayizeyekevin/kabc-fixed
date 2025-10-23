@@ -68,11 +68,11 @@ function fill_product($db){
 		$required_date = $_POST['required_date'];
 		$req_code = $_POST['req_code'];
 		$remark = $_POST['remark'];
-		$supplierId = $_POST['supplier'];
+    $supplier = $_POST['supplier'];
+		$user = $_SESSION['f_name'] . ' ' . $_SESSION['l_name'];
 		
-		
-		$sql = "INSERT INTO `store_request` (`req_id`, `request_date`, `required_date`, `request_from`, `remark`, `status`, `comment`, `req_code`, `supplier`)
-		VALUES (NULL, '$requested_date', '$required_date', 'Store', '$remark', '0', 'no comment', '$req_code', '$supplierId');";
+		$sql = "INSERT INTO `store_request` (`req_id`, `request_date`, `required_date`, `request_from`, `remark`, `status`, `comment`, `req_code`, `supplier`, `user_info`) 
+		VALUES (NULL, '$requested_date', '$required_date', 'Store', '$remark', '0', 'no comment', '$req_code', $supplier, '$user');";
 
 if ($conn->query($sql) === TRUE) {
   //echo "window.location='add_item.php?re=$req_code'";
@@ -221,28 +221,53 @@ if ($conn->query($sql) === TRUE) {
                                 </thead>
                                 <tbody>
                                     <?php
+                                    
                                     $i = 0;
                                 		$result = $db->prepare("SELECT * FROM  store_request ORDER BY req_id DESC");
-                                        $result->execute();
+                                    $result->execute();
                                 		while($fetch = $result->fetch()){
-                                		    $i++;
-                                     	?>
+                                      $i++;
+                                      
+                                      // Select store keeper user info
+                                      
+                                      
+                                      ?>
                                      	<tr>
-                                     	    <td><?php echo $i; ?></td>
-                                            <td><a  href="?resto=manageRequest&&id=<?php echo $fetch['req_id']?>"><?php echo $fetch['req_code']; ?> - <?php echo $fetch['request_from']; ?></a></td>
-                                            <td><?php echo $fetch['request_date']; ?></td>
-                                            <td><?php echo $fetch['required_date']; ?></td>
-                                            <td><?php  if($fetch['status']==1){
-												echo 'Received';
-											}else{
-												echo 'Pedding';
-											}; ?></td>
-                                            <td>
-                                              <a  href="?resto=manageRequest&&id=<?php echo $fetch['req_id']?>">Manage</a>
-                                            </td>
-                                     	</tr>
-         <?php
-	}
+                                        <td><?php echo $i; ?></td>
+                                        <td>
+                                            <a href="?resto=manageRequest&&id=<?php echo $fetch['req_id']?>">
+                                                <?= $fetch['user_info'] ?>
+                                                - #<?php echo $fetch['req_id']; ?>
+                                            </a>
+                                        </td>
+                                        <td><?php echo $fetch['request_date']; ?></td>
+                                        <td><?php echo $fetch['required_date']; ?></td>
+                                        <td><?php 
+                                            if($fetch['status']==1){
+                                                echo 'Approved';
+                                            } else {
+                                                echo 'Pending';
+                                            }
+                                            
+                                        ?>
+                                        </td>
+                                        <td>
+                                          <a href="?resto=print_purchase&id=<?php echo $fetch['req_id']?>" class="btn btn-primary">
+                                              Print
+                                          </a>
+                                          <a href="?resto=manageRequest&id=<?php echo $fetch['req_id']?>" class="btn btn-success">
+                                                Manage
+                                            </a>
+
+                                            <!-- If status is pending -->
+                                            <a href="#=<?php echo $fetch['req_id']?>" class="btn btn-danger">
+                                                Delete
+                                            </a>
+
+                                        </td>
+                                    </tr>
+                                        <?php
+                                  }
 ?>
                             </tbody>
                             <tfoot>
@@ -258,7 +283,7 @@ if ($conn->query($sql) === TRUE) {
                         </table>
                         </div>
                         <?php
-                        }
+}
                         elseif(!empty($_GET['req'])){
                             $code = $_GET['req'];
                             $stmt_req = $db->prepare("SELECT * FROM tbl_requests 
@@ -469,5 +494,5 @@ if ($conn->query($sql) === TRUE) {
         calculate(0,0);
         $("#paid").val(0);
       })
-    });
+    }); 
   </script>

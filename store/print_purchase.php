@@ -152,7 +152,7 @@ if ($result->num_rows > 0) {
    </head>
    <body style="background-color:#e1e1e1">
        
-  <center>     <button onclick="printInvoice()">Print To PDF </button></center>
+  <center>     <button onclick="printInvoice()" class="btn btn-primary">Print To PDF </button></center>
        
     <div  id="content" style="background-color:white;margin-top:50px;margin-left:10%;padding:20px;margin-right:10%;height:100%;padding-top:100px">
   <?php include '../holder/printHeader.php'?>
@@ -163,7 +163,7 @@ if ($result->num_rows > 0) {
       
       <td>
           <br>
-<center><H3>LOCAL PURCHASE ORDER  </H3></center>
+<center><H3>LOCAL PURCHASE ORDER # <?= $_GET['id'];?> </H3></center>
  </br>
  
  
@@ -178,58 +178,69 @@ if ($result->num_rows > 0) {
       
       
       
-           <table border="0">
-          <th style="">
+      <div class="container">
+        <table border="0">
+          <tr>
       
-      <td style="padding-left: 100px">
-       <h5><b>Supplier:   			<?php 
-       
-       $result = $db->prepare("SELECT * FROM suppliers where id = '".$_REQUEST['supplier']."'");
-                                        $result->execute();
-                                		while($fetch = $result->fetch()){
-                                		
-                                		echo $fetch['name'];
-                                		
-                                
-}
-       
-      
+            <td>
+            <h5><b>Supplier:   			
+              <?php 
+                $selected_supplier = $db->prepare("SELECT supplier FROM store_request WHERE req_id= :req_id");
+                $selected_supplier->execute([':req_id' => $_REQUEST['id']]);
+                $supplier_row = $selected_supplier->fetch(PDO::FETCH_ASSOC);
+                $supplier_id = $supplier_row['supplier'];
+                //  Select Supplier Name
 
-       ?>
-       
-      </b> </h5>
-         
+                $name_stmt = $db->prepare("SELECT name FROM suppliers WHERE id= :supplier_id");
+                $name_stmt->execute([':supplier_id' => $supplier_id]);
+                $name_row = $name_stmt->fetch(PDO::FETCH_ASSOC);
+                echo $name_row['name'];
+            
+            
+            
 
-      </td>
+            ?>
+            
+            </b> </h5>
+              
+
+            </td>
+        </tr>
       
-      
-       <td style="padding-left: 400px">
+      <tr>
+        <td>
+  
+         <h5><b> LPO Number:     <?php echo $_REQUEST['id']?>      </b></h5>
  
-        <h5><b> LPO Number:     <?php echo $_REQUEST['id']?>      </b></h5>
+       </td>
 
-      </td>
+      </tr>
       
-      
-       <td style="padding-left: 200px">
- 
-        <h5> <b>DATE:     <?php $result = $db->prepare("SELECT * FROM  store_request WHERE req_id='".$_REQUEST['id']."'");
-                                        $result->execute();
-                                		while($fetch = $result->fetch()){
-                                		echo $fetch['request_date']; 
-                                	       $request = $fetch['request_from']; 
-                                		
-                                		}   ?>   </b></h5>
+      <tr>
 
-      </td>
+        <td>
+  
+         <h5> <b>DATE:     <?php $result = $db->prepare("SELECT * FROM  store_request WHERE req_id='".$_REQUEST['id']."'");
+                                         $result->execute();
+                                     while($fetch = $result->fetch()){
+                                     echo $fetch['request_date']; 
+                                          $request = $fetch['request_from']; 
+                                     
+                                     }   ?>   </b></h5>
+  
+       </td>
+      </tr>
+      
           
-      </th></table>
+      </table>
+      
       
       <br>     <br>    
       
       
  <center>
       
-            <table class="itemst" border="0" width="60%">
+            <table class="itemst" border="0" width="100%">
                                  <thead>
                                     <tr>
                                         <th style="border: 1px solid black; padding:10px; font-weight:700;">#</th>
@@ -274,8 +285,8 @@ if ($result->num_rows > 0) {
 
 
   	<tr>
-	<td colspan="4" style="border: 1px solid black; "><H4><b>Total</b></H4></td>
-	<td align="right" style="border: 1px solid black;"><H4><b><?php echo number_format($amount)?> </b></H4></td>
+	<td colspan="4" style="border: 1px solid black; padding: 5px;"><H4><b>Total</b></H4></td>
+	<td align="right" style="border: 1px solid black; padding-right: 10px;"><H4><b><?php echo number_format($amount)?> </b></H4></td>
 
 	</tr>
 
@@ -300,11 +311,11 @@ if ($result->num_rows > 0) {
     <b>Store Keeper</b> <br>Ordered by: <?php echo $_SESSION['f_name']." ". $_SESSION['l_name']?> <br><br> Signature .........................
     
       </td>
-              <td>
+              <!-- <td>
  
     <b>Controler</b> <br>Verified by: ....................... <br><br> Signature .........................
     
-      </td>
+      </td> -->
       
       <td>
        

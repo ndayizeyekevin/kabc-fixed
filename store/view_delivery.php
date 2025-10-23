@@ -445,57 +445,57 @@ if ($conn->query($sql) === TRUE) {
 			
 			
 			<?php
-                                    $i = 0;
-                                		$result = $db->prepare("SELECT * FROM  store_request where req_id='".$_REQUEST['id']."'");
-                                        $result->execute();
-                                		while($fetch = $result->fetch()){
+      $i = 0;
+      $result = $db->prepare("SELECT * FROM  store_request where req_id='".$_REQUEST['id']."'");
+          $result->execute();
+      while($fetch = $result->fetch()){
 
                                 		    ?>
-											<div class="col-lg-8">
-											<h4>REQUEST Number: <?php echo $fetch['req_code']?></H4>
-											</div>
-											
-
-                      
-                           <?php
-                           $status = (int)$fetch['status'];
-                           $daf = isset($fetch['daf']) ? trim($fetch['daf']) : '';
-                           $md = isset($fetch['md']) ? trim($fetch['md']) : '';
-
-                          //  
-                          // echo "<script>alert('Status: $status, DAF: $daf, MD: $md');</script>";
-
-                           if($status == 0 && !empty($daf) && !empty($md)){
-                               // Approved by MD - show confirm button
-                           ?>
-                            <form method="POST" id="confirmRequestForm" onsubmit="return handleConfirmSubmit(this)">
-
-                                    <div class="col-lg-2">
-                                        <input type="date" name="confirm_date" class="form form-control" required>
-                                        <input type="hidden" name="id" value="<?php echo $_REQUEST['id']?>">
-                                    </div>
-                           <div class="col-lg-2">
-											<button type="submit" class="btn btn-info" id="confirmBtn">
-												<span class="btn-text">Confirm this request</span>
-												<span class="btn-loading" style="display:none;">
-													<i class="fa fa-spinner fa-spin"></i> Processing...
-												</span>
-											</button>
-										</div>
-
-                            </form>
-
-										<?php } elseif($status == 0 && (empty($daf) || empty($md))){
-                                            // Pending or Reviewed but not yet approved by MD - show wait button
-                                        ?>
-                                        <div class="col-lg-2">
-                                            <button type="button" class="btn btn-warning" onclick="showWaitMessage()">
-                                                <i class="fa fa-clock-o"></i> Waiting for Approval
-                                            </button>
+                                        <div class="col-lg-8">
+                                        <h4>REQUEST Number: <?php echo $fetch['req_code']?></H4>
                                         </div>
-                                        <?php } ?>
-                  
-											<?php
+                                        
+
+                                        
+                                            <?php
+                                            $status = (int)$fetch['status'];
+                                            $daf = isset($fetch['daf']) ? trim($fetch['daf']) : '';
+                                            $md = isset($fetch['md']) ? trim($fetch['md']) : '';
+
+                                            //  
+                                            // echo "<script>alert('Status: $status, DAF: $daf, MD: $md');</script>";
+
+                                            if($status == 0 && !empty($daf) && !empty($md)){
+                                                // Approved by MD - show confirm button
+                                            ?>
+                                              <form method="POST" id="confirmRequestForm" onsubmit="return handleConfirmSubmit(this)">
+
+                                                      <div class="col-lg-2">
+                                                          <input type="date" name="confirm_date" class="form form-control" required>
+                                                          <input type="hidden" name="id" value="<?php echo $_REQUEST['id']?>">
+                                                      </div>
+                                                  <div class="col-lg-2">
+                                                      <button type="submit" class="btn btn-info" id="confirmBtn">
+                                                        <span class="btn-text">Confirm this request</span>
+                                                        <span class="btn-loading" style="display:none;">
+                                                          <i class="fa fa-spinner fa-spin"></i> Processing...
+                                                        </span>
+                                                      </button>
+                                                    </div>
+
+                                              </form>
+
+                                      <?php } elseif($status == 0 && (empty($daf) || empty($md))){
+                                                              // Pending or Reviewed but not yet approved by MD - show wait button
+                                                          ?>
+                                                          <div class="col-lg-2">
+                                                              <button type="button" class="btn btn-warning" onclick="showWaitMessage()">
+                                                                  <i class="fa fa-clock-o"></i> Waiting for Approval
+                                                              </button>
+                                                          </div>
+                                                          <?php } ?>
+                                    
+                                        <?php
                   }?>
 										
 										
@@ -566,8 +566,8 @@ if ($conn->query($sql) === TRUE) {
 											
 											$del_total = $fetch['del_price'] * $fetch['del_qty'];
 											
-						    $amount = $amount + $total;
-							$del_amount = $del_amount + $del_total;
+						          $amount = $amount + $total;
+							        $del_amount = $del_amount + $del_total;
 											 
                                      	?>
                                      	<tr>
@@ -597,7 +597,7 @@ if ($conn->query($sql) === TRUE) {
                                                           echo "<span class='text-success'>Fully Delivered</span>";
                                                       } else {
                                                           ?>
-                                                      <a class="btn btn-primary" href="?resto=editDelivery&&delivery=5&&item=<?php echo $fetch['id']?>&&pitem=<?php echo $_REQUEST['id']; ?>&max=<?php echo $fetch['pur_qty']; ?>&price=<?php echo $fetch['pur_price']; ?>">Edit</a>
+                                                      <a class="btn btn-primary" href="?resto=editDelivery&&delivery=5&&item=<?php echo $fetch['id']?>&&pitem=<?php echo $_REQUEST['id']; ?>&max=<?php echo $fetch['pur_qty'] - $fetch['del_qty']; ?>&price=<?php echo $fetch['pur_price']; ?>">Edit</a>
                                                       <?php
                                                       }
                                                       ?>
