@@ -307,7 +307,7 @@ if(isset($_POST['addclientssnames'])){
     $sqlupd->execute();
 
   $msg = "User Added!";
-  //echo'<meta http-equiv="refresh"'.'content="2;URL=index?resto=lorder">';
+  echo'<script>window.location.href = window.location.href;</script>';
 }
 
 
@@ -323,7 +323,7 @@ if(isset($_POST['addClients'])){
 
 
   $msg = "Extra info addedd!";
-  //echo'<meta http-equiv="refresh"'.'content="2;URL=index?resto=lorder">';
+  echo'<script>window.location.href = window.location.href;</script>';
 }
 
 
@@ -342,7 +342,7 @@ if(isset($_POST['update'])){
   $sqlupd = $db->prepare("UPDATE tbl_cmd SET status_id = '13' WHERE `OrderCode` = '".$orderCode."'");
   $sqlupd->execute();
   $msg = "Order quantity updated!";
-  //echo'<meta http-equiv="refresh"'.'content="2;URL=index?resto=lorder">';
+  echo'<script>window.location.href = window.location.href;</script>';
 }
 
   if(isset($_POST['confirm']))
@@ -446,17 +446,17 @@ if(isset($_POST['update'])){
 
              for($i=0; $i<count($menu_id); $i++){
                  $order = $conn->prepare("INSERT INTO `tbl_cmd`(`reservat_id`, `menu_id`, `Serv_id`, `status_id`,`company_id`, `dTrm`,`OrderCode`)
-         VALUES('$reservID','$menu_id[$i]','$Oug_UserID','$sts','$cpny_ID','$today','$ordcode')");
-         $order->execute();
+                  VALUES('$reservID','$menu_id[$i]','$Oug_UserID','$sts','$cpny_ID','$today','$ordcode')");
+                  $order->execute();
 
-         $sql = $db->prepare("INSERT INTO `tbl_cmd_qty`(`Serv_id`, `cmd_table_id`,`cmd_item`, `cmd_qty`, `cmd_code`, `cmd_status`)
-         VALUES ('$Oug_UserID','$reservID','$menu_id[$i]','$quantity[$i]','$ordcode','13')");
-         $sql->execute();
+                  $sql = $db->prepare("INSERT INTO `tbl_cmd_qty`(`Serv_id`, `cmd_table_id`,`cmd_item`, `cmd_qty`, `cmd_code`, `cmd_status`)
+                  VALUES ('$Oug_UserID','$reservID','$menu_id[$i]','$quantity[$i]','$ordcode','13')");
+                  $sql->execute();
 
-         $msg = "Successfully Ordered!";
-         //echo'<meta http-equiv="refresh"'.'content="2;URL=index?resto=norder">';
-             }
-            }
+                  $msg = "Successfully Ordered!";
+                }
+              }
+              echo'<script>window.location.href = window.location.href;</script>';
    }
  ?>
  <?php
@@ -514,10 +514,27 @@ function fill_product($db){
                 <?php } ?>
 
 
-                <form  method="POST">
-                  <input type="text"  placeholder="Client Name"  name="clientssnames" >
-                  <input type="submit"  value="Add client Name"  name="addclientssnames" >
-                  </form>
+                <form method="POST" class="d-flex flex-column align-items-start">
+                  <div class="mb-3">
+                    <input 
+                      type="text" 
+                      class="form-control" 
+                      name="clientssnames" 
+                      placeholder="Client Name" 
+                      style="width: 250px;"
+                      required
+                    >
+                  </div>
+                  <button 
+                    type="submit" 
+                    name="addclientssnames" 
+                    class="btn text-white"
+                    style="width: 150px; background-color: #52da3f; border-radius: 50px; border: none;"
+                  >
+                    Add Client Name
+                  </button>
+                </form>
+
 
 
                     <div class="normal-table-list mg-t-30">
@@ -526,67 +543,76 @@ function fill_product($db){
                             <div class="basic-tb-hd">
 
 
-                            <h2><small> <i class="fa fa-refresh"></i> <?php echo $sttus; ;?><span class="rmNo"> Table No. <?php echo $_SESSION['tableno'] = $getFetch['table_no'];?></span></small> <?php echo $_SESSION['f_name']?> </h2>
+                              <h2><small> <i class="fa fa-refresh"></i> <?php echo $sttus; ;?><span class="rmNo"> Table No. <?php echo $_SESSION['tableno'] = $getFetch['table_no'];?></span></small> <?php echo $_SESSION['f_name']?> </h2>
 
-                              <?php
+                                <?php
 
-                              echo $client;
-
-
-                              ?>
+                                echo $client;
 
 
-                            <button type="button" data-toggle="modal" data-target="#myModalone" data-placement="left" title="Add Items" class="btn pull-right"><i class="fa fa-plus-circle"></i> Add Items</button>
-    <div class="modal fade" id="myModalone" role="dialog">
-        <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-              <h3 class="modal-title">Add Items</h3>
-            </div>
-            <div class="modal-body">
-                
-            <div class="row">
-            <div class="form-group">
-                <div class="col-md-12">
-                    <input type="hidden" name="orderCode" value="<?php echo $OrderCode ?? $_REQUEST['s'];?>">
-                    <input type="hidden" name="reservation_ID" value="<?php echo $id;?>">
-                    <input type="hidden" name="serv_ID" value="<?php echo $serv;?>">
-                 <table class="table table-border" id="myOrder">
-                <thead>
-                    <tr>
-                        <th>Item Name</th>
-                        <th>Quantity</th>
-                        <th>
-                          <button type="button" name="addOrder" class="btn btn-success btn-sm btn_addOrder" required><span>
-                            <i class="fa fa-plus"></i>
-                          </span></button>
-                        </th>
-                    </tr>
+                                ?>
 
-                </thead>
-                <tbody>
 
-                </tbody>
-              </table>
-            </div>
-            </div>
-            <div class="form-group">
-    		    <div class="form-actions col-md-12">
-    		        <br />
-    		        <center>
-    			        <button type="submit" name="add" id="" class="btn btn-sm label-info margin" style="border-radius: 4px;"><i class="fa fa-fw fa-save"></i> Save</button>
-    			        <button type="reset" class="btn btn-sm label-default margin"><i class="fa fa-fw fa-remove"></i> Reset</button>
-    		        </center>
-    		    </div>
-            </div>
-            </div>
+                              <button type="button" data-toggle="modal" data-target="#myModalone" data-placement="left" title="Add Items" class="btn btn-primary pull-right"><i class="fa fa-plus-circle"></i> Add Items</button>
+                              <div class="modal fade" id="myModalone" role="dialog">
+                                  <div class="modal-dialog">
+                                  <div class="modal-content">
+                                      <div class="modal-header">
+                                        <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                        <h3 class="modal-title">Add Items</h3>
+                                      </div>
+                                      <div class="modal-body">
+                                          
+                                      <div class="row">
+                                      <div class="form-group">
+                                          <div class="col-md-12">
+                                              <input type="hidden" name="orderCode" value="<?php echo $OrderCode ?? $_REQUEST['s'];?>">
+                                              <input type="hidden" name="reservation_ID" value="<?php echo $id;?>">
+                                              <input type="hidden" name="serv_ID" value="<?php echo $serv;?>">
+                                          <table class="table table-border" id="myOrder">
+                                          <thead>
+                                              <tr>
+                                                  <th>Item Name</th>
+                                                  <th>Quantity</th>
+                                                  <th>
+                                                    <button type="button" name="addOrder" class="btn btn-success btn-sm btn_addOrder" required><span>
+                                                      <i class="fa fa-plus"></i>
+                                                    </span></button>
+                                                  </th>
+                                              </tr>
 
-            
-            </div>
-        </div>
-    </div>
-    </div>
+                                          </thead>
+                                          <tbody>
+
+                                          </tbody>
+                                        </table>
+                                      </div>
+                                      </div>
+                                      <div class="form-group">
+                                      <div class="form-actions col-md-12">
+                                          <br />
+                                          <center>
+                                            <button 
+                                              type="submit" 
+                                              name="add" 
+                                              class="btn btn-sm label-info margin" 
+                                              style="border-radius: 4px;" 
+                                              onclick="return confirm('Are you sure you want to add these item(s)?');"
+                                            >
+                                              <i class="fa fa-fw fa-save"></i> Save
+                                            </button>
+
+                                            <button type="reset" class="btn btn-sm label-default margin"><i class="fa fa-fw fa-remove"></i> Reset</button>
+                                          </center>
+                                      </div>
+                                      </div>
+                                      </div>
+
+                                      
+                                      </div>
+                                  </div>
+                              </div>
+                            </div>
 
                         </div>
 
@@ -612,7 +638,7 @@ function fill_product($db){
 
                                         }
 
-?>
+                        ?>
 
 
 
@@ -627,83 +653,114 @@ function fill_product($db){
                           $bon="";
                           $bonbar ="";
                           $printedIdbar = '';
-                         $printedIdresto = '';
-                         $printedIdcoffee = '';
-                         $coffe="";
-                                        $sql_rooms = $db->prepare("SELECT * FROM `tbl_cmd_qty`
-                                    WHERE cmd_code='".$code."'");
-                                        $sql_rooms->execute();
-                                        $i = 0;
-                                        while($fetrooms = $sql_rooms->fetch()) {
-                                            $i++;
+                          $printedIdresto = '';
+                          $printedIdcoffee = '';
+                          $coffe="";
+                              $sql_rooms = $db->prepare("SELECT * FROM `tbl_cmd_qty`
+                                  WHERE cmd_code='".$code."'");
+                              $sql_rooms->execute();
+                              $i = 0;
+                              
+                              // Initialize counters and totals
+                              $grandTotalBar = 0;
+                              $grandTotalResto = 0;
+                              $grandTotalCoffee = 0;
+
+                              $barCount = 0;
+                              $restoCount = 0;
+                              $coffeeCount = 0;
+
+                              while ($fetrooms = $sql_rooms->fetch()) {
+                                  $i++;
+
+                                  $mid = $fetrooms['cmd_item'];
+                                  $no = $fetrooms['cmd_code'];
+                                  $itemslistss = $fetrooms['cmd_qty_id'];
+                                  $printed = $fetrooms['printed'];
+                                  $status = $fetrooms['cmd_status'];
+                                  $cat = getcategory($mid);
+
+                                  $qty = $fetrooms['cmd_qty'];
+                                  $unitPrice = getprice($mid);
+                                  $totalPerItem = $unitPrice * $qty;
+
+                                  // ===== BAR =====
+                                  if ($cat == 2) {
+                                      if ($printed == null && $status != '3') {
+                                          $barCount++;
+                                          $printedIdbar .= $itemslistss . ",";
+                                          $grandTotalBar += $totalPerItem;
+
+                                          $bonbar .= $barCount . '. ' . getname($mid) . ' ' . number_format($unitPrice, 0) .
+                                                    '<br> Qty: ' . $qty .
+                                                    '<br> Total: ' . number_format($totalPerItem, 0) .
+                                                    '<br> ' . $fetrooms['message'] .
+                                                    '<hr style="border: none; border-top: 1px dashed black; width: 100%;" />';
+                                      }
+                                  }
+
+                                  // ===== RESTAURANT =====
+                                  if ($cat == 1) {
+                                      if ($printed == null && $status != '3') {
+                                          $restoCount++;
+                                          $printedIdresto .= $itemslistss . ",";
+                                          $grandTotalResto += $totalPerItem;
+
+                                          $bon .= $restoCount . '. ' . getname($mid) . ' ' . number_format($unitPrice, 0) .
+                                                  '<br> Qty: ' . $qty .
+                                                  '<br> Total: ' . number_format($totalPerItem, 0) .
+                                                  '<br> ' . $fetrooms['message'] .
+                                                  '<hr style="border: none; border-top: 1px dashed black; width: 100%;" />';
+                                      }
+                                  }
+
+                                  // ===== COFFEE =====
+                                  if ($cat == 32) {
+                                      if ($printed == null && $status != '3') {
+                                          $coffeeCount++;
+                                          $printedIdcoffee .= $itemslistss . ",";
+                                          $grandTotalCoffee += $totalPerItem;
+
+                                          $coffe .= $coffeeCount . '. ' . getname($mid) . ' ' . number_format($unitPrice, 0) .
+                                                    '<br> Qty: ' . $qty .
+                                                    '<br> Total: ' . number_format($totalPerItem, 0) .
+                                                    '<br> ' . $fetrooms['message'] .
+                                                    '<hr style="border: none; border-top: 1px dashed black; width: 100%;" />';
+                                      }
+                                  }
+                              }
+
+                              // === Add Grand Totals after the loop ===
+                              if ($grandTotalBar > 0) {
+                                  $bonbar .= '<strong>Grand Total: ' . number_format($grandTotalBar, 0) . '</strong>';
+                              }
+
+                              if ($grandTotalResto > 0) {
+                                  $bon .= '<strong>Grand Total: ' . number_format($grandTotalResto, 0) . '</strong>';
+                              }
+
+                              if ($grandTotalCoffee > 0) {
+                                  $coffe .= '<strong>Grand Total: ' . number_format($grandTotalCoffee, 0) . '</strong>';
+                              }
 
 
-                                               $mid = $fetrooms['cmd_item'];
-
-                                               $no = $fetrooms['cmd_code'];
-
-                                               $itemslistss = $fetrooms['cmd_qty_id'];
-
-                                                 $printed = $fetrooms['printed'];
-                                                 $status = $fetrooms['cmd_status'];
-
-
-
-                                              $cat = getcategory($mid);
-
-
-                                            if($cat==2){
-                                               //  echo "<script>alert($cat)</script>";
-                                               if($printed==null && $status != '3'){
-                                                $printedIdbar = $printedIdbar.$itemslistss.",";
-                                                  $bonbar = $bonbar.getname($mid).' '.getprice($mid).'<br> Qty: '.$fetrooms['cmd_qty'].'<br> '.$fetrooms['message'].'<hr style="border: none; border-top: 1px dashed black; width: 100%;" />';
-                                               }
-                                            }
-                                               if($cat==1){
-                                               if($printed==null && $status != '3'){
-                                                $printedIdresto = $printedIdresto.$itemslistss.",";
+                              $_SESSION['no'] =$no;
+                              $_SESSION['tin'] =$count;
+                              $_SESSION['printedIdbar'] =$printedIdbar;
+                              $_SESSION['printedIdcoffee'] =$printedIdcoffee;
+                              $_SESSION['printedIdresto'] =$printedIdresto;
+                              $_SESSION['servant'] = $serv;
+                              $_SESSION['ebmdata']= $ebmdata;
+                              $_SESSION['bon']= $bon;
+                              $_SESSION['bonbar']= $bonbar;
+                              $_SESSION['coffe']= $coffe;
+                              $_SESSION['total']= $totprice;
+                              //$_SESSION['tax']= $totprice* 0.18 ;
+                              $_SESSION['servant_name']= $_SESSION['f_name']. " ".$_SESSION['l_name'];
 
 
-                                                $bon = $bon.getname($mid).' '.getprice($mid).'<br> Qty: '.$fetrooms['cmd_qty'].'<br> '.$fetrooms['message'].'<hr style="border: none; border-top: 1px dashed black; width: 100%;" />';
-                                            }}
-
-
-                                               if($cat==32){
-
-                                                    if($printed==null && $status != '3'){
-                                                $printedIdcoffee = $printedIdcoffee.$itemslistss.",";
-
-
-                                                $coffe = $coffe.getname($mid).' '.getprice($mid).'<br>: '.$fetrooms['cmd_qty'].'<br> '.$fetrooms['message'].'<hr style="border: none; border-top: 1px dashed black; width: 100%;" />';
-
-
-                                               }}
-
-
-
-
-
-
-                                        }
-
-
-$_SESSION['no'] =$no;
-$_SESSION['tin'] =$count;
-$_SESSION['printedIdbar'] =$printedIdbar;
-$_SESSION['printedIdcoffee'] =$printedIdcoffee;
-$_SESSION['printedIdresto'] =$printedIdresto;
-$_SESSION['servant'] = $serv;
-$_SESSION['ebmdata']= $ebmdata;
-$_SESSION['bon']= $bon;
-$_SESSION['bonbar']= $bonbar;
-$_SESSION['coffe']= $coffe;
-$_SESSION['total']= $totprice;
-//$_SESSION['tax']= $totprice* 0.18 ;
-$_SESSION['servant_name']= $_SESSION['f_name']. " ".$_SESSION['l_name'];
-
-
-//echo $_SESSION['bonbar'];
-?>
+                              //echo $_SESSION['bonbar'];
+                              ?>
                             <table class="table table-striped">
                                 <thead>
                                     <tr>
@@ -821,7 +878,7 @@ $_SESSION['servant_name']= $_SESSION['f_name']. " ".$_SESSION['l_name'];
                                           echo $bullet." ".$text;
                                         }
                                         ?>
-                                   <button type="button" data-toggle="modal"  data-target="#roomclient<?php echo $menu_id?>" data-placement="left" title="" class="btn pull-right"><i class="fa fa-plus-circle"></i> Add extre info</button>
+                                   <button type="button" data-toggle="modal"  data-target="#roomclient<?php echo $menu_id?>" data-placement="left" title="" class="btn pull-right"><i class="fa fa-plus-circle"></i> Add extra info</button>
 
 
                                           <div class="modal fade" id="roomclient<?php echo $menu_id?>" role="dialog">
@@ -836,7 +893,7 @@ $_SESSION['servant_name']= $_SESSION['f_name']. " ".$_SESSION['l_name'];
             <div class="row">
             <div class="form-group">
                 <div class="col-md-12">
-                 <input type="text" name="messageid" value="<?php echo $menu_id?>">
+                 <input type="hidden" name="messageid" value="<?php echo $menu_id?>">
                   <textarea name="ordermessage"  class="form-control" ></textarea>
 
             </div>
@@ -891,18 +948,34 @@ $_SESSION['servant_name']= $_SESSION['f_name']. " ".$_SESSION['l_name'];
         <tr><td>
         <?php
         // Company details
-  $logoUrl = $logo_png; // Change to your logo path if needed
-  echo '<div style="text-align:center;margin-bottom:8px;"><img src="' . $logoUrl . '" alt="Logo" style="max-width:120px;max-height:120px;display:inline-block;" /></div>';
-  $thankYou = '<div style="margin-top:5px;font-size:12px;text-align:center;color:#28a745;">Thank you, you are always welcome!</div>';
-  $companyInfo = '<div style="font-size:14px;line-height:1.4;text-align:center;margin-bottom:4px;">
-  '. $company_name. '<br>
-  TIN/VAT :'. $company_tin .'<br>
-  Tel: '. $company_phone .'<br>
-  '. $company_email .'<br>
-  </div>';
-  $momo = '<div style="margin-top:8px;font-size:15px;text-align:center;"><strong>MOMO : 007972</strong></div>';
+        $logoUrl = $logo_png; // Change to your logo path if needed
+        echo '<div style="text-align:center;margin-bottom:8px;"><img src="' . $logoUrl . '" alt="Logo" style="max-width:120px;max-height:120px;display:inline-block;" /></div>';
+        $thankYou = '<div style="margin-top:5px;font-size:12px;text-align:center;color:#28a745;">Thanks for using our services!</div>';
+        $companyInfo = '<div style="font-size:14px;line-height:1.4;text-align:center;margin-bottom:4px;">
+        '. $company_name. '<br>
+        TIN/VAT: '. $company_tin .'<br>
+        Tel: '. $company_phone .'<br>
+        '. $company_email .'<br>
+        </div>';
+        $momo = '
+        <hr>
+        <div style="margin-top:8px;font-size:15px;text-align:left; padding-left: 20px;">
+          <strong>Client Name: _____________________ </strong>
 
-  echo $companyInfo;
+          <br>
+          <strong>Room: __________________________ </strong>
+        </div>
+
+        <hr>
+        
+        <div style="margin-top:8px;font-size:15px;text-align:center;">MOMO CODE: <strong>'. $momo .' </strong></div>
+        <div style="margin-top:8px;font-size:15px;text-align:center;">MERCHANT NAME: <strong>'. $momo_name .' </strong></div>
+        
+        '
+
+        ;
+
+        echo $companyInfo;
         echo '<hr style="border: none; border-top: 2px solid #333; width: 100%; margin:8px 0;" />';
         $orderNo = isset($getsts['id']) ? $getsts['id'] : '';
         $tableNo = isset($_SESSION['tableno']) ? $_SESSION['tableno'] : '';
@@ -915,6 +988,7 @@ $_SESSION['servant_name']= $_SESSION['f_name']. " ".$_SESSION['l_name'];
         echo '<div style="text-align:center;font-size:15px;font-weight:bold;margin:10px 0;">SERVED ITEMS</div>';
         echo '<table style="width:100%;font-size:16px;border-collapse:collapse;margin:0;padding:0;border:1px solid #333;">';
         echo '<tr style="background:#f8f8f8;">'
+          .'<th align="left" style="border:1px solid #333;padding:2px;">#</th>'
           .'<th align="left" style="border:1px solid #333;padding:2px;">Item</th>'
           .'<th align="center" style="border:1px solid #333;padding:2px;">Qty</th>'
           .'<th align="right" style="border:1px solid #333;padding:2px 12px 2px 2px;">Price</th>'
@@ -922,18 +996,24 @@ $_SESSION['servant_name']= $_SESSION['f_name']. " ".$_SESSION['l_name'];
         $sql_items = $db->prepare("SELECT menu.menu_name, menu.menu_price, SUM(cmd_qty) AS qty FROM tbl_cmd_qty INNER JOIN menu ON menu.menu_id = tbl_cmd_qty.cmd_item WHERE tbl_cmd_qty.cmd_code = ? GROUP BY cmd_item");
         $sql_items->execute([$_GET['s']]);
         $total = 0;
+        $itemNumber = 1;
         while($item = $sql_items->fetch()) {
           $lineTotal = $item['qty'] * $item['menu_price'];
           $total += $lineTotal;
           echo '<tr>'
+          . '<td align="center" style="border:1px solid #333;padding:2px;">'.$itemNumber.'</td>'
           .'<td align="left" style="border:1px solid #333;padding:2px;">'.htmlspecialchars($item['menu_name']).'</td>'
           .'<td align="center" style="border:1px solid #333;padding:2px;">'.$item['qty'].'</td>'
           .'<td align="right" style="border:1px solid #333;padding:2px 12px 2px 2px;">'.(is_numeric($lineTotal) ? number_format($lineTotal) : '0').'</td>'
           .'</tr>';
+          $itemNumber++;
         }
         echo '</table>';
         echo '<hr style="border: none; border-top: 2px solid #333; width: 100%; margin:8px 0;" />';
-        echo '<div style="text-align:right;font-size:17px;font-weight:bold;margin:8px 0;">GRAND TOTAL: <span style="border-bottom:1px solid #333;">'.(is_numeric($total) ? number_format($total) : '0').'</span></div>';
+        echo '
+        <div style="text-align:right;font-size:17px;font-weight:bold;margin:8px 0;">GRAND TOTAL: 
+            <span class="px-3">'.(is_numeric($total) ? number_format($total) : '0').'</span>
+        </div>';
         echo '<hr style="border: none; border-top: 2px solid #333; width: 100%; margin:8px 0;" />';
         $waiterName = '';
         if (!empty($_SESSION['f_name']) && !empty($_SESSION['l_name'])) {
@@ -958,7 +1038,7 @@ $_SESSION['servant_name']= $_SESSION['f_name']. " ".$_SESSION['l_name'];
         </td></tr>
         </table>
       </div>
-      <div class="modal-footer">
+      <div class="modal-footer mb-5">
         <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
         <button type="button" id="idinvoice" class="btn btn-info" onclick="printDiv('invoice')">Print</button>
       </div>
@@ -1145,79 +1225,80 @@ echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; 
         <h3 class="modal-title">Bon kitchen Preview</h3>
       </div>
       <div class="modal-body" id="printbar">
-  <?php   $html = '';
-// Sample data from session (modify this with actual session data)
-$bon = $_SESSION['bon'];
-$tax = $_SESSION['total'] * 18/100;
-$total = $_SESSION['total'];
-$no = $_SESSION['no'];
-$printedIdresto = $_SESSION['printedIdresto'];
-$tin = $_SESSION['tin'];
-$servant = $_SESSION['servant_name'];
-$tableno = $_SESSION['tableno'];
+            <?php   
+            $html = '';
+            // Sample data from session (modify this with actual session data)
+            $bon = $_SESSION['bon'];
+            $tax = $_SESSION['total'] * 18/100;
+            $total = $_SESSION['total'];
+            $no = $_SESSION['no'];
+            $printedIdresto = $_SESSION['printedIdresto'];
+            $tin = $_SESSION['tin'];
+            $servant = $_SESSION['servant_name'];
+            $tableno = $_SESSION['tableno'];
 
-include  '../inc/conn.php';
+            include  '../inc/conn.php';
 
-//$printedIdresto = substr($printedIdresto, 0, -1);
+            //$printedIdresto = substr($printedIdresto, 0, -1);
 
-$printedIdresto = substr($printedIdresto, 0, -1);
-
-
-// $sql = "UPDATE tbl_cmd_qty SET printed = '1' WHERE  cmd_qty_id IN ($printedIdresto)";
-
-// if ($conn->query($sql) === TRUE) {
-//  // echo "Record updated successfully";
-// } else {
-//  // echo "Error updating record: " . $conn->error;
-// }
+            $printedIdresto = substr($printedIdresto, 0, -1);
 
 
+            // $sql = "UPDATE tbl_cmd_qty SET printed = '1' WHERE  cmd_qty_id IN ($printedIdresto)";
 
-$img = '<img src="<?= $logo_png ?>" style="width: 100px;height: 100px;">';
+            // if ($conn->query($sql) === TRUE) {
+            //  // echo "Record updated successfully";
+            // } else {
+            //  // echo "Error updating record: " . $conn->error;
+            // }
 
-echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
-<table border="0" align="center" width="100%">
 
 
-<tr>
-<td align="center" style="display: grid;">
-   <h3>Date: '.$bondate.'</h3>
-</td>
-</tr>
-<tr>
-<td align="center" style="display: grid;">
-   <h3>Order Number: '.$ino.'</h3>
-</td>
-</tr>
+            $img = '<img src="<?= $logo_png ?>" style="width: 100px;height: 100px;">';
 
-     <tr>
-        <td align="center" style="display: grid;">
-           <h3> Table  '.$tableno.'</h3>
-        </td>
-    </tr>
+            echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
+            <table border="0" align="center" width="100%">
 
-    <tr>
-        <td align="center" style="display: grid;">
-           <h3> BON DE COMMANDE (KITCHEN) </h3>
-        </td>
-    </tr>
-    <tr>
-        <td><hr style="border: none; border-top: 1px dashed black; width: 80%;" /></td>
-    </tr>
-</table>
-<h3>
-  '.$bon.'
 
-</h3>
+            <tr>
+            <td align="center" style="display: grid;">
+              <h3>Date: '.$bondate.'</h3>
+            </td>
+            </tr>
+            <tr>
+            <td align="center" style="display: grid;">
+              <h3>Order Number: '.$ino.'</h3>
+            </td>
+            </tr>
 
-<table border="0"  align="center" width="100%">
-<tr>
-        <td align="center"><h3>Requested by:  '.$servant.'<h3></td>
-</tr>
-</table>
+                <tr>
+                    <td align="center" style="display: grid;">
+                      <h3> Table  '.$tableno.'</h3>
+                    </td>
+                </tr>
 
-</div>';
-?>
+                <tr>
+                    <td align="center" style="display: grid;">
+                      <h3> BON DE COMMANDE (KITCHEN) </h3>
+                    </td>
+                </tr>
+                <tr>
+                    <td><hr style="border: none; border-top: 1px dashed black; width: 80%;" /></td>
+                </tr>
+            </table>
+            <h3>
+              '.$bon.'
+
+            </h3>
+
+            <table border="0"  align="center" width="100%">
+            <tr>
+                    <td align="center"><h3>Requested by:  '.$servant.'<h3></td>
+            </tr>
+            </table>
+
+            </div>';
+            ?>
 
 
 
