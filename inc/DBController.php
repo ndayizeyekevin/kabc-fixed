@@ -46,6 +46,8 @@ $company_phone = $system_info['phone'];
 $company_email = $system_info['email'];
 $company_logo = $system_info['logo_jpeg'];
 $logo_png = $system_info['logo_png'];
+$momo = $system_info['momo'];
+$momo_name = $system_info['momo_name'];
 
 // Display system info for in alert box (for debugging purposes)
 
