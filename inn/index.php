@@ -269,6 +269,11 @@ switch ($view) {
 			$title="Manage Currencies";
 			$page='currency.php';
 			break;
+
+		case 'stock_takes':
+			$title="stock_take";
+			$page='stocktake.php';
+			break;
 			
 		default :
 			$title="Home";

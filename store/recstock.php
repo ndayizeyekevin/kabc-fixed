@@ -116,6 +116,7 @@ include '../inc/conn.php';
         $price = $_POST['price']; 
         $date  = date("Y-m-d");
 
+        // Check if item already exists in stock
         $sql = "SELECT * FROM tbl_item_stock WHERE item = '$item'";
         $result = $conn->query($sql);
         if ($result && $result->num_rows > 0) {
@@ -128,8 +129,29 @@ include '../inc/conn.php';
             $conn->query($sql2);
         }
         // Log the stock change (simple insert)
-        $sql3 = "INSERT INTO tbl_progress (date, in_qty, last_qty, out_qty, item, end_qty, new_price) VALUES ('$date', '$qty', '0', '0', '$item', '$qty', '$price')";
-        $conn->query($sql3);
+        // $sql3 = "INSERT INTO tbl_progress (date, in_qty, last_qty, out_qty, item, end_qty, new_price) VALUES ('$date', '$qty', '0', '0', '$item', '$qty', '$price')";
+        // $conn->query($sql3);
+        // Check if the item exists in tbl_progress and if the quantity is zero, update the price and the quantity with the new values instead of inserting a new row
+
+        $checkProgress = "SELECT * FROM tbl_progress WHERE item = '$item' ORDER BY prog_id DESC LIMIT 1";
+        $progressResult = $conn->query($checkProgress);
+        if ($progressResult && $progressResult->num_rows > 0) {
+            $progressRow = $progressResult->fetch_assoc();
+            if ($progressRow['end_qty'] == 0) {
+                // Update existing row
+                $sql4 = "UPDATE tbl_progress SET in_qty = in_qty + '$qty', last_qty = last_qty + $qty, new_price = '$price', end_qty = end_qty + '$qty', remark = 'Opening Stock' WHERE prog_id = '".$progressRow['prog_id']."'";
+                $conn->query($sql4);
+            } else {
+                // Insert new row
+                $sql3 = "INSERT INTO tbl_progress (date, in_qty, last_qty, out_qty, item, end_qty, new_price, remark) VALUES ('$date', '$qty', '0', '0', '$item', '$qty', '$price', 'Opening Stock')";
+                $conn->query($sql3);
+            }
+        } else {
+            // No previous progress record, insert new
+            $sql3 = "INSERT INTO tbl_progress (date, in_qty, last_qty, out_qty, item, end_qty, new_price, remark) VALUES ('$date', '$qty', '0', '0', '$item', '$qty', '$price', 'Opening Stock')";
+            $conn->query($sql3);
+        }
+
 
         $msg = "Successfully Recorded!";
         echo '<meta http-equiv="refresh" content="1;URL=index?resto=stock">';
@@ -159,7 +181,19 @@ include '../inc/conn.php';
         <div class="breadcomb-area">
             <div class="container">
                 
-                
+                <?php if($msg){?>
+                <div class="alert alert-success alert-dismissable">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    <strong>Well Done!</strong> <?php echo htmlentities($msg); ?>
+                </div>
+                <?php } 
+                else if($msge){?>
+                    
+                <div class="alert alert-danger alert-dismissable">
+                    <button type="button" class="close" data-dismiss="alert" aria-hidden="true">&times;</button>
+                    <strong>Sorry!</strong> <?php echo htmlentities($msge); ?>
+                </div>
+                <?php } ?>
                 <div class="row">
                     <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
                         <div class="breadcomb-list">
@@ -491,11 +525,13 @@ include '../inc/conn.php';
                     <html>
                     <head>
                         <center>
-                        <img src='<?= $logo_png ?>' style='height:80px; margin-bottom:10px;'>
-                    <div><?= $company_name ?><br>
-                    TIN/VAT :<?= $company_tin ?><br>
-                    Tel: <?= $company_phone ?><br>
-                    <?= $company_email ?><br></div>
+                        <img src='https://saintpaul.gope.rw/img/logo.png'>
+                        <div>Centre Saint Paul Kigali Ltd<br>
+                        KN 31 St, Kigali, Rwanda<br>
+                        TIN/VAT Number: 111477597<br>
+                        <br>
+                        Phone: +250 785 285 341 / +250 789 477 745 <br>
+                        </p></div>
                         </center>
                         <br>
                         <title>Print Inventory Table</title>

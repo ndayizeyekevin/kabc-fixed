@@ -159,7 +159,7 @@ if ($conn->query($sql) === TRUE) {
 
                   <div class="col-md-12 col-12">
                     <label class="col-md-2 control-label" for=""><strong>Supplier</strong></label>
-                    <select class="form-control" name="supplier" required>
+                    <select class="form-control chosen" name="supplier" required>
                       <option value="">Select Supplier</option>
                       <?php
                       $supplierQuery = $db->query("SELECT * FROM suppliers");
@@ -242,14 +242,7 @@ if ($conn->query($sql) === TRUE) {
                                         </td>
                                         <td><?php echo $fetch['request_date']; ?></td>
                                         <td><?php echo $fetch['required_date']; ?></td>
-                                        <td><?php 
-                                            if($fetch['status']==1){
-                                                echo 'Approved';
-                                            } else {
-                                                echo 'Pending';
-                                            }
-                                            
-                                        ?>
+                                        <td><?php echo ucwords($fetch['request_status']); ?>
                                         </td>
                                         <td>
                                           <a href="?resto=print_purchase&id=<?php echo $fetch['req_id']?>" class="btn btn-primary">
@@ -260,9 +253,15 @@ if ($conn->query($sql) === TRUE) {
                                             </a>
 
                                             <!-- If status is pending -->
-                                            <a href="#=<?php echo $fetch['req_id']?>" class="btn btn-danger">
-                                                Delete
-                                            </a>
+                                            <?php if($fetch['request_status'] == 'pending'){ ?>
+                                              <a 
+                                                  href="#req_id=<?php echo $fetch['req_id']?>" 
+                                                  class="btn btn-danger" 
+                                                  onclick="return confirm('Are you sure you want to delete this request?');"
+                                              >
+                                                  Delete
+                                              </a>
+                                            <?php } ?>
 
                                         </td>
                                     </tr>

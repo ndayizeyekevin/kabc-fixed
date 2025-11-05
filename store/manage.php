@@ -158,14 +158,23 @@ function fill_product($db){
 	    $item_price = (float)getItemPrice($item);
 		$sql = "INSERT INTO `request_store_item` (`id`, `item_id`, `qty`, `pur_qty`, `pur_price`, `req_id`) VALUES (NULL, '$item', '$qty', '$qty', '$item_price', '$req_code');";
 
-if ($conn->query($sql) === TRUE) {
- //echo "window.location='add_item.php?re=$req_code'";
-} else {
-  //echo "Error: " . $sql . "<br>" . $conn->error;
-}
+    if ($conn->query($sql) === TRUE) {
+    //echo "window.location='add_item.php?re=$req_code'";
+    } else {
+      //echo "Error: " . $sql . "<br>" . $conn->error;
+    }
 		
 		
-	}?>
+  }
+
+
+  // select * from store_request
+  $stmt_req = $db->prepare("SELECT * FROM store_request WHERE req_id = ?");
+  $stmt_req->execute([$_GET['id']]);
+  // fetch data
+  $request_data = $stmt_req->fetch(PDO::FETCH_ASSOC); 
+
+?>
 	
 <style>
     .form-ic-cmp{
@@ -210,59 +219,67 @@ if ($conn->query($sql) === TRUE) {
 			</div>
 		</div>
 	</div>
-	<!-- Data Table area Start-->
+    <!-- Data Table area Start-->
     <div class="data-table-area">
-        <div class="container">
-            <div class="row">
-                <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
-				
-				  
-        <div class="modal-content">
-          <div class="container p-3">
-            <a href="index.php?resto=requestStore">Go Back</a>
-            <br>
-            <a href="?resto=print_purchase&&id=<?php echo $_REQUEST['id']?>" class="btn btn-primary mt-3">Print Request</a>
-
-          </div>
-            <div class="modal-body">
-              <form action="" enctype="multipart/form-data" method="POST">
-          <div class="row">
-           
+          <div class="container">
+              <div class="row">
+                  <div class="col-lg-12 col-md-12 col-sm-12 col-xs-12">
+          
             
+                    <a href="index.php?resto=requestStore" class="btn btn-info mb-3">Go Back</a>
+          <div class="modal-content">
+              <div class="container p-3">
+                <br>
+                <a href="?resto=print_purchase&&id=<?php echo $_REQUEST['id']?>" class="btn btn-primary mt-3">Print Request</a>
+
+              </div>
+
+              <?php 
+              if($request_data['request_status'] == 'pending'){ 
+                ?>
+                <div class="modal-body">
+                  <form action="" enctype="multipart/form-data" method="POST">
+                      <div class="row">
+                  
+                    
 
 
-	
-                <div class="col-md-5">
+          
+                        <div class="col-md-5">
 
-                        <label class="col-md-2 control-label" for=""><strong>Select</strong><span class="text-danger">*</span></label>
-                    			<select name="item" class="form-control selectpicker" data-live-search="true" required><?php
-			$result = $db->prepare("SELECT * FROM tbl_items");
-                                        $result->execute();
-                                		while($fetch = $result->fetch()){
-?><option value='<?php echo $fetch['item_id']?>'><?php echo $fetch['item_name']?></option>
- <?php }
+                                <label class="col-md-2 control-label" for=""><strong>Select</strong><span class="text-danger">*</span></label>
+                                  <select name="item" class="form-control selectpicker" data-live-search="true" required><?php
+                                              $result = $db->prepare("SELECT * FROM tbl_items");
+                                              $result->execute();
+                                              while($fetch = $result->fetch()){
+                                                ?><option value='<?php echo $fetch['item_id']?>'><?php echo $fetch['item_name']?></option>
+                                                <?php 
+                                              }
 
-	?>
+                                              ?>
 
-</select>
+                                </select>
+                        </div>
+                    
+                        <div class="col-md-5">
+                            <label class="col-md-2 control-label" for=""><strong>Quantity</strong></label>
+                            <input autocomplete="off" name="qty" type="text" id="number" placeholder="Quantity" class="form-control" pattern="^\d+(\.\d{1,3})?$" inputmode="decimal" required>
+                        </div>
+                        <div class="col-md-2">
+                          <br>
+                                <input    class="form-control" type="submit" name="addRequest" Value="Add">
+                        </div>
+                      </div>
+                
+    
+                  </form>
+          
                 </div>
-            
-                <div class="col-md-5">
-                     <label class="col-md-2 control-label" for=""><strong>Quantity</strong></label>
-                    <input autocomplete="off" name="qty" type="text" id="number" placeholder="Quantity" class="form-control" pattern="^\d+(\.\d{1,3})?$" inputmode="decimal" required>
-                </div>
-                      <div class="col-md-2">
-           <br>
-                       <input    class="form-control" type="submit" name="addRequest" Value="Add">
-                </div>
-            </div>
-            
- 
-            </form>
-			
-            </div>
-     
-    </div>
+                <?php
+              }
+              ?>
+      
+  </div>
 				
 				
                     <div class="data-table-list">
@@ -301,7 +318,13 @@ if ($conn->query($sql) === TRUE) {
                                             <td><?php echo getItemUnitName(getItemUnitId($fetch['item_id'])); ?></td>
                                           
                                             <td>
+                                              <?php
+                                                if($request_data['request_status'] == 'pending'){ 
+                                                  ?>
                                                <a  href="delete.php?id=<?php echo $fetch['id']; ?>&req=<?= $_REQUEST['id'] ?>" onclick="if(!confirm('Do you really want to remove item?'))return false;else return true;">Delete</a>
+                                               <?php
+                                                }
+                                                ?>
                                             </td>
                                      	</tr>
          <?php

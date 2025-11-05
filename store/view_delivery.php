@@ -250,59 +250,59 @@ if (isset($_POST['id'])) {
     $sql_chk = $db->prepare("SELECT * FROM request_store_item WHERE req_id = ? order by id DESC"); // REMOVED LIMIT ONE 
     $sql_chk->execute([$req_id]);
 
-    while ($rows = $sql_chk->fetch(PDO::FETCH_ASSOC)) {
-        $item = $rows['item_id'];
-        $qty = (float)$rows['del_qty'];
-        $unit_price = (float)$rows['del_price'];
+    // while ($rows = $sql_chk->fetch(PDO::FETCH_ASSOC)) {
+    //     $item = $rows['item_id'];
+    //     $qty = (float)$rows['del_qty'];
+    //     $unit_price = (float)$rows['del_price'];
 
-        if ($qty <= 0 || $unit_price <= 0) continue;
+    //     if ($qty <= 0 || $unit_price <= 0) continue;
 
-        // Check stock existence
-        $sql_chk2 = $db->prepare("SELECT * FROM tbl_item_stock WHERE item = ?");
-        $sql_chk2->execute([$item]);
+    //     // Check stock existence
+    //     $sql_chk2 = $db->prepare("SELECT * FROM tbl_item_stock WHERE item = ?");
+    //     $sql_chk2->execute([$item]);
 
-        if ($sql_chk2->rowCount() > 0) {
-            // Existing stock: update qty
-            $stock_row = $sql_chk2->fetch();
-            $existing_qty = (float)$stock_row['qty'];
-            $new_stock_qty = $existing_qty + $qty;
+    //     if ($sql_chk2->rowCount() > 0) {
+    //         // Existing stock: update qty
+    //         $stock_row = $sql_chk2->fetch();
+    //         $existing_qty = (float)$stock_row['qty'];
+    //         $new_stock_qty = $existing_qty + $qty;
 
-            // Update item stock
-            $sqlqty = $db->prepare("UPDATE tbl_item_stock SET qty = ? WHERE item = ?");
-            $sqlqty->execute([$new_stock_qty, $item]);
+    //         // Update item stock
+    //         $sqlqty = $db->prepare("UPDATE tbl_item_stock SET qty = ? WHERE item = ?");
+    //         $sqlqty->execute([$new_stock_qty, $item]);
 
-            // Get last end_qty from tbl_progress
-            $sql_last = $db->prepare("SELECT end_qty FROM tbl_progress WHERE item = ? ORDER BY prog_id DESC LIMIT 1");
-            $sql_last->execute([$item]);
-            $lastqty = 0;
-            if ($sql_last->rowCount() > 0) {
-                $last_row = $sql_last->fetch();
-                $lastqty = (float)$last_row['end_qty'];
-            }
-            $end_qty = $lastqty + $qty;
-            // Calculate average cost using true formula
-            $averageCost = getAverage($db, $item, $unit_price, $qty);
+    //         // Get last end_qty from tbl_progress
+    //         $sql_last = $db->prepare("SELECT end_qty FROM tbl_progress WHERE item = ? ORDER BY prog_id DESC LIMIT 1");
+    //         $sql_last->execute([$item]);
+    //         $lastqty = 0;
+    //         if ($sql_last->rowCount() > 0) {
+    //             $last_row = $sql_last->fetch();
+    //             $lastqty = (float)$last_row['end_qty'];
+    //         }
+    //         $end_qty = $lastqty + $qty;
+    //         // Calculate average cost using true formula
+    //         $averageCost = getAverage($db, $item, $unit_price, $qty);
 
-            // Insert into progress
-            $insert = $db->prepare("INSERT INTO tbl_progress (date, in_qty, last_qty, item, end_qty, new_price) 
-                                    VALUES (?, ?, ?, ?, ?, ?)");
-            $insert->execute([$date, $qty, $lastqty, $item, $end_qty, $averageCost]);
+    //         // Insert into progress
+    //         $insert = $db->prepare("INSERT INTO tbl_progress (date, in_qty, last_qty, item, end_qty, new_price) 
+    //                                 VALUES (?, ?, ?, ?, ?, ?)");
+    //         $insert->execute([$date, $qty, $lastqty, $item, $end_qty, $averageCost]);
 
-        } else {
-            // First time stock: insert into tbl_item_stock
-            $insert_stock = $db->prepare("INSERT INTO tbl_item_stock (item, qty, date_tkn) VALUES (?, ?, ?)");
-            $insert_stock->execute([$item, $qty, $date]);
+    //     } else {
+    //         // First time stock: insert into tbl_item_stock
+    //         $insert_stock = $db->prepare("INSERT INTO tbl_item_stock (item, qty, date_tkn) VALUES (?, ?, ?)");
+    //         $insert_stock->execute([$item, $qty, $date]);
 
-            // First entry to tbl_progress
-            $insert_progress = $db->prepare("INSERT INTO tbl_progress (date, in_qty, last_qty, item, end_qty, new_price) 
-                                             VALUES (?, ?, 0, ?, ?, ?)");
-            $insert_progress->execute([$date, $qty, $item, $qty, $unit_price]);
-        }
-    }
+    //         // First entry to tbl_progress
+    //         $insert_progress = $db->prepare("INSERT INTO tbl_progress (date, in_qty, last_qty, item, end_qty, new_price) 
+    //                                          VALUES (?, ?, 0, ?, ?, ?)");
+    //         $insert_progress->execute([$date, $qty, $item, $qty, $unit_price]);
+    //     }
+    // }
 
     // Mark the request as confirmed
-    $sql = $db->prepare("UPDATE store_request SET status = 1, confirmed = ? WHERE req_id = ?");
-    $sql->execute([$dated, $req_id]);
+    $sql = $db->prepare("UPDATE store_request SET status = 1, request_status = ?, confirmed = ? WHERE req_id = ?");
+    $sql->execute(['Received', $dated, $req_id]);
 
     echo "<script>window.location.href = '?resto=viewDelivery&&id=$req_id';</script>";
 }
@@ -471,17 +471,17 @@ if ($conn->query($sql) === TRUE) {
                                               <form method="POST" id="confirmRequestForm" onsubmit="return handleConfirmSubmit(this)">
 
                                                       <div class="col-lg-2">
-                                                          <input type="date" name="confirm_date" class="form form-control" required>
+                                                          <input type="date" name="confirm_date" class="form form-control" required max="<?php echo date('Y-m-d'); ?>">
                                                           <input type="hidden" name="id" value="<?php echo $_REQUEST['id']?>">
                                                       </div>
-                                                  <div class="col-lg-2">
-                                                      <button type="submit" class="btn btn-info" id="confirmBtn">
-                                                        <span class="btn-text">Confirm this request</span>
-                                                        <span class="btn-loading" style="display:none;">
-                                                          <i class="fa fa-spinner fa-spin"></i> Processing...
-                                                        </span>
-                                                      </button>
-                                                    </div>
+                                                      <div class="col-lg-2">
+                                                        <button type="submit" class="btn btn-info" id="confirmBtn" onclick="return confirm('Are you sure to change the status of this order as received?')">
+                                                          <span class="btn-text">Confirm this request</span>
+                                                          <span class="btn-loading" style="display:none;">
+                                                            <i class="fa fa-spinner fa-spin"></i> Processing...
+                                                          </span>
+                                                        </button>
+                                                      </div>
 
                                               </form>
 
