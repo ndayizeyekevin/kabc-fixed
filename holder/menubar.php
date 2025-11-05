@@ -241,6 +241,8 @@ include "switch_role.php";
                              <li><a href="?resto=corporates" ><i class="fa fa-building"></i> Corporates</a></li>
         	                       <!-- <li><a href="?resto=void" >Pending voided Items</a></li> -->
         	                 <li><a href="?resto=StoreRequests"> <i class="fa fa-store"></i> Store Requests</a></li>
+                             <!-- new item for stock take -->
+                         <li><a href="?resto=stock_takes"><i class="fa fa-calculator"></i> Stock Take </i></a></li>
                          <li><a data-toggle="tab" href="#rep"><i class="fa fa-cutlery"></i> Reports <i class="fa fa-angle-down"></i></a></li>
                          <!-- <li><a data-toggle="tab" href="#ebm"><i class="fa fa-cutlery"></i> EBM <i class="fa fa-angle-down"></i></a></li> -->
                          <li><a data-toggle="tab" href="#access"><i class="fa fa-chart-line"></i> Access As <i class="fa fa-angle-down"></i></a></li>
