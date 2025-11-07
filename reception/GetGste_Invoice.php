@@ -18,6 +18,18 @@ if (isset($_POST['addClientToOrder'])) {
     $sql = "UPDATE `tbl_cmd` SET `room_client` = '$clientinroom ' WHERE  `OrderCode`='$code'";
     $didq = $db->prepare($sql);
     $didq->execute();
+
+    // update tbl_cmd_qty and tbl_cmd status to 12 as well as tbl_tables to available 1
+    $tbl_id = $_GET['resrv'];
+    $db->prepare("UPDATE tbl_cmd_qty SET cmd_status = 12 WHERE cmd_code = :order_code")
+       ->execute([':order_code' => $code]);
+    $db->prepare("UPDATE tbl_tables SET status = 1 WHERE table_id = :tbl_id")
+       ->execute([':tbl_id' => $tbl_id]);
+       $db->prepare("UPDATE tbl_cmd SET status_id = 12 WHERE OrderCode = :order_code")
+         ->execute([':order_code' => $code]);
+    echo "<script>alert('Client added to order');</script>";
+    // Refresh to avoid resubmission
+    echo "<script>window.location.href='?resto=gstInvce&resrv=" . $_GET['resrv'] . "&c=" . $code . "';</script>";
 }
 if (isset($_GET['delete_id'])) {
     $delete_id = intval($_GET['delete_id']);

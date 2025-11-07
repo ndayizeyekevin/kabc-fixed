@@ -177,6 +177,23 @@ if(ISSET($_GET['ac'])){
     $msg = "Confirmed Successfully";
     echo '<meta http-equiv="refresh"'.'content="2;URL=?resto=request">';
 }
+
+
+
+// Fetch the data from store_request table
+$request_id = $_GET['id'];
+$request_stmt = $db->prepare("SELECT * FROM store_request WHERE req_id = ?");
+$request_stmt->execute([$request_id]);
+$request_data = $request_stmt->fetch();
+$supplier_id = $request_data['supplier'];
+$supplier_stmt = $db->prepare("SELECT * FROM suppliers WHERE id = ?");
+$supplier_stmt->execute([$supplier_id]);
+$supplier_data = $supplier_stmt->fetch();
+$Rname = $supplier_data['name'];
+
+
+
+
 ?>
 <?php 
 function fill_product($db){
@@ -272,9 +289,9 @@ if ($conn->query($sql) === TRUE) {
 				
 				   <div class="modal-content">
 				   <div  style="padding:20px">
-            <a href="index?resto=purchases">View purchase list</a> | 
-            <a  href="?resto=print_purchase&&id=<?php echo $_REQUEST['id']?>&&supplier=<?php echo $_REQUEST['supplier'] ?>" >Print</a>
-			<div>
+            <a href="index?resto=requestStore" class="btn btn-success">View purchase list</a> 
+            <a href="?resto=print_purchase&&id=<?php echo $_REQUEST['id']?>&&supplier=<?php echo $_REQUEST['supplier'] ?>" class="btn btn-info ms-2">Print PO</a>
+			  <div>
             <div class="modal-body" hidden>
               <form action="" enctype="multipart/form-data" method="POST">
           <div class="row">
@@ -332,7 +349,37 @@ if ($conn->query($sql) === TRUE) {
 					
                         <?php if(empty($_GET['req'])){ ?>
                         <div class="table-responsive">
-                      <a href="?resto=add_item&&id=<?php echo $_REQUEST['id']; ?>&&supplier=<?php echo $_REQUEST['supplier']; ?>>" class="btn btn-primary">Add Item</a>
+                          <?php 
+                          $status = $request_data['request_status'];
+
+                            if ($status === 'pending') {
+                                $badge = "<span class='badge rounded-pill' style='background:#ffc107; color:#000;'>PENDING</span>";
+
+                            } elseif ($status === 'verified') {
+                                $badge = "<span class='badge rounded-pill' style='background:#0dcaf0; color:#fff; font-weight:600;'>VERIFIED</span>";
+
+                            } elseif ($status === 'approved') {
+                                $badge = "<span class='badge rounded-pill' style='background:#5ceb1b; color:#fff; font-weight:600;'>APPROVED</span>";
+
+                            } elseif ($status === 'received') {
+                                $badge = "<span class='badge rounded-pill' style='background:#6610f2; color:#fff;'>RECEIVED</span>";
+
+                            } else {
+                                $badge = "<span class='badge rounded-pill bg-secondary'>UNKNOWN</span>";
+                            }
+
+                            echo $badge;
+
+
+                          if($request_data['request_status'] == 'pending'){
+                            ?>
+                            <br>
+                            <br>
+                            <a href="?resto=add_item&&id=<?php echo $_REQUEST['id']; ?>&&supplier=<?php echo $_REQUEST['supplier']; ?>" class="btn btn-primary">Add Item</a>
+
+                          <?php
+                          } ?>
+                          <br><br>
                         <table id="data-table-basic" class="table table-striped table-bordered" id="content">
                                  <thead>
                                      
@@ -365,168 +412,192 @@ if ($conn->query($sql) === TRUE) {
                                     <?php
                                     $i = 0;
 									
-									ini_set('display_errors', 1);
-                                    ini_set('display_startup_errors', 1);
-                                    error_reporting(E_ALL);
-								     	$amount = 0;
-									    $del_amount =0;
-                                		$result = $db->prepare("SELECT * FROM request_store_item WHERE req_id='".$_REQUEST['id']."'");
-                                        $result->execute();
-                                		while($fetch = $result->fetch()){
-                                		    $i++;
-											$total =  (float)getItemPrice($fetch['item_id']) * (float)$fetch['qty'];
-								// 			$total =  $fetch['del_price'] * $fetch['qty'];
-											
-											$del_total = $fetch['pur_price'] * $fetch['pur_qty'];
-											
-        						    $amount = $amount + $total;
-        							$del_amount = $del_amount + $del_total;
-											 
-                                     	?>
-                                     	<tr>
-                                     	    <td><?php echo $i; ?></td>
-                                            <td><?php echo getItemName($fetch['item_id']); ?></td>
-                                             <td><?php echo getItemUnitName(getItemUnitId($fetch['item_id'])); ?></td>
-                                            <td><?php echo number_format((float)$fetch['qty'],3); ?> </td>
-                                            <!--<td><?php //echo number_format(getItemPrice($fetch['item_id'])); ?> </td>-->
-                                            <td><?php echo number_format((float)getItemPrice($fetch['item_id']),3); ?> </td>
-                                            <!--<td><?php //echo number_format($fetch['qty'] * getItemPrice($fetch['item_id'])); ?> </td>-->
-                                            <td><?php echo number_format(((float)getItemPrice($fetch['item_id']) * (float)$fetch['qty']), 3); ?> </td>
-                                       
-                                           
-                                             <td><?php if($fetch['pur_qty']==null){
-                                                 echo 0;
-                                             }else{
-                                              echo number_format((float)$fetch['pur_qty'],3);
-                                             } ?> </td>
-                                             <td>
-                                                 
-                                                 <?php if($fetch['pur_price']==null){
-                                                 echo 0;
-                                             }else{
-                                              echo number_format((float)$fetch['pur_price'],3);
-                                             } ?>
-                                                 
-                                                </td>
-                                              <td><?php 
-                                             if($fetch['pur_price']==null){
-                                                 echo 0; 
-                                             }else{
-                                              echo number_format((float)($fetch['pur_qty'] * $fetch['pur_price']),3);
-                                             } ?>
-                                              
-                                        </td>
-                                              <td><a href='?resto=editPurchase&&id=<?php echo $fetch['id']?>'>Edit Purchase</a></td>
-                                          
-                                         
-                                     	</tr>
-         <?php
-	}
-?>
+                                        // ini_set('display_errors', 1);
+                                        // ini_set('display_startup_errors', 1);
+                                        // error_reporting(E_ALL);
+                                        $amount = 0;
+                                        $del_amount =0;
+                                                    $result = $db->prepare("SELECT * FROM request_store_item WHERE req_id='".$_REQUEST['id']."'");
+                                                        $result->execute();
+                                                    while($fetch = $result->fetch()){
+                                                      $i++;
+                                                      $total =  (float)$fetch['pur_price'] * (float)$fetch['qty'];
+                                                      //$total =  $fetch['del_price'] * $fetch['qty'];
+                                                    
+                                                      $del_total = $fetch['del_price'] * $fetch['del_qty'];
+                                                    
+                                                      $amount = $amount + $total;
+                                                      $del_amount = $del_amount + $del_total;
+                                    
+                                                      ?>
+                                                      <tr>
+                                                        <td><?php echo $i; ?></td>
+                                                        <td><?php echo getItemName($fetch['item_id']); ?></td>
+                                                        <td><?php echo getItemUnitName(getItemUnitId($fetch['item_id'])); ?></td>
+                                                        <td><?php echo number_format((float)$fetch['qty'],3); ?> </td>
+                                                          <!--<td><?php //echo number_format(getItemPrice($fetch['item_id'])); ?> </td>-->
+                                                          <td><?php echo number_format($fetch['pur_price']); ?> </td>
+                                                          <!--<td><?php //echo number_format($fetch['qty'] * getItemPrice($fetch['item_id'])); ?> </td>-->
+                                                          <td>
+                                                            <?php echo number_format(((float)$fetch['pur_price']) * (float)$fetch['qty'], 3); ?>
+
+                                                          </td>
+                                                    
+                                                          <td><?php if($fetch['del_qty']==null){
+                                                              echo 0;
+                                                          }else{
+                                                            echo number_format((float)$fetch['del_qty'],3);
+                                                          } ?> </td>
+                                                          <td>
+                                                              
+                                                              <?php if($fetch['del_price']==null){
+                                                                  echo 0;
+                                                              }else{
+                                                                echo number_format((float)$fetch['del_price'],3);
+                                                              } ?>
+                                                              
+                                                          </td>
+                                                            <td><?php 
+                                                          if($fetch['del_price']==null){
+                                                              echo 0; 
+                                                          }else{
+                                                            echo number_format((float)($fetch['del_qty'] * $fetch['del_price']),3);
+                                                          } ?>
+                                                            
+                                                      </td>
+                                                      <td>
+                                                          <?php
+                                                            if($request_data['request_status'] == 'pending'){
+                                                                ?>  
+                                                            <!-- <a href='?resto=editPurchase&&id=<?php echo $fetch['id']?>'>Edit Purchase</a> -->
+                                                            <a href='#<?php echo $fetch['id']?>'>Edit Purchase</a>
+                                                            <?php
+                                                            } else {
+                                                                echo "<i class='text-danger'>No changes can be made</i>";
+                                                            }
+                                                            ?>
+                                                      </td>
+                                                        
+                                                      
+                                                      </tr>
+                                                          <?php
+                                                    }
+                          ?>
 
 
 
 
-  	<tr>
-	<td colspan="2"><H4>Total</H4></td>
-	<td></td>
-	<td></td>
+                              <tr>
+                            <td colspan="4"><H4>Total</H4></td>
 
-	<td></td>
-	<td><H4><?php echo number_format($amount)?> </H4></td>
-	
-		<td></td>
+                            <td></td>
+                            <td><H4><?php echo number_format($amount)?> </H4></td>
+                            
+                              <td></td>
 
-	<td></td>
-	<td><H4><?php echo number_format($del_amount)?> </H4></td>
-	</tr>
-	
-	  	<tr>
-	<th colspan="8"><H4>Balance</H4></th>
-	<th><H4><?php echo number_format($amount - $del_amount)?> </H4></th>
-	</tr>
-	
-
-
-                            </tbody>
-                          
-                        </table>
-                      
-                        </div>
-                        <?php
-                        }
-                        elseif(!empty($_GET['req'])){
-                            $code = $_GET['req'];
-                            $stmt_req = $db->prepare("SELECT * FROM tbl_requests 
-                            INNER JOIN tbl_users ON tbl_requests.user_id = tbl_users.user_id
-                            WHERE req_code = '".$_GET['req']."'");
-                            $stmt_req->execute();
-                            $getrows = $stmt_req->fetch();
-                            $status = $getrows['status'];
-                        ?>
-                        <div class="panel panel-default">
-                    <div class="panel-heading">
-                        <div class="panel-title pull-left">
-                        Type: Raw Materials <br>
-                        Date Requested: <?php echo $getrows['requested_date']; ?>
-                        </div>
-                        <div class="panel-title pull-right">
-                        Requested By: <?php echo $getrows['f_name']." ".$getrows['l_name']; ?><br>
-                        Date Required: <?php echo $getrows['required_date']; ?>
-                        </div>
-                        <div class="clearfix"></div>
-                    </div>
-                </div>
-                <hr>
-                <div class="panel panel-default" style="padding:10px;">
-                    <div class="panel-heading">
-                        <div class="panel-title pull-left">
-                        <?php if($getrows['status'] == 3){ ?>
-                        Requested Items <label class="label label-info"><b><i>PENDING</i></b></label>
-                        <?php 
-                    }
-                    else{
-                        ?>
-                        Requested Items <label class="label label-success"><b><i>COMPLETED</i></b></label>
-                        <?php
-                    }
-                     ?>
-                        </div>
-                        <div class="clearfix"></div>
-                    </div>
-                    <br>
-                    <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example">
-                    <thead>
-                        <tr>
-                            <th> # </th>
-                            <th> Item Name </th>
-                            <th> Quantity </th>
-                        </tr>
-                    </thead>
-                    <tbody>
-
-                        <?php
-                        $ii = 0;
-                        $result = $db->prepare("SELECT * FROM tbl_request_details
-                        INNER JOIN tbl_items ON tbl_request_details.items = tbl_items.item_id
-                        WHERE req_code = '".$_GET['req']."'");
-                        $result->execute();
-                        for($i=0; $row = $result->fetch(); $i++){
-                            $ii++;
-                            ?>
-                            <tr>
-                                <td><?php echo $ii; ?></td>
-                                <td><?php echo $row['item_name']; ?></td>
-                                <td><?php echo $row['quantity']; ?></td>
+                            <td></td>
+                            <td><H4><?php echo number_format($del_amount)?> </H4></td>
                             </tr>
-                            <?php
-                        }
-                        ?>
+                            
+                                <tr>
+                            <th colspan="8"><H4>Balance</H4></th>
+                            <th>
+                              <H4>
+                                <?php
+                                $diff = $amount - $del_amount;
+                                $display = number_format(abs($diff), 2); // format to 2 decimals (you can change this)
 
-                    </tbody>
-                </table>
-                    </div>
-                    <?php } ?>
+                                if ($diff < 0) {
+                                    echo "<span style='color: red;'>$display</span>";
+                                } else {
+                                    echo $display;
+                                }
+                                ?>
+                              </H4>
+                            </th>
+                            </tr>
+              
+
+
+                                        </tbody>
+                                      
+                                    </table>
+                                  
+                                    </div>
+                                    <?php
+                        } elseif(!empty($_GET['req'])){
+                                        $code = $_GET['req'];
+                                        $stmt_req = $db->prepare("SELECT * FROM tbl_requests 
+                                        INNER JOIN tbl_users ON tbl_requests.user_id = tbl_users.user_id
+                                        WHERE req_code = '".$_GET['req']."'");
+                                        $stmt_req->execute();
+                                        $getrows = $stmt_req->fetch();
+                                        $status = $getrows['status'];
+                                        ?>
+                                        <div class="panel panel-default">
+                                              <div class="panel-heading">
+                                                  <div class="panel-title pull-left">
+                                                  Type: Raw Materials <br>
+                                                  Date Requested: <?php echo $getrows['requested_date']; ?>
+                                                  </div>
+                                                  <div class="panel-title pull-right">
+                                                  Requested By: <?php echo $getrows['f_name']." ".$getrows['l_name']; ?><br>
+                                                  Date Required: <?php echo $getrows['required_date']; ?>
+                                                  </div>
+                                                  <div class="clearfix"></div>
+                                              </div>
+                                          </div>
+                                          <hr>
+                                          <div class="panel panel-default" style="padding:10px;">
+                                              <div class="panel-heading">
+                                                  <div class="panel-title pull-left">
+                                                  <?php if($getrows['status'] == 3){ ?>
+                                                  Requested Items <label class="label label-info"><b><i>PENDING</i></b></label>
+                                                  <?php 
+                                              }
+                                              else{
+                                                  ?>
+                                                  Requested Items <label class="label label-success"><b><i>COMPLETED</i></b></label>
+                                                  <?php
+                                              }
+                                              ?>
+                                                  </div>
+                                                  <div class="clearfix"></div>
+                                              </div>
+                                              <br>
+                                              <table width="100%" class="table table-striped table-bordered table-hover" id="dataTables-example">
+                                              <thead>
+                                                  <tr>
+                                                      <th> # </th>
+                                                      <th> Item Name </th>
+                                                      <th> Quantity </th>
+                                                  </tr>
+                                              </thead>
+                                              <tbody>
+
+                                                  <?php
+                                                  $ii = 0;
+                                                  $result = $db->prepare("SELECT * FROM tbl_request_details
+                                                  INNER JOIN tbl_items ON tbl_request_details.items = tbl_items.item_id
+                                                  WHERE req_code = '".$_GET['req']."'");
+                                                  $result->execute();
+                                                  for($i=0; $row = $result->fetch(); $i++){
+                                                      $ii++;
+                                                      ?>
+                                                      <tr>
+                                                          <td><?php echo $ii; ?></td>
+                                                          <td><?php echo $row['item_name']; ?></td>
+                                                          <td><?php echo $row['quantity']; ?></td>
+                                                      </tr>
+                                                      <?php
+                                                  }
+                                                  ?>
+
+                                              </tbody>
+                                          </table>
+                                              </div>
+                                            <?php 
+                                    } ?>
                     </div>
                 </div>
             </div>

@@ -451,10 +451,18 @@ function getifpaid($code){
 function getTotalByService($category,$from,$last){
 include '../inc/conn.php';
 if($last==0){
- $sql = "SELECT cmd_qty,cmd_item,cmd_code FROM `tbl_cmd_qty` WHERE  cmd_qty_id > '$from'   AND cmd_status = '12' ";
+ // When $last = 0, we're showing data after the last closed_at timestamp
+ // Check if $from is a timestamp (contains time) or just a date
+ if (strpos($from, ':') !== false) {
+     // It's a timestamp - use timestamp comparison
+     $sql = "SELECT cmd_qty,cmd_item,cmd_code FROM `tbl_cmd_qty` WHERE created_at > '$from' AND cmd_status = '12'";
+ } else {
+     // It's a date - use date comparison (fallback for old logic)
+     $sql = "SELECT cmd_qty,cmd_item,cmd_code FROM `tbl_cmd_qty` WHERE DATE(created_at) >= '$from' AND cmd_status = '12'";
+ }
 }else{
-$sql = "SELECT cmd_qty,cmd_item,cmd_code FROM `tbl_cmd_qty` WHERE cmd_qty_id > '$from' AND  cmd_qty_id <= '$last'  AND cmd_status = '12'";
-
+ // When $last is set, it's a date range query
+ $sql = "SELECT cmd_qty,cmd_item,cmd_code FROM `tbl_cmd_qty` WHERE DATE(created_at) >= '$from' AND DATE(created_at) <= '$last' AND cmd_status = '12'";
 }
 $result = $conn->query($sql);
 $sale=0;
@@ -640,29 +648,20 @@ if ($result->num_rows > 0) {
 //   function getTotalPaidByMethod($code,$method){
 //     include '../inc/conn.php';
 
-//     $sql = "SELECT order_code, amount, method FROM payment_tracks  where order_code = '$code'  AND method = '$method'
-//     GROUP BY order_code, amount, method";
+//     $sql = "SELECT * FROM payment_tracks WHERE order_code = '$code' AND method = '$method'";
 //     $result = $conn->query($sql);
 //     $sale=0;
 //     if ($result->num_rows > 0) {
 //       // output data of each row
 //       while($row = $result->fetch_assoc()) {
 
-
-//                   $sale = $sale + $row['amount'] ;
-
-
-
-
+//                   $sale = $sale + $row['amount'];
 
 //       }
 //     }
 
-
-//           return $sale;
-
-
-//     }
+//     return $sale;
+// }
 
 include_once '../inc/close_open_day.php';
 
@@ -733,7 +732,8 @@ if (isset($_POST['close'])) {
         $sql_unpaid = "SELECT COUNT(tbl_cmd.id) as un_paid
                        FROM tbl_cmd
                        LEFT JOIN payment_tracks ON tbl_cmd.OrderCode = payment_tracks.order_code
-                       WHERE payment_tracks.order_code IS NULL";
+                       WHERE payment_tracks.order_code IS NULL
+                       AND tbl_cmd.room_client IS NULL";
 
         if ($stmt_unpaid = $conn->prepare($sql_unpaid)) {
             $stmt_unpaid->execute();
@@ -898,14 +898,23 @@ if(isset($_POST['check'])){
 
 }else{
 
+    // No date selected - show only data AFTER the last closed_at
+    $sql_last_day = $db->prepare("SELECT * FROM days WHERE closed_at IS NOT NULL ORDER BY closed_at DESC LIMIT 1");
+    $sql_last_day->execute();
+    $last_day = $sql_last_day->fetch(PDO::FETCH_ASSOC);
 
-
-
-
-                                      $reportDate    =  date('Y-m-d');
-                                      $to = date("Y-m-d");
-                                      $from = lastday();
-                                      $last = 0;
+    if ($last_day && $last_day['closed_at']) {
+        $from = $last_day['closed_at']; // Use timestamp, not date
+        $reportDate = date('Y-m-d', strtotime($last_day['closed_at']));
+        $to = date("Y-m-d");
+        $last = 0;
+    } else {
+        // No day closed yet - show all data
+        $reportDate = date('Y-m-d');
+        $to = date("Y-m-d");
+        $from = '2000-01-01 00:00:00';
+        $last = 0;
+    }
    }
 
       ?>
@@ -923,6 +932,7 @@ if(isset($_POST['check'])){
    <?php include '../holder/printHeader.php'?>
 
                         <center><h2>Detailed Report: <?php echo lastday()?> </h2></center>
+
                         <div id="sales" class="table-responsive">
                               <table  class="table table-striped">
                                 <thead>
@@ -987,10 +997,29 @@ if(isset($_POST['check'])){
 
  // $d =  "SELECT cmd_code FROM  `tbl_cmd_qty` WHERE cmd_qty_id > '$from' AND  cmd_qty_id <= '$last' AND cmd_status = '12' group by  cmd_code";
 if($last== 0){
- $sql = $db->prepare("SELECT * FROM  `tbl_cmd_qty` WHERE DATE(created_at) >= '$from'  AND cmd_status = '12' group by  cmd_code ");
+ // When $last = 0, we're showing data after the last closed_at timestamp
+ // Check if $from is a timestamp (contains time) or just a date
+ if (strpos($from, ':') !== false) {
+     // It's a timestamp - use timestamp comparison
+     // Join with payment_tracks to show only orders that have been paid
+     $sql = $db->prepare("SELECT tbl_cmd_qty.* FROM tbl_cmd_qty
+                          INNER JOIN payment_tracks ON tbl_cmd_qty.cmd_code = payment_tracks.order_code
+                          WHERE tbl_cmd_qty.created_at > '$from'
+                          GROUP BY tbl_cmd_qty.cmd_code");
+ } else {
+     // It's a date - use date comparison
+     $sql = $db->prepare("SELECT tbl_cmd_qty.* FROM tbl_cmd_qty
+                          INNER JOIN payment_tracks ON tbl_cmd_qty.cmd_code = payment_tracks.order_code
+                          WHERE DATE(tbl_cmd_qty.created_at) >= '$from'
+                          GROUP BY tbl_cmd_qty.cmd_code");
+ }
 }else{
-  $sql = $db->prepare("SELECT * FROM  `tbl_cmd_qty` WHERE DATE(created_at) >= '$from' AND  DATE(created_at) >= '$last' AND cmd_status = '12' group by  cmd_code");
-} 
+  $sql = $db->prepare("SELECT tbl_cmd_qty.* FROM tbl_cmd_qty
+                       INNER JOIN payment_tracks ON tbl_cmd_qty.cmd_code = payment_tracks.order_code
+                       WHERE DATE(tbl_cmd_qty.created_at) >= '$from'
+                       AND DATE(tbl_cmd_qty.created_at) <= '$last'
+                       GROUP BY tbl_cmd_qty.cmd_code");
+}
 // die(var_dump($sql));
 $sql->execute(array());
 $order = 0;

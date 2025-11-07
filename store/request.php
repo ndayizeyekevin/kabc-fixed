@@ -245,6 +245,9 @@ if ($conn->query($sql) === TRUE) {
                                         <td><?php echo ucwords($fetch['request_status']); ?>
                                         </td>
                                         <td>
+                                          <a href="?resto=view_purchase&id=<?php echo $fetch['req_id']?>&supplier=<?php echo $fetch['supplier']?>" class="btn btn-info">
+                                              View
+                                          </a>
                                           <a href="?resto=print_purchase&id=<?php echo $fetch['req_id']?>" class="btn btn-primary">
                                               Print
                                           </a>
