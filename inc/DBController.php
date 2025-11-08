@@ -48,6 +48,7 @@ $company_logo = $system_info['logo_jpeg'];
 $logo_png = $system_info['logo_png'];
 $momo = $system_info['momo'];
 $momo_name = $system_info['momo_name'];
+$website = $system_info['website'];
 
 // Display system info for in alert box (for debugging purposes)
 
