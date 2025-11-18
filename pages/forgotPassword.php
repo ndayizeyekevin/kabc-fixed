@@ -1,62 +1,105 @@
-<?php 
+<?php
 require_once("../inc/session.php");
 require_once("../inc/DBController.php");
+
+use PHPMailer\PHPMailer\PHPMailer;
+use PHPMailer\PHPMailer\Exception;
+
+require '../phpmailer/src/Exception.php';
+require '../phpmailer/src/PHPMailer.php';
+require '../phpmailer/src/SMTP.php';
+
 $msg = '';
 $msge = '';
 
-include '../inc/conn.php';
-// include'../holder/topkey.php';
-// include'../holder/template_styles.php';
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
+if (isset($_POST['forgot'])) {
 
-    
-    if(isset($_POST['forgot'])){
-        
-        $user  = $_POST['usn'];
-        
-        
-$sql = "SELECT * FROM tbl_user_log where email ='$user'";
-$result = $conn->query($sql);
+    $email = trim($_POST['usn']);
 
-if ($result->num_rows > 0) {
-  // output data of each row
-  while($row = $result->fetch_assoc()) {
-      
-      
-$msg_code = "Your Reset code:". rand(10000,10000);
+    // ✅ Check user
+    $stmt = $db->prepare("SELECT u_id FROM tbl_user_log WHERE email = :email");
+    $stmt->execute([':email' => $email]);
 
-// use wordwrap() if lines are longer than 70 characters
-$msg_code = wordwrap($msg_code,70);
+    $row = $stmt->fetch(PDO::FETCH_ASSOC);
 
-// send email
-mail($user,"Reset Password",$msg_code);
+    if ($row) {
 
-$msg = 'We have sent you an email with reset link';
+        // Secure token
+        $token = bin2hex(random_bytes(32));
+        $expires = date("Y-m-d H:i:s", strtotime("+1 hour"));
 
+        // Update DB
+        $stmt2 = $db->prepare("
+            UPDATE tbl_user_log 
+            SET reset_token = :token, reset_expires = :expires 
+            WHERE email = :email
+        ");
+        $stmt2->execute([
+            ':token'   => $token,
+            ':expires' => $expires,
+            ':email'   => $email
+        ]);
 
+        // Reset link
+        $resetLink = "$website/password/?token=$token&email=$email";
 
+        // SMTP env vars
+        $smtpHost     = getenv("SMTP_HOST");
+        $smtpPort     = getenv("SMTP_PORT");
+        $smtpSecure   = getenv("SMTP_SECURE");
+        $smtpUser     = getenv("SMTP_USERNAME");
+        $smtpPassword = getenv("SMTP_PASSWORD");
 
-  }
-}else{
-    
-    
-// $msg_code = "Your Reset code:". rand(10000,10000);
+        $mail = new PHPMailer(true);
 
-// // use wordwrap() if lines are longer than 70 characters
-// $msg_code = wordwrap($msg_code,70);
+        try {
+            $mail->isSMTP();
+            $mail->Host       = $smtpHost;
+            $mail->SMTPAuth   = true;
+            $mail->Username   = $smtpUser;
+            $mail->Password   = $smtpPassword;
+            $mail->SMTPSecure = $smtpSecure;
+            $mail->Port       = (int)$smtpPort;
 
-// // send email
-// mail($user,"Reset Password",$msg_code);
+            $mail->setFrom($smtpUser, "Support");
+            $mail->addAddress($email);
 
+            $mail->isHTML(true);
+            $mail->Subject = "Reset Your Password";
+            $mail->Body = "
+                <p>Hello,</p>
 
-    $msge = 'Email not found, contact admistartion for support';
+                  <p>We received a request to reset the password for your account associated with this email address.</p>
+
+                  <p>To reset your password, please click the link below:</p>
+
+                  <p><a href='". $resetLink ."'>Reset Your Password</a></p>
+
+                  <p><strong>Important:</strong> This link will expire in 1 hour for security reasons.</p>
+
+                  <p>If you did not request a password reset, you can safely ignore this email. Your account will remain secure.</p>
+
+                  <p>For additional help, contact our support team at <a href='mailto:ndayizeyekevin6@gmail.com'>ndayizeyekevin6@gmail.com</a>.</p>
+
+                  <p>Thank you,<br>
+                  <strong>GOPE Solutions Team</strong></p>
+
+            ";
+
+            $mail->send();
+            $msg = "We have sent you reset instructions.";
+
+        } catch (Exception $e) {
+            $msge = "Email could not be sent. SMTP Error: {$mail->ErrorInfo}";
+        }
+
+    } else {
+        $msge = "Email not found. Contact support.";
+    }
 }
-        
-  }
-    
 ?>
+
+
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/css/bootstrap.min.css" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u" crossorigin="anonymous">
 
 <!-- Optional theme -->
