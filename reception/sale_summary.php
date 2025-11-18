@@ -1,7 +1,72 @@
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <script src="https://cdn.jsdelivr.net/npm/flatpickr"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
+<script>
+function printInvoice() {
+  $("#headerprint").show();
+  $("#printFooter").show();
+  // The selector '#data-table-basic' might not exist on this page, but we'll leave it
+  // in case it's part of a template. It's better to make selectors more specific if possible.
+  $('#data-table-basic').removeAttr('id'); 
+  var printContents = document.getElementById('content').innerHTML; 
+  var originalContents = document.body.innerHTML; 
+  document.body.innerHTML = printContents;
+  window.print(); 
+  document.body.innerHTML = originalContents; 
+}
+
+function openPdfDompdf() {
+  var selectday = document.querySelector('input[name="selectday"]').value || new Date().toISOString().split('T')[0];
+  var form = document.createElement('form');
+  form.method = 'POST';
+  form.action = 'sale_summary_pdf.php';
+  form.target = '_blank';
+  
+  var serverInput = document.createElement('input');
+  serverInput.type = 'hidden';
+  serverInput.name = 'server';
+  serverInput.value = '1';
+  form.appendChild(serverInput);
+  
+  var dayInput = document.createElement('input');
+  dayInput.type = 'hidden';
+  dayInput.name = 'selectday';
+  dayInput.value = selectday;
+  form.appendChild(dayInput);
+  
+  document.body.appendChild(form);
+  form.submit();
+  document.body.removeChild(form);
+}
+</script>
+<script>
+  (function(){
+    var btn = document.getElementById('savePdfSummary');
+    if(btn){
+      btn.addEventListener('click', function(){
+        var el = document.getElementById('content') || document.body;
+        var header = document.getElementById('headerprint');
+        if(header){ header.style.display = 'block'; }
+        var safeFrom = '<?php echo preg_replace("/[\\\\/:*?\"<>|]/", "-", $from ?? date('Y-m-d')); ?>';
+        var safeTo   = '<?php echo preg_replace("/[\\\\/:*?\"<>|]/", "-", $to ?? date('Y-m-d')); ?>';
+        var opt = {
+          margin:       0.25,
+          filename:     'Sales-Summary-' + safeFrom + '_to_' + safeTo + '.pdf',
+          image:        { type: 'jpeg', quality: 0.98 },
+          html2canvas:  { scale: 2, useCORS: true, scrollY: 0 },
+          pagebreak:    { mode: ['css', 'legacy'] },
+          jsPDF:        { unit: 'in', format: 'a4', orientation: 'portrait' }
+        };
+        html2pdf().set(opt).from(el).save().then(function(){
+          if(header){ header.style.display = 'none'; }
+        });
+      });
+    }
+  })();
+</script>
 <?php 
-                                			    ini_set('display_errors', 1);
+ini_set('display_errors', 1);
 ini_set('display_startup_errors', 1);
 error_reporting(E_ALL);
 date_default_timezone_set('Africa/Kigali');
@@ -23,10 +88,11 @@ function getAdvances($date, $type) {
             if ($date == date('Y-m-d', $row['created_at'])) {
                 $amount += $row['amount'];
             }
+            
         }
     }
     
-    return $amount;
+    return strtoupper($amount);
 }
 
 /**
@@ -342,19 +408,15 @@ function getPrice($id) {
 /**
  * Get total collection paid by method
  */
-function getTotalCollectionPaidByMethod($date, $method) {
-    include '../inc/conn.php';
+function getTotalCollectionPaidByMethod($from, $to, $method) {
+    global $db;
     
-    $sql = "SELECT * FROM payment_tracks WHERE service = 'collection' AND method = '$method'";
-    $result = $conn->query($sql);
+    $sql = $db->prepare("SELECT SUM(amount) as total FROM payment_tracks WHERE service = 'collection' AND method = :method AND created_at >= :from_time AND created_at <= :to_time");
+    $sql->execute(['method' => $method, 'from_time' => $from, 'to_time' => $to]);
     $sale = 0;
-    
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            if ($date == date('Y-m-d', $row['created_at'])) {
-                $sale += $row['amount'];
-            }
-        }
+    $result = $sql->fetch(PDO::FETCH_ASSOC);
+    if ($result && $result['total']) {
+        $sale = $result['total'];
     }
     
     return $sale;
@@ -363,19 +425,15 @@ function getTotalCollectionPaidByMethod($date, $method) {
 /**
  * Get total advance paid by method (less advance)
  */
-function getTotalAdvancePaidByMethodLess($date, $method) {
-    include '../inc/conn.php';
+function getTotalAdvancePaidByMethodLess($from, $to, $method) {
+    global $db;
     
-    $sql = "SELECT * FROM payment_tracks WHERE service = 'less advance' AND method = '$method'";
-    $result = $conn->query($sql);
+    $sql = $db->prepare("SELECT SUM(amount) as total FROM payment_tracks WHERE service = 'less advance' AND method = :method AND created_at >= :from_time AND created_at <= :to_time");
+    $sql->execute(['method' => $method, 'from_time' => $from, 'to_time' => $to]);
     $sale = 0;
-    
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            if ($date == date('Y-m-d', $row['created_at'])) {
-                $sale += $row['amount'];
-            }
-        }
+    $result = $sql->fetch(PDO::FETCH_ASSOC);
+    if ($result && $result['total']) {
+        $sale = $result['total'];
     }
     
     return $sale;
@@ -384,19 +442,15 @@ function getTotalAdvancePaidByMethodLess($date, $method) {
 /**
  * Get total advance paid by method
  */
-function getTotalAdvancePaidByMethod($date, $method) {
-    include '../inc/conn.php';
+function getTotalAdvancePaidByMethod($from, $to, $method) {
+    global $db;
     
-    $sql = "SELECT * FROM payment_tracks WHERE service = 'advance' AND method = '$method'";
-    $result = $conn->query($sql);
+    $sql = $db->prepare("SELECT SUM(amount) as total FROM payment_tracks WHERE service = 'advance' AND method = :method AND created_at >= :from_time AND created_at <= :to_time");
+    $sql->execute(['method' => $method, 'from_time' => $from, 'to_time' => $to]);
     $sale = 0;
-    
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            if ($date == date('Y-m-d', $row['created_at'])) {
-                $sale += $row['amount'];
-            }
-        }
+    $result = $sql->fetch(PDO::FETCH_ASSOC);
+    if ($result && $result['total']) {
+        $sale = $result['total'];
     }
     
     return $sale;
@@ -405,25 +459,71 @@ function getTotalAdvancePaidByMethod($date, $method) {
 /**
  * Set default date range if not set in session
  */
-if (!isset($_SESSION['date_from']) && !isset($_SESSION['date_to'])) {
-    $from = date('Y-m-d');
-    $to = date("Y-m-d");
-} else {
-    $from = $_SESSION['date_from'];
-    $to = $_SESSION['date_to'];
-}
-
 include '../inc/conn.php';
 
-// Handle date range submission similar to inn/sales_report.php
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['date_from'], $_POST['date_to'])) {
-    $postedFrom = trim($_POST['date_from']);
-    $postedTo = trim($_POST['date_to']);
-    // Normalize to Y-m-d; fallback to today if invalid
-    $normFrom = date('Y-m-d', strtotime($postedFrom ?: 'today'));
-    $normTo = date('Y-m-d', strtotime($postedTo ?: $normFrom));
-    $_SESSION['date_from'] = $from = $normFrom;
-    $_SESSION['date_to'] = $to = $normTo;
+/**
+ * Get last day closed date
+ */
+function lastDay() {
+    include '../inc/conn.php';
+    
+    $sql = "SELECT DATE(closed_at) AS closed_at FROM days ORDER BY id DESC LIMIT 1";
+    $result = $conn->query($sql);
+    
+    if ($result->num_rows > 0) {
+        while ($row = $result->fetch_assoc()) {
+            $lastDate = $row['closed_at'];
+        }
+    }
+    
+    return $lastDate ?? date('Y-m-d');
+}
+
+if(isset($_POST['check'])){
+    $selected_day  = $_POST['selectday'];
+
+    // Find a business day that was active at any point during the selected calendar day.
+    // This handles cases where a business day starts on one calendar day and ends on the next.
+    $sql = $db->prepare("SELECT opened_at, closed_at FROM days 
+                         WHERE 
+                            -- The business day started on the selected day
+                            DATE(opened_at) = :selected_date 
+                            -- OR the business day was still open at the beginning of the selected day
+                            OR (:selected_date_start BETWEEN opened_at AND COALESCE(closed_at, NOW()))
+                         ORDER BY opened_at DESC LIMIT 1");
+    $sql->execute(['selected_date' => $selected_day, 'selected_date_start' => $selected_day . ' 00:00:00']);
+    
+    if($sql->rowCount() > 0){
+        $fetch = $sql->fetch(PDO::FETCH_ASSOC);
+        $from = $fetch['opened_at'];
+        // If day is not closed, use current time as the end point.
+        $to = $fetch['closed_at'] ?? date('Y-m-d H:i:s');
+    } else {
+        // Fallback if a date is selected that has no entry in `days` table.
+        $from = $selected_day . ' 00:00:00';
+        $to = $selected_day . ' 23:59:59';
+    }
+    $reportDate = $selected_day;
+    $_SESSION['user_selected_date'] = true;
+} else {
+    // Default behavior: show data for the current open business day.
+    // If no day is open, show a blank report.
+    $sql_last_day = $db->prepare("SELECT opened_at, closed_at FROM days WHERE closed_at IS NULL ORDER BY opened_at DESC LIMIT 1");
+    $sql_last_day->execute();
+    $last_day = $sql_last_day->fetch(PDO::FETCH_ASSOC);
+
+    if ($last_day) {
+        // A business day is currently open. Show data from its start time until now.
+        $from = $last_day['opened_at'];
+        $to = date('Y-m-d H:i:s');
+        $reportDate = date('Y-m-d', strtotime($last_day['opened_at']));
+    } else {
+        // No business day is currently open. Default to a blank report for the current date.
+        $reportDate = date('Y-m-d');
+        $from = null; // Setting from/to to null will result in no data being fetched.
+        $to = null;
+    }
+    unset($_SESSION['user_selected_date']);
 }
 
 /**
@@ -444,24 +544,6 @@ function getTotalPaidByMethod($code, $method) {
     
     return $sale;
 }
-
-/**
- * Get last day closed date
- */
-function lastDay() {
-    include '../inc/conn.php';
-    
-    $sql = "SELECT DATE(closed_at) AS closed_at FROM days ORDER BY id DESC LIMIT 1";
-    $result = $conn->query($sql);
-    
-    if ($result->num_rows > 0) {
-        while ($row = $result->fetch_assoc()) {
-            $lastDate = $row['closed_at'];
-        }
-    }
-    
-    return $lastDate ?? date('Y-m-d');
-}
 ?>
 
 <div class="container">
@@ -470,75 +552,26 @@ function lastDay() {
             <div class="form-example-wrap mg-t-30">
                 <div class="tab-hd">
 
-                    <!-- Date Range Filter (two distinct calendars like in inn/sales_report.php) -->
+                    <?php
+                    // Display what data is being shown
+                    if (isset($_SESSION['user_selected_date']) && $_SESSION['user_selected_date'] === true) {
+                        echo "<div class='alert alert-info'>Showing data for business day: <strong>" . date('Y-m-d', strtotime($from)) . "</strong> (from $from to $to)</div>";
+                    } else {
+                        echo "<div class='alert alert-success'>Showing data for current business day: <strong>" . date('Y-m-d H:i:s', strtotime($from)) . " to NOW</strong></div>";
+                    }
+                    ?>
 
-                    <form action="" method="POST" style="padding:30px; border: 1px solid #eee; border-radius: 6px; margin-bottom: 10px;">
-                        <div class="row" style="gap: 20px; align-items: end;">
-                            <div class="col-md-4">
-                                <label class="form-label"><strong>Date From</strong></label>
-                                <input type="text" id="date_from" name="date_from" class="form-control" value="<?php echo htmlspecialchars($from); ?>" placeholder="YYYY-MM-DD">
-                            </div>
-                            <div class="col-md-4">
-                                <label class="form-label"><strong>Date To</strong></label>
-                                <input type="text" id="date_to" name="date_to" class="form-control" value="<?php echo htmlspecialchars($to); ?>" placeholder="YYYY-MM-DD">
-                            </div>
-                            <div class="col-md-3">
-                                <button type="submit" class="btn btn-primary" name="apply_range">Apply Range</button>
-                            </div>
-                        </div>
+                    <form action="" method="POST" >
+                        <div style="padding:30px">
+                        Select Day:
+                        <input type="text" id="myDatePicker" name="selectday" placeholder="filter by date here" class="form-control" value="<?php echo htmlspecialchars($reportDate); ?>">
+                            <br>
+                        <button name="check" class="btn btn-primary">Load</button>
                     </form>
 
-                    <script>
-                    document.addEventListener('DOMContentLoaded', function () {
-                        var defaultFrom = '<?php echo $from; ?>';
-                        var defaultTo = '<?php echo $to; ?>';
-
-                        var fpFrom = flatpickr('#date_from', {
-                            dateFormat: 'Y-m-d',
-                            defaultDate: defaultFrom,
-                            allowInput: true,
-                            onChange: function(selectedDates, dateStr) {
-                                if (fpTo) {
-                                    fpTo.set('minDate', dateStr || defaultFrom);
-                                    // Auto-correct if current to < from
-                                    var toVal = document.getElementById('date_to').value;
-                                    if (toVal && dateStr && toVal < dateStr) {
-                                        document.getElementById('date_to').value = dateStr;
-                                        fpTo.setDate(dateStr, true);
-                                    }
-                                }
-                            }
-                        });
-
-                        var fpTo = flatpickr('#date_to', {
-                            dateFormat: 'Y-m-d',
-                            defaultDate: defaultTo,
-                            allowInput: true,
-                            onReady: function() {
-                                // Ensure minDate respects initial from
-                                this.set('minDate', document.getElementById('date_from').value || defaultFrom);
-                            },
-                            onChange: function(selectedDates, dateStr) {
-                                // If to < from, snap to from
-                                var fromVal = document.getElementById('date_from').value;
-                                if (fromVal && dateStr && dateStr < fromVal) {
-                                    document.getElementById('date_to').value = fromVal;
-                                    this.setDate(fromVal, true);
-                                }
-                            }
-                        });
-
-                        // Single-date picker for the existing Select Day field
-                        if (document.getElementById('myDatePicker')) {
-                            flatpickr('#myDatePicker', {
-                                dateFormat: 'Y-m-d',
-                                defaultDate: defaultFrom
-                            });
-                        }
-                    });
-                    </script>
-
-                    <button onclick="printInvoice()">Print</button>
+                    <!--<button onclick="printInvoice()">Print</button>-->
+                    <!--<button id="savePdfSummary" class="btn btn-warning" onclick="printInvoice()">Print / Save as PDF</button>-->
+                    <button id="generateDompdfBtn" class="btn btn-success" onclick="openPdfDompdf()">Print Report</button>
                     <hr>
 
                     <br><br>
@@ -547,7 +580,6 @@ function lastDay() {
                         <?php include '../holder/printHeader.php'?>
 
                         <?php
-                        $last = lastDay();
                         
                         // Initialize payment method variables
                         $cash = 0;
@@ -582,36 +614,19 @@ $cash = $card = $momo = $credit = $cheque = $cashCredit = $others = 0;
 $cashAdvance = $cardAdvance = $momoAdvance = $creditAdvance = $chequeAdvance = 0;
 $cashAdvanceLess = $cardAdvanceLess = $momoAdvanceLess = $creditAdvanceLess = $chequeAdvanceLess = 0;
 $cashCollection = $cardCollection = $momoCollection = $creditCollection = $chequeCollection = 0;
+$roomCreditTotal = 0;
 
-if ($last == 0 || $from == $to) {
-    // Same day or last = 0 (single day report). Match both DATETIME and TIMESTAMP-like storage.
-    $fromStart = $from . ' 00:00:00';
-    $toEnd = $to . ' 23:59:59';
-    $sql = $db->prepare("SELECT cmd_code FROM `tbl_cmd_qty` 
-                         WHERE (
-                             (created_at BETWEEN :fromStart AND :toEnd)
-                             OR (DATE(created_at) = :from)
-                             OR (DATE(FROM_UNIXTIME(created_at)) = :from)
-                             OR (DATE(FROM_UNIXTIME(created_at/1000)) = :from)
-                         )
-                         
-                         GROUP BY cmd_code");
-    $sql->execute(['fromStart' => $fromStart, 'toEnd' => $toEnd, 'from' => $from]);
-} else {
-    // Range filtering
-    $fromStart = $from . ' 00:00:00';
-    $toEnd = $to . ' 23:59:59';
-    $sql = $db->prepare("SELECT cmd_code FROM `tbl_cmd_qty` 
-                         WHERE (
-                             (created_at BETWEEN :fromStart AND :toEnd)
-                             OR (DATE(created_at) BETWEEN :from AND :to)
-                             OR (DATE(FROM_UNIXTIME(created_at)) BETWEEN :from AND :to)
-                             OR (DATE(FROM_UNIXTIME(created_at/1000)) BETWEEN :from AND :to)
-                         )
-                        
-                         GROUP BY cmd_code");
-    $sql->execute(['fromStart' => $fromStart, 'toEnd' => $toEnd, 'from' => $from, 'to' => $to]);
-}
+$sql = $db->prepare(
+    "SELECT q.cmd_code
+        FROM tbl_cmd_qty q
+        LEFT JOIN payment_tracks pt ON q.cmd_code = pt.order_code
+        LEFT JOIN tbl_cmd c ON c.OrderCode = q.cmd_code
+        WHERE q.created_at >= :from_time AND q.created_at <= :to_time
+        AND (pt.order_code IS NOT NULL OR c.room_client IS NOT NULL)
+        GROUP BY q.cmd_code"
+);
+$sql->execute(['from_time' => $from, 'to_time' => $to]);
+
 
 // Process each order
 if ($sql->rowCount()) {
@@ -630,29 +645,103 @@ if ($sql->rowCount()) {
 }
 
 // Calculate advance totals
-$cashAdvance     += getTotalAdvancePaidByMethod($to, '01');
-$cardAdvance     += getTotalAdvancePaidByMethod($to, '05');
-$momoAdvance     += getTotalAdvancePaidByMethod($to, '06');
-$creditAdvance   += getTotalAdvancePaidByMethod($to, '02');
-$chequeAdvance   += getTotalAdvancePaidByMethod($to, '04');
+$cashAdvance     += getTotalAdvancePaidByMethod($from, $to, '01');
+$cardAdvance     += getTotalAdvancePaidByMethod($from, $to, '05');
+$momoAdvance     += getTotalAdvancePaidByMethod($from, $to, '06');
+$creditAdvance   += getTotalAdvancePaidByMethod($from, $to, '02');
+$chequeAdvance   += getTotalAdvancePaidByMethod($from, $to, '04');
 
 // Calculate advance less totals
-$cashAdvanceLess     += getTotalAdvancePaidByMethodLess($to, '01');
-$cardAdvanceLess     += getTotalAdvancePaidByMethodLess($to, '05');
-$momoAdvanceLess     += getTotalAdvancePaidByMethodLess($to, '06');
-$creditAdvanceLess   += getTotalAdvancePaidByMethodLess($to, '02');
-$chequeAdvanceLess   += getTotalAdvancePaidByMethodLess($to, '04');
+$cashAdvanceLess     += getTotalAdvancePaidByMethodLess($from, $to, '01');
+$cardAdvanceLess     += getTotalAdvancePaidByMethodLess($from, $to, '05');
+$momoAdvanceLess     += getTotalAdvancePaidByMethodLess($from, $to, '06');
+$creditAdvanceLess   += getTotalAdvancePaidByMethodLess($from, $to, '02');
+$chequeAdvanceLess   += getTotalAdvancePaidByMethodLess($from, $to, '04');
 
 // Calculate collection totals
-$cashCollection     += getTotalCollectionPaidByMethod($to, '01');
-$cardCollection     += getTotalCollectionPaidByMethod($to, '05');
-$momoCollection     += getTotalCollectionPaidByMethod($to, '06');
-$creditCollection   += getTotalCollectionPaidByMethod($to, '02');
-$chequeCollection   += getTotalCollectionPaidByMethod($to, '04');
+$cashCollection     += getTotalCollectionPaidByMethod($from, $to, '01');
+$cardCollection     += getTotalCollectionPaidByMethod($from, $to, '05');
+$momoCollection     += getTotalCollectionPaidByMethod($from, $to, '06');
+$creditCollection   += getTotalCollectionPaidByMethod($from, $to, '02');
+$chequeCollection   += getTotalCollectionPaidByMethod($from, $to, '04');
+
+$roomStmt = $db->prepare("SELECT q.cmd_code
+        FROM tbl_cmd_qty q
+        INNER JOIN tbl_cmd c ON c.OrderCode = q.cmd_code
+        WHERE q.created_at >= :from_time AND q.created_at <= :to_time
+          AND c.room_client IS NOT NULL
+        GROUP BY q.cmd_code");
+$roomStmt->execute(['from_time' => $from, 'to_time' => $to]);
+
+
+if (isset($roomStmt) && $roomStmt->rowCount()) {
+    while ($rc = $roomStmt->fetch(PDO::FETCH_ASSOC)) {
+        $cmd = $rc['cmd_code'];
+
+        // Get booking (room_client) for this order
+        $cmdInfo = $db->prepare("SELECT room_client FROM tbl_cmd WHERE OrderCode = :code LIMIT 1");
+        $cmdInfo->execute(['code' => $cmd]);
+        $cmdRow = $cmdInfo->fetch(PDO::FETCH_ASSOC);
+        if (!$cmdRow || empty($cmdRow['room_client'])) { continue; }
+        $booking_id = $cmdRow['room_client'];
+
+        // Order total
+        $sumOrder = $db->prepare("SELECT SUM(CAST(REPLACE(menu.menu_price, ',', '') AS DECIMAL(18,2)) * tbl_cmd_qty.cmd_qty) AS total
+            FROM tbl_cmd_qty
+            INNER JOIN menu ON menu.menu_id = tbl_cmd_qty.cmd_item
+            WHERE tbl_cmd_qty.cmd_code = :cmd");
+        $sumOrder->execute(['cmd' => $cmd]);
+        $rowSum = $sumOrder->fetch(PDO::FETCH_ASSOC);
+        $order_total = (float)($rowSum['total'] ?? 0);
+
+        // Amount paid via cashier (payment_tracks)
+        $cashierPay = $db->prepare("SELECT SUM(amount) AS paid FROM payment_tracks WHERE order_code = :code");
+        $cashierPay->execute(['code' => $cmd]);
+        $cashierRow = $cashierPay->fetch(PDO::FETCH_ASSOC);
+        $amount_paid = (float)($cashierRow['paid'] ?? 0);
+
+        // Room payments (sum over booking)
+        $roomPay = $db->prepare("SELECT SUM(amount) AS room_paid FROM payments WHERE booking_id = :bid");
+        $roomPay->execute(['bid' => $booking_id]);
+        $roomPayments = (float)($roomPay->fetch(PDO::FETCH_ASSOC)['room_paid'] ?? 0);
+
+        if ($roomPayments > 0) {
+            // Accommodation cost
+            $accStmt = $db->prepare("SELECT booking_amount FROM tbl_acc_booking WHERE id = :bid");
+            $accStmt->execute(['bid' => $booking_id]);
+            $accRow = $accStmt->fetch(PDO::FETCH_ASSOC);
+            $accommodation_cost = (float)($accRow['booking_amount'] ?? 0);
+
+            // Total of all orders for this booking
+            $allOrders = $db->prepare("SELECT SUM(CAST(REPLACE(menu.menu_price, ',', '') AS DECIMAL(18,2)) * tbl_cmd_qty.cmd_qty) AS total_orders
+                FROM tbl_cmd
+                INNER JOIN tbl_cmd_qty ON tbl_cmd.OrderCode = tbl_cmd_qty.cmd_code
+                INNER JOIN menu ON tbl_cmd_qty.cmd_item = menu.menu_id
+                WHERE tbl_cmd.room_client = :bid");
+            $allOrders->execute(['bid' => $booking_id]);
+            $total_all_orders = (float)($allOrders->fetch(PDO::FETCH_ASSOC)['total_orders'] ?? 0);
+
+            $total_bill = $accommodation_cost + $total_all_orders;
+
+            if ($roomPayments >= $total_bill) {
+                $amount_paid = max($amount_paid, $order_total);
+            } elseif ($roomPayments > $accommodation_cost && $total_all_orders > 0) {
+                $payment_for_orders = $roomPayments - $accommodation_cost;
+                $this_order_share = ($order_total / $total_all_orders) * $payment_for_orders;
+                $amount_paid = $amount_paid + $this_order_share;
+            }
+        }
+
+        $balance = $order_total - $amount_paid;
+        if ($balance > 0) {
+            $roomCreditTotal += $balance;
+        }
+    }
+}
 ?>
 
                         <hr>
-                        <h4><center>Report for <?php echo lastDay(); ?></center></h4>
+                        <h4><center>Report for <?php echo $reportDate; ?></center></h4>
                         <hr>
 
                         <div class="table-responsive">
@@ -681,21 +770,29 @@ $chequeCollection   += getTotalCollectionPaidByMethod($to, '04');
                                             <td><h2><?= $key?></h2></td>
                                             <td>
                                                 <?php 
-                                                // Compute category total for selected date range
+                                                // Compute category total - respect user date selection or last closing time
                                                 $categoryTotal = 0;
                                                 try {
-                                                    $sumStmt = $db->prepare("SELECT SUM(CAST(REPLACE(menu.menu_price, ',', '') AS DECIMAL(18,2)) * tbl_cmd_qty.cmd_qty) AS total
-                                                        FROM tbl_cmd_qty
-                                                        INNER JOIN menu ON menu.menu_id = tbl_cmd_qty.cmd_item
-                                                        WHERE (
-                                                            (tbl_cmd_qty.created_at BETWEEN :fromStart AND :toEnd)
-                                                            OR (DATE(tbl_cmd_qty.created_at) BETWEEN :from AND :to)
-                                                            OR (DATE(FROM_UNIXTIME(tbl_cmd_qty.created_at)) BETWEEN :from AND :to)
-                                                            OR (DATE(FROM_UNIXTIME(tbl_cmd_qty.created_at/1000)) BETWEEN :from AND :to)
-                                                        )
-                                                    
-                                                        AND menu.cat_id = :val");
-                                                    $sumStmt->execute(['fromStart' => $from . ' 00:00:00', 'toEnd' => $to . ' 23:59:59', 'from' => $from, 'to' => $to, 'val' => $val]);
+                                                    $sumStmt = $db->prepare("
+                                                        SELECT SUM(CAST(REPLACE(m.menu_price, ',', '') AS DECIMAL(18,2)) * q.cmd_qty) AS total
+                                                        FROM tbl_cmd_qty q
+                                                        INNER JOIN menu m ON m.menu_id = q.cmd_item
+                                                        INNER JOIN tbl_cmd c ON c.OrderCode = q.cmd_code
+                                                        WHERE q.created_at BETWEEN :from_time AND :to_time
+                                                          AND m.cat_id = :val
+                                                          AND (
+                                                              c.room_client IS NOT NULL 
+                                                              OR (
+                                                                  (SELECT SUM(amount) FROM payment_tracks WHERE order_code = c.OrderCode) >= 
+                                                                  (SELECT SUM(CAST(REPLACE(menu.menu_price, ',', '') AS DECIMAL(18,2)) * tbl_cmd_qty.cmd_qty) 
+                                                                   FROM tbl_cmd_qty 
+                                                                   INNER JOIN menu ON menu.menu_id = tbl_cmd_qty.cmd_item 
+                                                                   WHERE tbl_cmd_qty.cmd_code = c.OrderCode)
+                                                              )
+                                                          )
+                                                    ");
+                                                    $sumStmt->execute(['from_time' => $from, 'to_time' => $to, 'val' => $val]);
+
                                                     $rowSum = $sumStmt->fetch(PDO::FETCH_ASSOC);
                                                     $categoryTotal = (float)($rowSum['total'] ?? 0);
                                                 } catch (Exception $e) { $categoryTotal = 0; }
@@ -703,40 +800,82 @@ $chequeCollection   += getTotalCollectionPaidByMethod($to, '04');
                                                 ?>
                                                         <?php
                                                         $i = 0;
-                                                        
-                                                        // Build items query strictly using the selected date range
-                                                        // Get only fully paid orders' items for this category
-                                                        $cmdSql = $db->prepare("SELECT cmd_code FROM tbl_cmd_qty WHERE (created_at BETWEEN :fromStart AND :toEnd OR DATE(created_at) BETWEEN :from AND :to OR DATE(FROM_UNIXTIME(created_at)) BETWEEN :from AND :to OR DATE(FROM_UNIXTIME(created_at/1000)) BETWEEN :from AND :to) GROUP BY cmd_code");
-                                                        $cmdSql->execute(['fromStart' => $from . ' 00:00:00', 'toEnd' => $to . ' 23:59:59', 'from' => $from, 'to' => $to]);
+
+                                                        // Build items query - respect user date selection or last closing time
+                                                        // Get only fully paid or room-charged orders' items for this category
+                                                        $cmdSql = $db->prepare("
+                                                            SELECT DISTINCT c.OrderCode
+                                                            FROM tbl_cmd c
+                                                            WHERE c.created_at BETWEEN :from_time AND :to_time
+                                                            AND (
+                                                                c.room_client IS NOT NULL 
+                                                                OR (
+                                                                    (SELECT SUM(amount) FROM payment_tracks WHERE order_code = c.OrderCode) >= 
+                                                                    (SELECT SUM(CAST(REPLACE(menu.menu_price, ',', '') AS DECIMAL(18,2)) * tbl_cmd_qty.cmd_qty) 
+                                                                     FROM tbl_cmd_qty 
+                                                                     INNER JOIN menu ON menu.menu_id = tbl_cmd_qty.cmd_item 
+                                                                     WHERE tbl_cmd_qty.cmd_code = c.OrderCode)
+                                                                )
+                                                            )
+                                                        ");
+                                                        $cmdSql->execute(['from_time' => $from, 'to_time' => $to]);
+
+                                                        // Build grouped items by fetching all cmd_codes then batching room_client lookup
                                                         $groupedData = [];
+                                                        $groupedByItemName = []; // Group by item name with aggregated qty and total
                                                         $total = 0;
-                                                        while ($cmdRow = $cmdSql->fetch(PDO::FETCH_ASSOC)) {
-                                                            $cmd = $cmdRow['cmd_code'];
+
+                                                        // Get all cmd rows and build a room_client map in one query
+                                                        $cmdRows = $cmdSql->fetchAll(PDO::FETCH_ASSOC);
+                                                        $cmdCodes = array_column($cmdRows, 'OrderCode');
+
+                                                        $roomMap = [];
+                                                        if (!empty($cmdCodes)) {
+                                                            $placeholders = implode(',', array_fill(0, count($cmdCodes), '?'));
+                                                            $roomAllStmt = $db->prepare("SELECT OrderCode, room_client FROM tbl_cmd WHERE OrderCode IN ($placeholders)");
+                                                            $roomAllStmt->execute($cmdCodes);
+                                                            while ($r = $roomAllStmt->fetch(PDO::FETCH_ASSOC)) {
+                                                                $roomMap[$r['OrderCode']] = $r['room_client'];
+                                                            }
+                                                        }
+
+                                                        // Process each order and aggregate items for this category
+                                                        foreach ($cmdRows as $cmdRow) {
+                                                            $cmd = $cmdRow['OrderCode'];
                                                             // Get all items for this order and category
                                                             $itemSql = $db->prepare("SELECT menu.*, tbl_cmd_qty.cmd_qty FROM tbl_cmd_qty INNER JOIN menu ON menu.menu_id = tbl_cmd_qty.cmd_item WHERE cmd_code = :cmd AND menu.cat_id = :val");
                                                             $itemSql->execute(['cmd' => $cmd, 'val' => $val]);
                                                             $items = $itemSql->fetchAll(PDO::FETCH_ASSOC);
-                                                            // Calculate total order amount
-                                                            $orderTotal = 0;
-                                                            foreach ($items as $item) {
-                                                                $price = (float)str_replace(',', '', $item['menu_price']);
-                                                                $qty = (int)$item['cmd_qty'];
-                                                                $orderTotal += $price * $qty;
-                                                            }
-                                                            // Sum all payment methods for this order
-                                                            $paidAmount = getTotalPaidByMethod($cmd, '01') + getTotalPaidByMethod($cmd, '05') + getTotalPaidByMethod($cmd, '06') + getTotalPaidByMethod($cmd, '02') + getTotalPaidByMethod($cmd, '04') + getTotalPaidByMethod($cmd, '03') + getTotalPaidByMethod($cmd, '07');
-                                                            // Only show if fully paid
-                                                            if ($paidAmount >= $orderTotal && $orderTotal > 0) {
+
+                                                            // The main query for cmdSql already filters for paid/room orders,
+                                                            // so we just need to process the items.
+                                                            if (!empty($items)) {
                                                                 foreach ($items as $item) {
                                                                     $menuDesc = $item['menu_desc'];
                                                                     if (!isset($groupedData[$menuDesc])) {
                                                                         $groupedData[$menuDesc] = [];
                                                                     }
                                                                     $groupedData[$menuDesc][] = $item;
+
+                                                                    // Aggregate by item name
+                                                                    $menuName = $item['menu_name'];
+                                                                    $price = (float)str_replace(',', '', $item['menu_price']);
+                                                                    $qty = (int)$item['cmd_qty'];
+                                                                    $itemTotal = $price * $qty;
+
+                                                                    if (!isset($groupedByItemName[$menuName])) {
+                                                                        $groupedByItemName[$menuName] = [
+                                                                            'price' => $price,
+                                                                            'qty' => 0,
+                                                                            'total' => 0
+                                                                        ];
+                                                                    }
+                                                                    $groupedByItemName[$menuName]['qty'] += $qty;
+                                                                    $groupedByItemName[$menuName]['total'] += $itemTotal;
                                                                 }
                                                             }
                                                         }
-                                                        // Output grouped data as before
+                                                        // Output grouped data by category first
                                                         foreach ($groupedData as $key => $item) {
                                                             ?>
                                                             <h3><?php echo $key; ?></h3>
@@ -752,25 +891,42 @@ $chequeCollection   += getTotalCollectionPaidByMethod($to, '04');
                                                                 </thead>
                                                                 <tbody>
                                                                     <?php
-                                                                    foreach ($item as $k => $val) {
+                                                                    // Group items within this category by name
+                                                                    $categoryItems = [];
+                                                                    foreach ($item as $val) {
+                                                                        $menuName = $val['menu_name'];
                                                                         $price = (float) str_replace(',', '', (string)$val['menu_price']);
                                                                         $qty = (int)$val['cmd_qty'];
                                                                         $amount = $price * $qty;
-                                                                        $total += $amount;
+
+                                                                        if (!isset($categoryItems[$menuName])) {
+                                                                            $categoryItems[$menuName] = [
+                                                                                'price' => $price,
+                                                                                'qty' => 0,
+                                                                                'total' => 0
+                                                                            ];
+                                                                        }
+                                                                        $categoryItems[$menuName]['qty'] += $qty;
+                                                                        $categoryItems[$menuName]['total'] += $amount;
+                                                                    }
+
+                                                                    // Display grouped items
+                                                                    foreach ($categoryItems as $itemName => $itemData) {
+                                                                        $total += $itemData['total'];
                                                                         ?>
                                                                         <tr>
-                                                                            <td><?php echo $val['menu_name']; ?></td>
+                                                                            <td><?php echo $itemName; ?></td>
                                                                             <!--<td><?php echo $val['menu_desc']; ?></td>-->
-                                                                            <td><?php echo number_format($price); ?></td>
-                                                                            <td><?php echo $qty; ?></td>
-                                                                            <td><?php echo number_format($amount); ?></td>
+                                                                            <td><?php echo number_format($itemData['price']); ?></td>
+                                                                            <td><?php echo $itemData['qty']; ?></td>
+                                                                            <td><?php echo number_format($itemData['total']); ?></td>
                                                                         </tr>
                                                                         <?php
                                                                     }
                                                                     ?>
                                                                 </tbody>
                                                             </table>
-                                                            <?php    
+                                                            <?php
                                                         }
                                                         ?>
                                                         <tr>
@@ -794,28 +950,28 @@ $chequeCollection   += getTotalCollectionPaidByMethod($to, '04');
 
                                     <!--<tr>-->
                                     <!--    <td>Collections <br>-->
-                                    <!--        <?php echo getCollectionDetails($to);?>-->
+                                    <!--        <?php echo getCollectionDetails($reportDate);?>-->
                                     <!--    </td>-->
-                                    <!--    <td><?php echo number_format($totalCol = getCollection($to)) ?></td>-->
+                                    <!--    <td><?php echo number_format($totalCol = getCollection($reportDate)) ?></td>-->
                                     <!--</tr>-->
 
                                     <!--<tr>-->
-                                    <!--    <td>Less Advance<br><?php echo getAdvanceDetails($to, 1);?></td>-->
-                                    <!--    <td><?php echo number_format($totalLess = getAdvances($to, 1)) ?></td>-->
+                                    <!--    <td>Less Advance<br><?php echo getAdvanceDetails($reportDate, 1);?></td>-->
+                                    <!--    <td><?php echo number_format($totalLess = getAdvances($reportDate, 1)) ?></td>-->
                                     <!--</tr>-->
 
                                     <!--<tr>-->
                                     <!--    <td>Advance <br>-->
-                                    <!--        <?php echo getAdvanceDetails($to, 2);?>-->
+                                    <!--        <?php echo getAdvanceDetails($reportDate, 2);?>-->
                                     <!--    </td>-->
-                                    <!--    <td><?php echo number_format($totalLad = getAdvances($to, 2)) ?></td>-->
+                                    <!--    <td><?php echo number_format($totalLad = getAdvances($reportDate, 2)) ?></td>-->
                                     <!--</tr>-->
 
                                     <!--<tr>-->
                                     <!--    <td>Credits: <br>-->
-                                    <!--        <?php echo getCreditDetails($to);?>-->
+                                    <!--        <?php echo getCreditDetails($reportDate);?>-->
                                     <!--    </td>-->
-                                    <!--    <td>(<?php echo number_format(getCredits($to))?> )</td>-->
+                                    <!--    <td>(<?php echo number_format(getCredits($reportDate))?> )</td>-->
                                     <!--</tr>-->
 
                                     <!--<tr>-->
@@ -831,17 +987,22 @@ $chequeCollection   += getTotalCollectionPaidByMethod($to, '04');
                             <h5>POS: <?php echo number_format($card + $cardCollection + $cardAdvance - $cardAdvanceLess)?> RWF</h5>
                             <h5>Momo: <?php echo number_format($momo + $momoCollection + $momoAdvance - $momoAdvanceLess)?> RWF</h5>
                             <h5>Credit: <?php echo number_format($credit + $creditCollection + $creditAdvance - $creditAdvanceLess)?> RWF</h5>
+                            <h5>Room Credit: <?php echo number_format($roomCreditTotal)?> RWF</h5>
                             <h5>Bank Cheque: <?php echo number_format($cheque + $chequeCollection + $chequeAdvance - $chequeAdvanceLess)?> RWF</h5>
                             <h5>CASH/CREDIT: <?php $cashCredit ??= 0; echo number_format($cashCredit)?> RWF</h5>
                             <h5>OTHERS: <?php $others ??= 0; echo number_format($others)?> RWF</h5>
 
                             <hr>
                             <h4>Total: <?php 
-                            echo number_format($cash + $card + $momo + $cheque + $credit + $cashCredit + $others +
-                                             $cashCollection + $cardCollection + $momoCollection + $chequeCollection + $creditCollection +
-                                             $cashAdvance + $cardAdvance + $momoAdvance + $chequeAdvance + $creditAdvance - 
-                                             $cashAdvanceLess - $cardAdvanceLess - $momoAdvanceLess - $creditAdvanceLess - $chequeAdvanceLess) 
-                            ?> RWF</h4>
+                            $totalCash = $cash + $cashCollection + $cashAdvance - $cashAdvanceLess;
+                            $totalCard = $card + $cardCollection + $cardAdvance - $cardAdvanceLess;
+                            $totalMomo = $momo + $momoCollection + $momoAdvance - $momoAdvanceLess;
+                            $totalCredit = $credit + $creditCollection + $creditAdvance - $creditAdvanceLess;
+                            $totalCheque = $cheque + $chequeCollection + $chequeAdvance - $chequeAdvanceLess;
+                            $totalCashCredit = $cashCredit ?? 0;
+                            $totalOthers = $others ?? 0;
+                            $grandTotal = $totalCash + $totalCard + $totalMomo + $totalCredit + $roomCreditTotal + $totalCheque + $totalCashCredit + $totalOthers;
+                            echo number_format($grandTotal); ?> RWF</h4>
 
                             <hr>
                             <br><br>
@@ -853,7 +1014,7 @@ $chequeCollection   += getTotalCollectionPaidByMethod($to, '04');
                             <table class="table">
                                 <tr>
                                     <td>
-                                        <br>Cashier<br><br>Names: <?php echo getClosedByUser($to)?><br>
+                                        <br>Cashier<br><br>Names: <?php echo getClosedByUser($reportDate)?><br>
                                         <br>Signature: .........................................
                                     </td>
                                     <td>
@@ -876,41 +1037,6 @@ $chequeCollection   += getTotalCollectionPaidByMethod($to, '04');
     </div>
 </div>
 
-<script>
-function printInvoice() {
-$("#headerprint").show();
-var printContents = document.getElementById('content').innerHTML; var originalContents = document.body.innerHTML; document.body.innerHTML = printContents; window.print(); document.body.innerHTML = originalContents; } </script>
-
-
-
-<script src="https://code.jquery.com/jquery-3.5.1.js" integrity="sha256-QWo7LDvxbWT2tbbQ97B53yJnYU3WhH/C8ycbRAkjPDc=" crossorigin="anonymous"></script>
-<script type="text/javascript">
-    $(document).ready(function () {
-
-$("#headerprint").hide();
-        $("#date_to").change(function () {
-            var from = $("#date_from").val();
-            var to = $("#date_to").val();
-			$(this).after('<div id="loader"><img src="../img/ajax_loader.gif" alt="loading...." width="30" height="30" /></div>');
-            $.post('load_sales_report.php',{from:from,to:to} , function (data) {
-             $("#display_res").html(data);
-                $('#loader').slideUp(910, function () {
-                    $(this).remove();
-                });
-                location.reload();
-            });
-        });
-
-    });
-
-function printInvoice() {
-$("#headerprint").show();
-$("#printFooter").show();
-$('#data-table-basic').removeAttr('id');
-  var printContents = document.getElementById('content').innerHTML; 
-  var originalContents = document.body.innerHTML; document.body.innerHTML = printContents;
-  window.print(); document.body.innerHTML = originalContents; }
-</script>
 <?php 
 
 $dateq = "SELECT DATE(opened_at) as date  FROM days  ORDER BY created_at DESC;";
@@ -929,7 +1055,7 @@ $uniqueDates = array_values($uniqueDates);
 const availableDates = <?= json_encode($uniqueDates) ?>;
   flatpickr("#myDatePicker", {
     enable: availableDates,
-    dateFormat: "Y-m-d"
+    dateFormat: "Y-m-d",
+    allowInput: true
   });
 </script>
-
