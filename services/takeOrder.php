@@ -176,6 +176,7 @@
         
         // Set error message for display
         $msge = $ex->getMessage();
+        $msg = $ex->getMessage();
         
         // Log error for debugging (optional)
         error_log("Order Creation Error: " . $ex->getMessage() . " - User: " . ($Oug_UserID ?? 'Unknown') . " - Table: " . ($_POST['reservID'] ?? 'Unknown'));
@@ -187,6 +188,7 @@
         
         // Set user-friendly error message
         $msge = "Database error occurred. Please try again or contact support.";
+        $msg = "Database error occurred. Please try again or contact support.";
         
         // Log detailed error for debugging
         error_log("Database Error in Order Creation: " . $ex->getMessage() . " - User: " . ($Oug_UserID ?? 'Unknown') . " - Table: " . ($_POST['reservID'] ?? 'Unknown'));

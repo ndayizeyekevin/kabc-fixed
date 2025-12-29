@@ -1,9 +1,15 @@
 <?php
 
-ob_start();
+// ob_start();
 
 include('../receipt/dompdf/autoload.inc.php'); 
+// require_once ("../../../inc/config.php");
 require_once ("../../inc/config.php");
+// include ("../../inc/DBController.php");
+
+// var_dump($company_name);
+// die();
+
 use Dompdf\Dompdf; 
 
 $css = "
@@ -210,8 +216,8 @@ $html .= '<div id="container" style="width: 100%; border: 1px solid black; margi
     </tr>
     <tr>
         <td align="center" style="display:grid;">
-           <span>'.$companyName.'</span><br>
-           <span>'.$companyAddress.'</span><br>
+           <span>'.$company_name.'</span><br>
+           <span>'.$company_address.'</span><br>
            <span>Tin: '.$companyTin.'</span><br>
            <span>Phone: '.$company_phone.'</span><br>
            <span><b>'.$title.'</b></span>

@@ -374,32 +374,36 @@ if (isset($_POST['savesales'])) {
 
     // echo $json;
 
-        /* die($json); */
     // echo $url . 'trnsSales/saveSales';
-    $curl = curl_init();
-    curl_setopt_array($curl, array(
-        CURLOPT_URL => $url . '/trnsSales/saveSales',
-        CURLOPT_RETURNTRANSFER => true,
-        CURLOPT_ENCODING => '',
-        CURLOPT_MAXREDIRS => 10,
-        CURLOPT_TIMEOUT => 0,
-        CURLOPT_FOLLOWLOCATION => true,
-        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-        CURLOPT_CUSTOMREQUEST => 'POST',
-        CURLOPT_POSTFIELDS => $json,
-        CURLOPT_HTTPHEADER => array(
-            'Content-Type: application/json'
-        ),
-    ));
+    // die($json);
+$json = is_string($json) ? $json : json_encode($json);
 
-    $response = curl_exec($curl);
+$curl = curl_init();
+curl_setopt_array($curl, [
+    CURLOPT_URL => $url . '/trnsSales/saveSales',
+    CURLOPT_RETURNTRANSFER => true,
+    CURLOPT_POST => true,
+    CURLOPT_POSTFIELDS => $json,
+    CURLOPT_HTTPHEADER => [
+        'Content-Type: application/json',
+        'Content-Length: ' . strlen($json)
+    ],
+]);
 
-    curl_close($curl);
+$response = curl_exec($curl);
+
+if ($response === false) {
+    error_log('cURL error: ' . curl_error($curl));
+}
+$info = curl_getinfo($curl);
+curl_close($curl);
+
+// Inspect $info['http_code'] and $response for server message
     //   echo $response;
 
+// die(var_dump($response));
 
     $data = json_decode($response);
-
 
     $responseData = json_decode($response, true);
 
@@ -1694,34 +1698,33 @@ foreach ($cuntries as $key => $value) {
                 <div class="col-md-12">
 					 <select name="clientinroom" class="form-control">
 					<?php
-                    $sql = $db->prepare("
-                        SELECT
+$sql = $db->prepare("
+    SELECT
 
-                            b.id AS booking_id,
-                            g.first_name,
-                            g.last_name,
-                            g.id as userbooking,
-                            b.checkin_date,
-                            b.checkout_date,
-                            b.payment_status_id,
-                            r.room_number
-                        FROM tbl_acc_booking b
-                        JOIN tbl_acc_guest g ON b.guest_id = g.id
-                        JOIN tbl_acc_booking_room br ON b.id = br.booking_id
-                        JOIN tbl_acc_room r ON br.room_id = r.id
-                        WHERE b.booking_status_id = 6 AND b.checkout_date >= CURRENT_DATE
-                    ");
-                    $sql->execute();
+        b.id AS booking_id,
+        g.first_name,
+        g.last_name,
+		g.id as userbooking,
+        b.checkin_date,
+        b.checkout_date,
+        b.payment_status_id,
+        r.room_number
+    FROM tbl_acc_booking b
+    JOIN tbl_acc_guest g ON b.guest_id = g.id
+    JOIN tbl_acc_booking_room br ON b.id = br.booking_id
+    JOIN tbl_acc_room r ON br.room_id = r.id
+    WHERE b.booking_status_id = 6 AND b.checkout_date >= CURRENT_DATE
+");
+$sql->execute();
 
-                    if ($sql->rowCount()) {
-                        while ($row = $sql->fetch()) { ?>
+if ($sql->rowCount()) {
+    while ($row = $sql->fetch()) { ?>
 
-                            <option value="<?php echo $row['booking_id']; ?> "><?php   echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) ?> -  <?php echo $row['room_number']; ?> </option>
+		<option value="<?php echo $row['booking_id']; ?> "><?php   echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) ?> -  <?php echo $row['room_number']; ?> </option>
 
 
-                            <?php 
-                        }
-                    } ?>
+		<?php }
+    } ?>
 
 
 				 </select>

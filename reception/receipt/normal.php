@@ -210,8 +210,8 @@ $html .= '<div id="container" style="width: 100%; border: 1px solid black; margi
     </tr>
     <tr>
         <td align="center" style="display:grid;">
-           <span>Centre Saint Paul Kigali Ltd</span><br>
-           <span>KN 31 St, Kigali, Rwanda</span><br>
+           <span>'.$company_name.'</span><br>
+           <span>'.$company_address.'</span><br>
            <span>Tin: '.$companyTin.'</span><br>
            <span>Phone: '.$phone.'</span><br>
            <span><b>'.$title.'</b></span>

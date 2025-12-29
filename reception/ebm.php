@@ -93,7 +93,7 @@ if (empty($_POST['clientTin']) || trim($_POST['clientTin']) === 'null') {
 
   // echo $tin;
 
-  $receipt = '{"custTin":'.$tin.',"custMblNo":"'.$clientPhone.'","rptNo":'.$lastSale.',"trdeNm":"","adrs":"KN 4 Ave","topMsg":"Centre Saint Paul Kigali Ltd\nKN 31 St, Kigali, Rwanda\nTin: $branch_tin","btmMsg":"Welcome","prchrAcptcYn":"N"}';        
+  $receipt = '{"custTin":'.$tin.',"custMblNo":"'.$clientPhone.'","rptNo":'.$lastSale.',"trdeNm":"","adrs":"'.$company_name.'","topMsg":"'.$company_name.'\n'.$company_address.'\nTin: $branch_tin","btmMsg":"Welcome","prchrAcptcYn":"N"}';        
   $json = formatingJson($ref, $pmtTyCd, $taxblAmtA, $taxblAmtB, $lastSale, $tin, $purchase_code, $client_name, $salestype, $rectype, $totalitem, $taxBamount, $totalamount, $receipt, $prdct, $taxblAmtC, $taxblAmtD, $cfmDt, $salesDt);
   
 
@@ -140,7 +140,7 @@ if (empty($_POST['clientTin']) || trim($_POST['clientTin']) === 'null') {
 
          $ref = $rectype == 'R' ? $ref : 0;
 
-         $receipt = '{"custTin":'.$tin.',"custMblNo":'.$phone.',"rptNo":1,"trdeNm":"NSTC","adrs":"KN 4 Ave","topMsg":"Centre Saint Paul Kigali Ltd\nKN 31 St, Kigali, Rwanda\nTin: $branch_tin","btmMsg":"Welcome","prchrAcptcYn":"N"}';        
+         $receipt = '{"custTin":'.$tin.',"custMblNo":'.$phone.',"rptNo":1,"trdeNm":"KABC","adrs":"'.$company_name.'","topMsg":"'.$company_name.'\n'.$company_address.'\nTin: $branch_tin","btmMsg":"Welcome","prchrAcptcYn":"N"}';        
          $json = formatingJson($ref, $pmtTyCd, $taxblAmtA, $taxblAmtB, $lastSale, $tin, $purchase_code, $client_name, $salestype, $rectype, $totalitem, $totalamountamount, $totalamount, $receipt, $prdct, $taxblAmtC, $taxblAmtD, $cfmDt, $salesDt);
         // $json=$_POST['sales'];
         break;
@@ -285,7 +285,7 @@ $jsonIO[] = '{"tin":"'.$branch_tin.'",
 
 
 
-  $receipt_info = addslashes('{"custTin":"'.$tin.'","custMblNo":null,"rptNo":1,"trdeNm":"NSTC","adrs":"KN 4 Ave","topMsg":"Centre Saint Paul Kigali Ltd\nKN 31 St, Kigali, Rwanda\nTin: $branch_tin","btmMsg":"Welcome","prchrAcptcYn":"N"}');
+  $receipt_info = addslashes('{"custTin":"'.$tin.'","custMblNo":null,"rptNo":1,"trdeNm":"KABC","adrs":"KN 4 Ave","topMsg":"'.$company_name.'\n'.$company_address.'\nTin: $branch_tin","btmMsg":"Welcome","prchrAcptcYn":"N"}');
   $sql_inf = $db->prepare("INSERT INTO tbl_vsdc_sales SET 
   tin='$branch_tin',
   bhfId='03',
@@ -332,7 +332,7 @@ $jsonIO[] = '{"tin":"'.$branch_tin.'",
 
 
 $tin = $tin ?? '9999999999';
-$receipt_info = addslashes('{"custTin":"$tin","custMblNo":"0789303811","rptNo":1,"trdeNm":"NSTC","adrs":"KN 4 Ave","topMsg":"Centre Saint Paul Kigali Ltd\nKN 31 St, Kigali, Rwanda\nTin: $branch_tin","btmMsg":"Welcome","prchrAcptcYn":"N"}');
+$receipt_info = addslashes('{"custTin":"$tin","custMblNo":"0789303811","rptNo":1,"trdeNm":"NSTC","adrs":"'.$company_address.'","topMsg":"'.$company_name.'\n'.$company_address.'\nTin: $branch_tin","btmMsg":"Welcome","prchrAcptcYn":"N"}');
   $sql_inf = $db->prepare("INSERT INTO tbl_receipts SET 
   tin='$branch_tin',
   bhfId='03',

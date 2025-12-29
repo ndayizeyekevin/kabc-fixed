@@ -269,7 +269,7 @@ $pdf_html .= '<tr class="grand-total">
 $pdf_html .= '</tbody>
     </table>
     <div class="footer">
-        Generated on: ' . date('Y-m-d H:i:s') . ' | Centre Saint Paul Kigali Ltd
+        Generated on: ' . date('Y-m-d H:i:s') . ' | '.$company_name.'
     </div>
 </body>
 </html>';

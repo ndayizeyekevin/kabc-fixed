@@ -931,11 +931,11 @@ function fill_product($db){
   echo '<div style="text-align:center;margin-bottom:8px;"><img src="' . $logoUrl . '" alt="Logo" style="max-width:120px;max-height:120px;display:inline-block;" /></div>';
   $thankYou = '<div style="margin-top:5px;font-size:12px;text-align:center;color:#28a745;">Thank you, you are always welcome!</div>';
   $companyInfo = '<div style="font-size:14px;line-height:1.4;text-align:center;margin-bottom:4px;">
-CENTRE SAINT-PAUL KIGALI Ltd<br>
-TIN/VAT :111477597<br>
-Tel: +250785285341/ +250789477745<br>
-cpsaintpaulkgl@gmail.com<br>
-www.centrestpaul.com
+'.$company_name.'<br>
+TIN/VAT : '.$company_tin.'<br>
+Tel: '.$company_phone.'<br>
+'.$company_email.'<br>
+'.$company_website.'
 </div>';
   $momo = '<div style="margin-top:8px;font-size:15px;text-align:center;"><strong>MOMO : 007972</strong></div>';
 

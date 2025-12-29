@@ -50,12 +50,14 @@ $today = date('Y-m-d');
       
       <td>
           <p style="padding-top: 6pt;padding-left: 128pt;text-indent: 0pt;line-height: 11pt;text-align: left;">
-        <center> CENTRE SAINT-PAUL KIGALI Ltd<br>
-TEL:+250 785 285 341 / +250 789 477 745<br>
-www.centrestpaul.com<br>
-TIN/VAT: 111477597</p>
-</center>
+        <center> 
+            KABC HOTEL<br>
+            TEL: +250 XXX XXX XXX / +250 XXX XXX XXX<br>
+            Website<br>
+            TIN/VAT: XXXXXXX</p>
+        </center>
       </td>
+      
       
             <td>
           <center>   <p  style="padding-top: 6pt;text-indent: 0pt;text-align: center;"> </p></center>

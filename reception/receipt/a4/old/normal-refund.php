@@ -160,11 +160,10 @@ $html .= '<div id="container" style="width: 100%; border: 1px solid black; margi
             '.$img.'
        </td>
          <td align="center">
-           <span>Centre Saint Paul Kigali Ltd</span><br>
-           <span>KN 4 Ave / 0789303811</span><br>
-           <span>Tin: '.$companyTin.'</span><br>
-           <span>Phone: '.$phone.'</span><br>
-           <span><b>'.$title.'</b></span><br>
+            <span>'.$company_name.'</span><br>
+            <span>'.$company_address.' / '.$company_phone.'</span><br>
+            <span>Tin: '.$companyTin.'</span><br>
+            <span><b>'.$title.'</b></span>
            <span>REF. NORMAL RECEIPT#: '.$ref.'</span>
         </td>
         
