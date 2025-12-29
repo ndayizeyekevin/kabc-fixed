@@ -27,8 +27,9 @@ defined('LIB_PATH') ? null : define('LIB_PATH', SITE_ROOT . DS . 'inc');
 require_once("session.php");
 require_once("DBController.php");
 
-$url = getenv('VSDC_BASE_URL') ?? "http://127.0.0.1:8080/rraVsdcSandbox2.1.2.3.7/";    // testing
+// $url = getenv('VSDC_BASE_URL') ?? "http://127.0.0.1:8080/rraVsdcSandbox2.1.2.3.7/";    // testing
 // $url = "http://127.0.0.1:8080/rraVsdcLatestProdVersion/";   // production
+$url = getenv('VSDC_URL');
 
 
 $msg = '';

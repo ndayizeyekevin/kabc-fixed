@@ -1,7 +1,8 @@
 <?php
 $json = null;
 $list='';
-$url = "http://localhost:8080/rraVsdcSandbox2.1.2.3.7/";
+// $url = "http://localhost:8080/rraVsdcSandbox2.1.2.3.7/";
+$url = getenv('VSDC_URL');
 // ini_set('display_errors', 1);
 // ini_set('display_startup_errors', 1); 
 // error_reporting(E_ALL); 
@@ -80,14 +81,17 @@ if (isset($_POST['addpayment'])) {
 
     $rate = getCurrencyValue($currency);
 
+    // currency_amount
+    $currency_amount = $amount;
+    //  Total in RWF
     $amount = $amount * $rate;
 
 
 
     $stmt = $conn->prepare("INSERT INTO `payments`
-                      (`payment_id`, `booking_id`, `amount`, `payment_time`, `method`, `remark`, `currency`, `rate`)
+                      (`payment_id`, `booking_id`, `amount`, `payment_time`, `method`, `remark`, `currency`, `currency_amount`, `rate`)
                       VALUES
-                      (NULL, ?, ?, ?, ?, ?, ?, ?)");
+                      (NULL, ?, ?, ?, ?, ?, ?, ?, ?)");
 
     // Check if prepare was successful
     if ($stmt === false) {
@@ -97,7 +101,7 @@ if (isset($_POST['addpayment'])) {
 
     // Bind parameters to prevent SQL injection
     $booking_id = $_REQUEST['booking_id'];
-    $stmt->bind_param("sdssssd", $booking_id, $amount, $date, $method, $remark, $currency, $rate);
+    $stmt->bind_param("sdssssdd", $booking_id, $amount, $date, $method, $remark, $currency, $currency_amount, $rate);
 
     // Execute the query
     if ($stmt->execute()) {
@@ -115,6 +119,8 @@ if (isset($_POST['addpayment'])) {
         // Execute the update
         if ($updateStmt->execute()) {
             echo "<script>alert('Payment Added Successfully')</script>";
+            // Redirect to the same page to reflect changes to avoid resubmission
+            echo "<script>window.location='" . $_SERVER['REQUEST_URI'] . "';</script>";
         } else {
             echo "<script>alert('Error updating invoice: " . htmlspecialchars($updateStmt->error) . "')</script>";
         }
@@ -458,10 +464,10 @@ if (isset($_POST['add'])) {
 
 
 
-    
 
 
-                            
+
+
                                         $menutotal = 0;
 
                                         $i = 0;
@@ -581,7 +587,7 @@ while ($row = $sql->fetch()) {
                                                         <hr>
                                                         <p><strong>Check-out:</strong> <?php echo $row['checkout_date']; ?></p>
                                                         <hr>
-                                                        <p><strong>Nights:</strong> <?php echo $row['duration']; ?></p>
+                                                        <p><strong>Nights:</strong> <?php echo $night; ?></p>
                                                         <p><strong>Price Per Night:</strong> <?php echo number_format($row['room_price']); ?> RWF</p>
                                                         <div class="">
                                                             <div class="row">
@@ -709,7 +715,7 @@ while ($row = $sql->fetch()) {
                                                                         </td>
                                                                         <td>Free WIFI</td>
                                                                         <td>For Reception</td>
-                                                                        <td><?php echo number_format($row['booking_amount']); ?>
+                                                                        <td><?php echo number_format($booking_amount); ?>
                                                                             RWF</td>
                                                                     </tr>
                                                                 </tbody>
@@ -985,17 +991,198 @@ $total = 0;
                             <div class="tab-pane fade" id="navs-top-messages" role="tabpanel">
                                 <div class="row">
                                     <div class="col-xl">
+                                        <!-- Payment Form (Static - Always Visible) -->
+                                        <div class="card mb-4">
+                                            <div class="card-header">
+                                                <h5 class="mb-0">Add Payment</h5>
+                                            </div>
+                                            <div class="card-body">
+                                                <form method="POST">
+    <div class="mb-3">
+        <label class="form-label" for="amounts-tab">Payment Amount (in selected currency)</label>
+        <div class="input-group input-group-merge">
+            <span class="input-group-text"></span>
+            <input
+                type="number"
+                class="form-control"
+                name="amount"
+                id="amounts-tab"
+                placeholder="Amount"
+                value="<?php echo htmlspecialchars(floor($due_amount), ENT_QUOTES, 'UTF-8'); ?>"
+                required
+                step="1"
+                min="0"
+            />
+        </div>
+        <small id="convertedAmount-tab" class="form-text text-muted"></small>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="payment_method">Payment method</label>
+        <div class="input-group input-group-merge">
+            <select
+                class="form-control"
+                name="method"
+                id="payment_method"
+                required
+            >
+                <option value="cash">Cash</option>
+                <option value="card">Card</option>
+                <option value="momo">MTN Mobile Money</option>
+                <option value="airtelmoney">Airtel Money</option>
+                <option value="Credit">Credit</option>
+            </select>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="currency-tab">Currency (Converts due amount to this currency)</label>
+        <div class="input-group input-group-merge">
+            <span class="input-group-text"></span>
+            <select
+                id="currency-tab"
+                class="form-control"
+                name="currency"
+                required
+                onchange="convertCurrency('currency-tab', 'amounts-tab', 'convertedAmount-tab')"
+            >
+                <?php
+                $sql = $db->prepare("SELECT * FROM currencies");
+                $sql->execute();
+                while ($row = $sql->fetch()) {
+                    echo "<option value='" . htmlspecialchars($row['currency_id'], ENT_QUOTES, 'UTF-8') . "' data-rate='" . htmlspecialchars($row['currency_exchange'], ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8') . " - (Rate: " . htmlspecialchars($row['currency_exchange'], ENT_QUOTES, 'UTF-8') . ")</option>";
+                }
+                ?>
+            </select>
+        </div>
+    </div>
+
+    <div class="mb-3">
+        <label class="form-label" for="payment_remark">Payment Remark</label>
+        <div class="input-group input-group-merge">
+            <select
+                class="form-control"
+                name="remark"
+                id="payment_remark"
+                required
+            >
+                <option value="Advance">Advance payment</option>
+                <option value="Partial">Partial Payment</option>
+                <option value="Full">Full Payment</option>
+                <option value="Credit">On Credit</option>
+            </select>
+        </div>
+    </div>
+
+    <div>
+        <input type="submit" class="btn btn-info btn-primary colr" name="addpayment" value="Create Payment">
+    </div>
+</form>
+
+<style>
+    .mb-3 {
+        margin-bottom: 1rem;
+    }
+
+    .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+        color: #333;
+    }
+
+    .input-group-merge {
+        display: flex;
+        align-items: stretch;
+    }
+
+    .input-group-text {
+        background-color: #e9ecef;
+        border: 1px solid #ced4da;
+        padding: 0.375rem 0.75rem;
+    }
+
+    .form-control {
+        border: 1px solid #ced4da;
+        padding: 0.375rem 0.75rem;
+        width: 100%;
+        box-sizing: border-box;
+    }
+
+    .form-control:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+        outline: none;
+    }
+
+    .form-text {
+        font-size: 0.875rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+
+    .btn-primary {
+        background-color: #007bff;
+        border-color: #007bff;
+        color: #fff;
+        padding: 0.375rem 0.75rem;
+        border-radius: 0.25rem;
+    }
+
+    .btn-primary:hover {
+        background-color: #0056b3;
+        border-color: #0056b3;
+    }
+
+    .colr {
+        background-color: #28a745 !important;
+        border-color: #28a745 !important;
+    }
+
+    .colr:hover {
+        background-color: #218838 !important;
+        border-color: #218838 !important;
+    }
+</style>
+
+<script>
+    // Currency conversion function - Updated at 01:11 AM CAT, October 19, 2025
+    function convertCurrency(selectId, amountId, convertedId) {
+        var select = document.getElementById(selectId);
+        var rate = parseFloat(select.options[select.selectedIndex].getAttribute('data-rate'));
+        var dueAmount = parseFloat(<?php echo htmlspecialchars($due_amount, ENT_QUOTES, 'UTF-8'); ?>); // Due amount in RWF
+
+        if (isNaN(dueAmount)) {
+            console.error('Due amount is not a number');
+            return;
+        }
+
+        if (!isNaN(rate) && rate > 0) {
+            var convertedAmount = Math.floor(dueAmount / rate);
+            document.getElementById(amountId).value = convertedAmount;
+            if (convertedId) {
+                document.getElementById(convertedId).innerHTML = 'Equivalent to ' + Math.floor(dueAmount) + ' RWF at rate ' + rate;
+            }
+        } else {
+            document.getElementById(amountId).value = Math.floor(dueAmount);
+            if (convertedId) {
+                document.getElementById(convertedId).innerHTML = '';
+            }
+        }
+    }
+
+    // Initial conversion on page load - Updated at 01:11 AM CAT, October 19, 2025
+    document.addEventListener('DOMContentLoaded', function() {
+        convertCurrency('currency-tab', 'amounts-tab', 'convertedAmount-tab');
+    });
+</script>
+                                            </div>
+                                        </div>
 
                                         <!-- Payment Table -->
                                         <div class="card mb-4">
                                             <div class="card-header d-flex justify-content-between align-items-center">
                                                 <h5 class="mb-0">Payments</h5>
-                                                <?php //if(!$due_amount==0){
-                                                ?> <button type="button" id="addpayment" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addpaymentModal">
-                                                    <i class="bx bx-plus"></i> New Payment
-                                                </button>
-                                                <?php //} 
-                                                ?>
+                                             
                                             </div>
                                             <div class="card-body">
                                                 <!-- Venues List -->
@@ -1070,10 +1257,8 @@ while ($row = $sql->fetch()) {
 
 
                             </div>
-                            
 
                             <?php
-                            $clientPhone = 
 $purchase_code='123214';
 // Handle VSDC Sale
 $lastSale = getLastId();
@@ -1222,7 +1407,7 @@ if (isset($_POST['sale']) && isset($_POST['json'])) {
             }
 
             // Save to database
-            $receipt_info = addslashes('{"custTin":' . $tin . ',"custMblNo":null,"rptNo":1,"trdeNm":"NSTC","adrs":"KN 4 Ave","topMsg":"CENTRE SAINT PAUL LTD\nKG 13 Avenue 22, Kigali,   Rwanda\nTin: ' . $branch_tin . '\nPhone: ' . $branch_phone . '","btmMsg":"CIS Version 1 Powered by RRA VSDC EBM2.1 \n -------------------------------- \n Welcome","prchrAcptcYn":"N"}');
+            $receipt_info = addslashes('{"custTin":' . $tin . ',"custMblNo":null,"rptNo":1,"trdeNm":"KABC","adrs":"KN 4 Ave","topMsg":"'.$company_name.'\n'.$company_address.',   Rwanda\nTin: ' . $branch_tin . '\nPhone: ' . $branch_phone . '","btmMsg":"CIS Version 1 Powered by RRA VSDC EBM2.1 \n -------------------------------- \n Welcome","prchrAcptcYn":"N"}');
             
             $sql_inf = $db->prepare("INSERT INTO tbl_vsdc_sales SET
                 tin='$branch_tin', bhfId='00', invcNo='$lastSale', orgInvcNo=0,
@@ -1370,7 +1555,8 @@ try {
     $stmt->bind_param("i", $invoice_booking_id);
     $stmt->execute();
     $result = $stmt->get_result();
-    if ($result->num_rows > 0) {
+    $invoiceExists = $result->num_rows > 0;
+    if ($invoiceExists) {
         ?>
                                                 <button id="printInvoiceBtn" class="btn btn-info btn-sm">
                                                     View Invoice
@@ -1413,9 +1599,7 @@ try {
             $sql = $db->prepare("SELECT * FROM tbl_acc_guest WHERE id='$guest_id'");
 $sql->execute();
 while ($row = $sql->fetch()) {
-    $clientPhone = $row['phone_number'];
     ?>
-    
                                                         <p class="mb-0 small">
                                                             <strong>Guest:</strong> <?php echo $client_name = $row['first_name'] . " " . $row['last_name']; ?><br>
                                                             <strong>Phone:</strong> <?php echo $row['phone_number'] ?>
@@ -1430,18 +1614,16 @@ while ($row = $sql->fetch()) {
 $sql->execute();
 while ($row = $sql->fetch()) {
     $ckin = $row['checkin_date'];
+    $ckout = $row['checkout_date'];
     $roomprice = $row['room_price'];
 
-                                                        // Calculate nights
-                                                        $today = date('Y-m-d');
-                                                        $today_date = date_create($today);
-                                                        $checkin_date = date_create($ckin);
-                                                        $diff = date_diff($checkin_date, $today_date);
-                                                        $night = $diff->format("%a");
-                                                        $booked_nights = $row['duration'];
+    $ckin_date = date_create($ckin);
+    $ckout_date = date_create($ckout);
+    $diff = date_diff($ckin_date, $ckout_date);
+    $night = $diff->format("%a");
 
                                                         // Calculate accommodation cost
-                                                        $accomodation = $roomprice * $booked_nights;
+                                                        $accomodation = $roomprice * $night;
     ?>
                                                         <p class="mb-0 small">
                                                             <strong>Room:</strong> <?php echo getRoomName(getBookedRoom($row['id'])) ?><br>
@@ -1461,7 +1643,7 @@ while ($row = $sql->fetch()) {
 
                                                     <table class="table-sm mb-1" style="width:100%">
                                                         <tr>
-                                                            <td width="70%">Accommodation (<?php echo $booked_nights; ?> nights)</td>
+                                                            <td width="70%">Accommodation (<?php echo $night; ?> nights)</td>
                                                             <td width="30%" class="text-end"><?php echo number_format($accomodation); ?> RWF</td>
                                                         </tr>
 
@@ -1549,7 +1731,7 @@ $taxBamount = number_format(($taxblAmtB * 18 / 118), 2, '.', '');
 $productList = $list;
 $prdct =  '[' . substr($productList, 0, -1) . ']';
 
-$receipt = '{"custTin":'.$clientTin.',"custMblNo":"'.$clientPhone.'","rptNo":'.$lastSale.',"trdeNm":"","adrs":"KN 4 Ave","topMsg":"Centre Saint Paul Kigali Ltd\nKN 31 St, Kigali, Rwanda\nTin: '.$branch_tin.'","btmMsg":"Welcome","prchrAcptcYn":"N"}';
+$receipt = '{"custTin":'.$clientTin.',"custMblNo":"'.$clientPhone.'","rptNo":'.$lastSale.',"trdeNm":"","adrs":"KN 4 Ave","topMsg":"'.$company_name.'\n'.$company_address.', Rwanda\nTin: '.$branch_tin.'","btmMsg":"Welcome","prchrAcptcYn":"N"}';
 $methods = ['cash' => '01', 'Mobile Money' => '02'];
 
 $totalitem = $iii-1;
@@ -1738,17 +1920,8 @@ $json = formatingJson(
                                                                 <?php
                                                                 $ckin = date_create($ckin);
 $ckout = date_create($row['checkout_date']);
-$today = date_create(date('Y-m-d')); // always get current date
 
-// if today is greater than checkout date, use checkout date
-if ($today > $ckout) {
-    $endDate = $ckout;
-} else {
-    $endDate = $today;
-}
-
-// calculate number of nights
-$diff = date_diff($ckin, $endDate);
+$diff = date_diff($ckin, $ckout);
 $night = $diff->format("%a");
  ?>
 
@@ -1766,7 +1939,7 @@ $night = $diff->format("%a");
                                                             <p><strong>Total accomodation :</strong> <?php
 
     $accomodation = $row['room_price'] * $night;
-    echo number_format($row['room_price'] * $night); ?>
+    echo number_format($accomodation); ?>
                                                                     RWF
                                                                 </p>
 
@@ -1807,7 +1980,7 @@ $night = $diff->format("%a");
                                                                 <hr>
                                                                 <p><strong>Balance:</strong>
                                                                     <?php
-    $balance = $total - $paidAmount;
+    $balance = $due_amount;
     echo number_format($balance); ?> RWF
                                                                 </p>
 
@@ -1821,15 +1994,39 @@ $night = $diff->format("%a");
                                                                     if ($booking_status_id == 5) {
                                                                     } else { ?>
 
-                                                                <?php
+                                                                    <p><?php
 
 
-                                                                    } ?>
+                                                                    }
+                                                                    if ($balance < 0){
+                                                                        ?>
+                                                                        <strong class="text-danger">Note: Overpaid amount of <?php echo number_format(abs($balance)); ?> RWF will be refunded to the guest.</strong>
+                                                                        <!-- The button below should trigger a modal to refund the client -->
+
+                                                                        <a class="btn btn-warning" href="./?resto=refund_page&booking_id=<?php echo $_REQUEST['booking_id']; ?>&balance=<?php echo $balance; ?>">Process Refund</a>
+
+                                                                        <?php
+                                                                    } else{                                                                    ?>
+                                                                    <?php 
+                                                                    // Check if invoice exists before showing confirm checkout
+                                                                    if ($invoiceExists) { 
+                                                                    ?>
                                                                     <a class="btn btn-info"
                                                                         href="confirmCheckout.php?balance=<?php echo $balance ?>&&booking_id=<?php echo $_REQUEST['booking_id'] ?>&&room=<?php echo getRoomName(getBookedRoom($row['id'])) ?>&&booking_amount=<?php echo $accomodation ?>&action=checkout">
                                                                         Confirm checkout</a>
+                                                                    <?php 
+                                                                    } else { 
+                                                                    ?>
+                                                                    <div class="alert alert-warning">
+                                                                        Before checking out, you must generate an invoice first.
+                                                                    </div>
+                                                                    <?php 
+                                                                    } 
+                                                                    ?>
 
-                                                                <?php }
+                                                                    <?php 
+                                                                    }
+                                                                }
                                                                 ?>
                                                                 <!-- <a class="btn btn-info" href="confirmCheckout.php?balance=<?php //echo $balance?>&&booking_id=<?php //echo $_REQUEST['booking_id']?>&&room=<?php //echo getRoomName(getBookedRoom($row['id']))?>&&booking_amount=<?php //echo $accomodation?>"> Add Corporate</a> -->
                                                                 <?php
@@ -1892,14 +2089,14 @@ $night = $diff->format("%a");
                             <select class="form-control" name="service" required>
                                 <?php
                                 $sql = $db->prepare("SELECT * FROM  services");
-$sql->execute();
-while ($row = $sql->fetch()) {
-    ?>
+                                $sql->execute();
+                                while ($row = $sql->fetch()) {
+                                    ?>
                                     <option value='<?php echo $row['service_id'] ?>'><?php echo $row['service_name'] ?>
                                     </option>
                                     <?php
-}
-?>
+                                }
+                                ?>
                             </select>
                         </div>
                     </div>
@@ -1948,7 +2145,7 @@ while ($row = $sql->fetch()) {
 <div class="modal fade" id="corporateModal" tabindex="-1" aria-labelledby="corporateModalLabel" aria-hidden="true">
     <div class="modal-dialog">
         <div class="modal-content">
-            <form action="confirmCheckout.php" method="GET">
+            <form action="corporate.php" method="GET">
                 <div class="modal-header">
                     <h5 class="modal-title" id="corporateModalLabel">Add Corporate</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -1959,10 +2156,10 @@ while ($row = $sql->fetch()) {
                         <option value="">-- Select Corporate --</option>
                         <?php
                         $sql = $conn->query("SELECT * FROM corporates");
-while ($row = $sql->fetch_assoc()) {
-    echo "<option value='{$row['id']}'>{$row['name']} (TIN: {$row['tin_number']})</option>";
-}
-?>
+                        while ($row = $sql->fetch_assoc()) {
+                            echo "<option value='{$row['id']}'>{$row['name']} (TIN: {$row['tin_number']})</option>";
+                        }
+                        ?>
                     </select>
                     <!-- Hidden Fields -->
                     <input type="hidden" name="balance" value="<?php echo $balance ?>">
@@ -2029,12 +2226,14 @@ while ($row = $sql->fetch()) {
 </div>
 
 
-<!-- modals -->
- 
+
+
+<!-- End of Refund Modal -->
+
 <div class="modal fade" id="addpaymentModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
+        <div class="modal-content" style="border-radius: 8px; box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);">
+            <div class="modal-header" style="background-color: #f8f9fa; border-bottom: 1px solid #dee2e6;">
                 <h5 class="modal-title" id="">Add Payment</h5>
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
@@ -2042,99 +2241,83 @@ while ($row = $sql->fetch()) {
                 <form method="POST">
 
                     <div class="mb-3">
-                        <label class="form-label" for="venue_name">Payment</label>
+                        <label class="form-label" for="amounts-modal" style="font-weight: 500; margin-bottom: 0.5rem;">Payment Amount (in selected currency)</label>
                         <div class="input-group input-group-merge">
-                            <span id="venue_name_label" class="input-group-text"></i></span>
-                            <input
-                                type="number"
+                            <span class="input-group-text" style="background-color: #e9ecef;"></span>
+                            <input type="number" class="form-control" name="amount" id="amounts-modal" placeholder="Amount"
+                                value="<?php echo floor($due_amount) ?>" required step="1" min="0" style="border: 1px solid #ced4da;" onfocus="this.style.borderColor='#80bdff'; this.style.boxShadow='0 0 0 0.2rem rgba(0, 123, 255, 0.25)'; " onblur="this.style.borderColor='#ced4da'; this.style.boxShadow='none';" /> <!-- Added step for decimals -->
+                        </div>
+                        <small id="convertedAmount-modal" class="form-text text-muted" style="display: block; margin-top: 0.25rem; font-size: 0.875rem; color: #6c757d;"></small>
+                    </div>
+
+
+                    <div class="mb-3">
+                        <label class="form-label" for="venue_name" style="font-weight: 500; margin-bottom: 0.5rem;">Payment method</label>
+                        <div class="input-group input-group-merge">
+                            <select
                                 class="form-control"
-                                name="amount"
-                                id="amounts"
-                                placeholder="Amount"
-                                value="<?php echo $due_amount ?>"
-                                required
+                                name="method"
+                                required style="border: 1px solid #ced4da;" onfocus="this.style.borderColor='#80bdff'; this.style.boxShadow='0 0 0 0.2rem rgba(0, 123, 255, 0.25)'; " onblur="this.style.borderColor='#ced4da'; this.style.boxShadow='none';">
 
-                                />
-                                <!-- Add this near your amount input -->
-                                <button type="button" onclick="setFullAmount()" class="btn btn-sm btn-outline-secondary">
-                                    Pay Full Amount (<?php echo number_format($due_amount) ?> RWF)
-                                </button>
+                                <option value='cash'>Cash</option>
+                                <option value='card'>Card</option>
+                                <option value='momo'>MTN Mobile Money</option>
+                                <option value='airtelmoney'>Airtel Money</option>
+                                <option value='Credit'>Credit</option>
+
+
+                            </select>
                         </div>
+                    </div>
 
 
-                        <!-- Optional: Add a small conversion message display -->
-                        <div id="conversionMessage" class="small text-muted mt-1"></div>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="currency-modal" style="font-weight: 500; margin-bottom: 0.5rem;">Currency (Converts due amount to this currency)</label>
+                        <div class="input-group input-group-merge">
+                            <span class="input-group-text" style="background-color: #e9ecef;"></span>
+                            <select id="currency-modal" onchange="convertCurrency('currency-modal', 'amounts-modal', 'convertedAmount-modal')" class="form-control" name="currency" required style="border: 1px solid #ced4da;" onfocus="this.style.borderColor='#80bdff'; this.style.boxShadow='0 0 0 0.2rem rgba(0, 123, 255, 0.25)'; " onblur="this.style.borderColor='#ced4da'; this.style.boxShadow='none';">
 
 
-                        <div class="mb-3">
-                            <label class="form-label" for="venue_name">Payment method</label>
-                            <div class="input-group input-group-merge">
-                                <select
-                                    class="form-control"
-                                    name="method"
-                                    required>
+                                <?php
+    $sql = $db->prepare("SELECT * FROM  currencies");
+$sql->execute();
+while ($row = $sql->fetch()) {
+    ?>
+                                    <option value='<?php echo $row['currency_id'] ?>' data-rate='<?php echo $row['currency_exchange'] ?>'><?php echo $row['name'] ?> - (Rate: <?php echo $row['currency_exchange'] ?>)</option><?php
+}
+?>
 
-                                    <option value='cash'>Cash</option>
-                                    <option value='card'>Card</option>
-                                    <option value='momo'>MTN Mobile Money</option>
-                                    <option value='airtelmoney'>Airtel Money</option>
-                                    <option value='Credit'>Credit</option>
-
-
-                                </select>
-                            </div>
+                            </select>
                         </div>
+                    </div>
 
 
 
-                        <div class="mb-3">
-                            <label class="form-label" for="venue_type">Currency</label>
-                            <div class="input-group input-group-merge">
-                                <span id="venue_type_label" class="input-group-text"></i></span>
-                                <select id="currency" onchange="convert()"
-                                    class="form-control"
-                                    name="currency"
-                                    required>
+
+                    <div class="mb-3">
+                        <label class="form-label" for="venue_name" style="font-weight: 500; margin-bottom: 0.5rem;">Payment Remark</label>
+                        <div class="input-group input-group-merge">
+                            <select
+                                class="form-control"
+                                name="remark"
+                                required style="border: 1px solid #ced4da;" onfocus="this.style.borderColor='#80bdff'; this.style.boxShadow='0 0 0 0.2rem rgba(0, 123, 255, 0.25)'; " onblur="this.style.borderColor='#ced4da'; this.style.boxShadow='none';">
+
+                                <option value='Advance'>Advance payment</option>
+                                <option value='Partial'>Partial Payment</option>
+                                <option value='Full'>Full Payment</option>
+                                <option value='Credit'>On Credit</option>
 
 
-                                    <?php
-                                    $sql = $db->prepare("SELECT * FROM  currencies");
-                                    $sql->execute();
-                                    while ($row = $sql->fetch()) {
-                                    ?><option value='<?php echo $row['currency_id'] ?>'><?php echo $row['name'] ?> - (Rate: <?php echo $row['currency_exchange'] ?>)</option><?php
-                                    }
-                                    ?>
 
-                                </select>
-                            </div>
+                            </select>
                         </div>
+                    </div>
 
-
-
-
-                        <div class="mb-3">
-                            <label class="form-label" for="venue_name">Payment Remark</label>
-                            <div class="input-group input-group-merge">
-                                <select
-                                    class="form-control"
-                                    name="remark"
-                                    required>
-
-                                    <option value='Advance'>Advance payment</option>
-                                    <option value='Partial'>Partial Payment</option>
-                                    <option value='Full'>Full Payment</option>
-                                    <option value='Credit'>On Credit</option>
-
-
-
-                                </select>
-                            </div>
-                        </div>
-
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal">Close</button>
-                            <input type="submit" class="btn btn-outline-info colr" name="addpayment" value="Create New Payment">
-                        </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-label-secondary" data-bs-dismiss="modal" style="color: #6c757d; border-color: #6c757d;">Close</button>
+                        <input type="submit" class="btn btn-outline-info" name="addpayment" value="Create" style="color: #17a2b8; border-color: #17a2b8;" onmouseover="this.style.backgroundColor='#17a2b8'; this.style.color='white';" onmouseout="this.style.backgroundColor='transparent'; this.style.color='#17a2b8';">
+                    </div>
                 </form>
             </div>
         </div>
@@ -2142,6 +2325,9 @@ while ($row = $sql->fetch()) {
 </div>
 
 
+
+
+<!-- modals -->
 <!-- change price modal -->
 <div class="modal fade" id="changePriceModal" tabindex="-1" aria-hidden="true">
     <div class="modal-dialog" role="document">
@@ -2174,26 +2360,33 @@ while ($row = $sql->fetch()) {
 </script>
 
 <script>
-    function convert() {
-        var currency = document.getElementById('currency').value;
-        var amount = <?php echo $due_amount ?>;
-
-
-        var xmlhttp = new XMLHttpRequest();
-        xmlhttp.onreadystatechange = function() {
-            if (this.readyState == 4 && this.status == 200) {
-
-                var tot = amount / this.responseText;
-                document.getElementById("amounts").value = tot.toFixed(2);
-                // alert(this.responseText)
+    // Currency conversion function - Converts the due amount in RWF to the selected currency
+    // Rate is assumed to be RWF per unit of foreign currency
+    // convertedAmount = dueAmountRWF / rate (to get amount in foreign currency equivalent to due RWF)
+    function convertCurrency(selectId, amountId, convertedId) {
+        var select = document.getElementById(selectId);
+        var rate = parseFloat(select.options[select.selectedIndex].getAttribute('data-rate'));
+        var dueAmount = parseFloat(<?php echo $due_amount ?>); // Due amount in RWF
+        
+        if (isNaN(dueAmount)) {
+            console.error('Due amount is not a number');
+            return;
+        }
+        
+        if (!isNaN(rate) && rate > 0) {
+            var convertedAmount = Math.floor(dueAmount / rate);
+            document.getElementById(amountId).value = convertedAmount;
+            if (convertedId) {
+                document.getElementById(convertedId).innerHTML = 'Equivalent to ' + Math.floor(dueAmount) + ' RWF at rate ' + rate;
             }
-        };
-        xmlhttp.open("GET", "getCurrency.php?id=" + currency, true);
-        xmlhttp.send();
-
-
-
+        } else {
+            document.getElementById(amountId).value = Math.floor(dueAmount);
+            if (convertedId) {
+                document.getElementById(convertedId).innerHTML = '';
+            }
+        }
     }
+    
     // toggle passport / id field
     $(document).ready(function() {
         $("#toggleSwitch").change(function() {
@@ -2206,10 +2399,12 @@ while ($row = $sql->fetch()) {
             }
         });
     });
-    function setFullAmount() {
-        document.getElementById("amounts").value = <?php echo $due_amount ?>;
-        convert(); // Trigger conversion after setting full amount
-    }
+
+    // Initial conversion on page load for both forms
+    document.addEventListener('DOMContentLoaded', function() {
+        convertCurrency('currency-tab', 'amounts-tab', 'convertedAmount-tab');
+        convertCurrency('currency-modal', 'amounts-modal', 'convertedAmount-modal');
+    });
 </script>
 <script>
     // Wait for the DOM to be fully loaded
@@ -2297,15 +2492,15 @@ while ($row = $sql->fetch()) {
                     <table width="100%">
             <tr>
                 <td width="40%" class="logo">
-                    <img src="https://saintpaul.gope.rw/img/logo.png" alt="Company Logo">
+                    <img src="<?= $company_logo ?>" alt="Company Logo">
                 </td>
                 <td width="60%" class="company-info">
-                    <h2>Centre Saint Paul Kigali Ltd</h2>
+                    <h2><?= $company_name ?></h2>
                     <p>
-                        Kigali, Rwanda<br>
-                        TIN: 111477597<br>
-                        Email: info@saintpaul.rw<br>
-                        Tel: +250 785 285 341
+                        <?= $company_address ?><br>
+                        TIN: <?= $company_tin ?><br>
+                        Email: <?= $company_email ?><br>
+                        Tel: <?= $company_phone ?><br>
                     </p>
                 </td>
             </tr>
@@ -2313,7 +2508,7 @@ while ($row = $sql->fetch()) {
                         ${invoiceContent}
         <div class="footer" style="padding:30px 0px;">
             <p style="color:gray; text-align:center;"><strong >Thank You for using our services</strong></p>
-            <p style="color:gray; text-align:center;"><strong >Centre Saint Paul Kigali Ltd</strong> | Kigali, Rwanda | TIN: 111477597</p>
+            <p style="color:gray; text-align:center;"><strong ><?= $company_name ?></strong> | <?= $company_address ?> | TIN: <?= $company_tin ?></p>
 
             <div class="bank-info">
                 <table>
@@ -2321,12 +2516,12 @@ while ($row = $sql->fetch()) {
                         <td width="50%">
                             <strong style="color:black;">BANK NAME:</strong> <u>BANK OF KIGALI (BK)</u><br>
                             <strong style="color:black;">SWIFT CODE:</strong> BKIGRWRW<br>
-                            <strong style="color:black;">ACCOUNT NUMBER:</strong> 00041-07763514-45 /RW
+                            <strong style="color:black;">ACCOUNT NUMBER:</strong> xxxxx-xxxxxxxx-xx /RW
                         </td>
                         <td width="50%">
                             <strong style="color:black;">BANK NAME:</strong> <u>BANK OF KIGALI (BK)</u><br>
                             <strong style="color:black;">SWIFT CODE:</strong> BKIGRWRW<br>
-                            <strong style="color:black;">ACCOUNT NUMBER:</strong> 00041-07763515-46 /USD
+                            <strong style="color:black;">ACCOUNT NUMBER:</strong> xxxxx-xxxxxxxx-xx /USD
                         </td>
                     </tr>
                 </table>
@@ -2350,6 +2545,11 @@ while ($row = $sql->fetch()) {
                         printWindow.close();
                     };
 
+                    // Close the window after printing
+                    printWindow.onafterprint = function() {
+                        printWindow.close();
+                    };
+
                     // Fallback if onafterprint is not supported
                     setTimeout(function() {
                         if (!printWindow.closed) {
@@ -2363,3 +2563,43 @@ while ($row = $sql->fetch()) {
         }
     });
 </script>
+
+<!-- Payment Form Specific CSS -->
+<style>
+    #addpaymentModal .modal-content {
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+    }
+    #addpaymentModal .modal-header {
+        background-color: #f8f9fa;
+        border-bottom: 1px solid #dee2e6;
+    }
+    #addpaymentModal .form-label {
+        font-weight: 500;
+        margin-bottom: 0.5rem;
+    }
+    #addpaymentModal .input-group-text {
+        background-color: #e9ecef;
+    }
+    #addpaymentModal .form-control {
+        border: 1px solid #ced4da;
+    }
+    #addpaymentModal .form-control:focus {
+        border-color: #80bdff;
+        box-shadow: 0 0 0 0.2rem rgba(0, 123, 255, 0.25);
+    }
+    #addpaymentModal .btn-outline-info {
+        color: #17a2b8;
+        border-color: #17a2b8;
+    }
+    #addpaymentModal .btn-outline-info:hover {
+        background-color: #17a2b8;
+        color: white;
+    }
+    #convertedAmount {
+        display: block;
+        margin-top: 0.25rem;
+        font-size: 0.875rem;
+        color: #6c757d;
+    }
+</style> 

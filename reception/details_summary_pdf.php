@@ -199,6 +199,8 @@ $html = '<!DOCTYPE html>
         body { font-family: DejaVu Sans, Arial, sans-serif; margin: 10px; font-size: 11px; }
         .table { width: 100%; border-collapse: collapse; margin-bottom: 6px; }
         .table th, .table td { padding: 5px 7px; border: 1px solid #ccc; font-size: 10px; }
+        thead { background-color: #f5741eff; color: #fff;  }
+        th { font-weight: bold !important; }
         h1, h2, h3, h4 { margin: 3px 0; padding: 0; }
         hr { margin: 6px 0; border: none; border-top: 1px solid #ddd; }
         .btn { display: none; }

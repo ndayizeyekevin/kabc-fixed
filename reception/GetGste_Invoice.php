@@ -1694,33 +1694,34 @@ foreach ($cuntries as $key => $value) {
                 <div class="col-md-12">
 					 <select name="clientinroom" class="form-control">
 					<?php
-$sql = $db->prepare("
-    SELECT
+                    $sql = $db->prepare("
+                        SELECT
 
-        b.id AS booking_id,
-        g.first_name,
-        g.last_name,
-		g.id as userbooking,
-        b.checkin_date,
-        b.checkout_date,
-        b.payment_status_id,
-        r.room_number
-    FROM tbl_acc_booking b
-    JOIN tbl_acc_guest g ON b.guest_id = g.id
-    JOIN tbl_acc_booking_room br ON b.id = br.booking_id
-    JOIN tbl_acc_room r ON br.room_id = r.id
-    WHERE b.booking_status_id = 6 AND b.checkout_date >= CURRENT_DATE
-");
-$sql->execute();
+                            b.id AS booking_id,
+                            g.first_name,
+                            g.last_name,
+                            g.id as userbooking,
+                            b.checkin_date,
+                            b.checkout_date,
+                            b.payment_status_id,
+                            r.room_number
+                        FROM tbl_acc_booking b
+                        JOIN tbl_acc_guest g ON b.guest_id = g.id
+                        JOIN tbl_acc_booking_room br ON b.id = br.booking_id
+                        JOIN tbl_acc_room r ON br.room_id = r.id
+                        WHERE b.booking_status_id = 6 AND b.checkout_date >= CURRENT_DATE
+                    ");
+                    $sql->execute();
 
-if ($sql->rowCount()) {
-    while ($row = $sql->fetch()) { ?>
+                    if ($sql->rowCount()) {
+                        while ($row = $sql->fetch()) { ?>
 
-		<option value="<?php echo $row['booking_id']; ?> "><?php   echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) ?> -  <?php echo $row['room_number']; ?> </option>
+                            <option value="<?php echo $row['booking_id']; ?> "><?php   echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) ?> -  <?php echo $row['room_number']; ?> </option>
 
 
-		<?php }
-    } ?>
+                            <?php 
+                        }
+                    } ?>
 
 
 				 </select>

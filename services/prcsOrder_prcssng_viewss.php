@@ -276,10 +276,16 @@ if(isset($_POST['update'])){
                  $order = $conn->prepare("INSERT INTO `tbl_cmd`(`reservat_id`, `menu_id`, `Serv_id`, `status_id`,`company_id`, `dTrm`,`OrderCode`) 
          VALUES('$reservID','$menu_id[$i]','$Oug_UserID','$sts','$cpny_ID','$today','$ordcode')");
          $order->execute();
-         
-         $sql = $db->prepare("INSERT INTO `tbl_cmd_qty`(`Serv_id`, `cmd_table_id`,`cmd_item`, `cmd_qty`, `cmd_code`, `cmd_status`) 
-         VALUES ('$Oug_UserID','$reservID','$menu_id[$i]','$quantity[$i]','$ordcode','13')");
-         $sql->execute();
+
+         // Snapshot full menu row for snapshot fields
+         $priceStmt = $db->prepare("SELECT * FROM menu WHERE menu_id = :id");
+         $priceStmt->execute([':id' => $menu_id[$i]]);
+         $mp = $priceStmt->fetch();
+         $unit_price = isset($mp['menu_price']) ? str_replace(',','',$mp['menu_price']) : 0;
+
+         $sql = $db->prepare("INSERT INTO `tbl_cmd_qty`(`Serv_id`, `unit_price`, `cmd_table_id`,`cmd_item`, `cmd_qty`, `cmd_code`, `cmd_status`, `item_name`, `item_code`, `cat_id`, `subcat_id`, `discount`) 
+         VALUES (:Serv_id, :unit_price, :cmd_table_id, :cmd_item, :cmd_qty, :cmd_code, :cmd_status, :item_name, :item_code, :cat_id, :subcat_id, :discount)");
+         $sql->execute([':Serv_id' => $Oug_UserID, ':unit_price' => $unit_price, ':cmd_table_id' => $reservID, ':cmd_item' => $menu_id[$i], ':cmd_qty' => $quantity[$i], ':cmd_code' => $ordcode, ':cmd_status' => 13, ':item_name' => $mp['menu_name'] ?? null, ':item_code' => $mp['menu_id'] ?? null, ':cat_id' => $mp['cat_id'] ?? null, ':subcat_id' => $mp['subcat_id'] ?? ($mp['subcat_ID'] ?? null), ':discount' => $mp['discount'] ?? 0]);
          
          $msg = "Successfully Ordered!";
          //echo'<meta http-equiv="refresh"'.'content="2;URL=index?resto=norder">';
@@ -654,7 +660,7 @@ $_SESSION['servant_name']= $_SESSION['f_name']. " ".$_SESSION['l_name'];
                         <button type="submit" name="update" id="update" class="btn btn-primary btn-sm" style="border-radius: 5px;" onclick="if(!confirm('Do you really want to update order quantity?'))return false;else return true;"><i class="fa fa-edit"></i> Confirm Order Quantity</button>
                         <?php } ?>
                         <a href="?resto=lorder" class="btn btn-secondary btn-sm" onclick="if(!confirm('Do you really want to go back?'))return false;else return true;"><i class="fa fa-step-backward"></i> Back</a>
-                        <a  target="_blank" href="../reciept/pro-forma.php?ref=<?php echo $_REQUEST['s']?>" class="btn btn-secondary btn;-sm" onclick="if(!confirm('Do you really generate invice?'))return false;else return true;"><i class="fa fa-step-invoice"></i>Invoice</a>
+                        <a  target="_blank" href="https://saintpaul.gope.rw/reciept/pro-forma.php?ref=<?php echo $_REQUEST['s']?>" class="btn btn-secondary btn;-sm" onclick="if(!confirm('Do you really generate invice?'))return false;else return true;"><i class="fa fa-step-invoice"></i>Invoice</a>
                         
                          <?php if($bonbar){?>
                        <button type="button" class="btn btn-info " data-toggle="modal" data-target="#myModal">Bar</button>
@@ -711,7 +717,7 @@ if ($result->num_rows > 0) {
 }
 
 
-$img = '<img src="<?= $logo_png; ?>" style="width: 100px;height: 100px;">';
+$img = '<img src="https://saintpaul.gope.rw/img/logo.png" style="width: 100px;height: 100px;">';
 
 echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">
@@ -819,7 +825,7 @@ $printedIdresto = substr($printedIdresto, 0, -1);
 
 
 
-$img = '<img src="<?= $logo_png; ?>" style="width: 100px;height: 100px;">';
+$img = '<img src="https://saintpaul.gope.rw/img/logo.png" style="width: 100px;height: 100px;">';
 
 echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">
@@ -906,7 +912,7 @@ include  '../inc/conn.php';
 
 
 
-$img = '<img src="<?= $logo_png; ?>" style="width: 100px;height: 100px;">';
+$img = '<img src="https://saintpaul.gope.rw/img/logo.png" style="width: 100px;height: 100px;">';
 
 echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">
@@ -977,7 +983,7 @@ echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; 
  
 									    <div class="col-md-6">
 										 <h5 class="mb-0">  <center>Invoice</center></h5>
-					<center><img src="<?= $logo_png; ?>" style="width:60px">
+					<center><img src="https://saintpaul.gope.rw/img/logo.png" style="width:60px">
 					
 	
 										</center>

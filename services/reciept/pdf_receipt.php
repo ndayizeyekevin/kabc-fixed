@@ -17,9 +17,9 @@ $html .= '<div id="container" style="width: 100%; border: 1px solid black; margi
     </tr>
     <tr>
         <td align="center" style="display:grid;">
-           <span><?=$company_name ?></span><br>
-           <span><?=$company_phone ?></span><br>
-           <span>Tin: <?=$company_tin ?></span><br>
+           <span>Centre Saint Paul</span><br>
+           <span>KN 32 st, Kigali, Rwanda</span><br>
+           <span>Tin: 111477597</span><br>
            
         </td>
     </tr>

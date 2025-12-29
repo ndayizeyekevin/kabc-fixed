@@ -72,9 +72,10 @@ echo $json;
 
 
 
+$url = getenv('VSDC_URL');
 
 curl_setopt_array($curl, array(
-  CURLOPT_URL => 'http://197.243.26.62:8080/rraVsdcSandbox2.1.2.3.7/trnsSales/saveSales',
+  CURLOPT_URL => $url .'/trnsSales/saveSales',
   CURLOPT_RETURNTRANSFER => true,
   CURLOPT_ENCODING => '',
   CURLOPT_MAXREDIRS => 10,
