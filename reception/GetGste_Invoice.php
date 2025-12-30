@@ -1,10 +1,10 @@
 	<?php
 
-    // 	ini_set('display_errors', 1);
-    // ini_set('display_startup_errors', 1);
-    // error_reporting(E_ALL);
+        ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 
-    include '../inc/conn.php';
+include '../inc/conn.php';
 include_once '../inc/functions.php';
 
 
@@ -25,8 +25,8 @@ if (isset($_POST['addClientToOrder'])) {
        ->execute([':order_code' => $code]);
     $db->prepare("UPDATE tbl_tables SET status = 1 WHERE table_id = :tbl_id")
        ->execute([':tbl_id' => $tbl_id]);
-       $db->prepare("UPDATE tbl_cmd SET status_id = 12 WHERE OrderCode = :order_code")
-         ->execute([':order_code' => $code]);
+    $db->prepare("UPDATE tbl_cmd SET status_id = 12 WHERE OrderCode = :order_code")
+      ->execute([':order_code' => $code]);
     echo "<script>alert('Client added to order');</script>";
     // Refresh to avoid resubmission
     echo "<script>window.location.href='?resto=gstInvce&resrv=" . $_GET['resrv'] . "&c=" . $code . "';</script>";
@@ -59,7 +59,7 @@ if (isset($_POST['addClientsTocredit'])) {
     $client_id = filter_input(INPUT_POST, 'clientname', FILTER_VALIDATE_INT);
     $created_by = $_SESSION['user_id'] ?? 0;
     $currentDateTime = date('Y-m-d H:i:s');
-    $zero_paid = 0.00; 
+    $zero_paid = 0.00;
 
     // 2. Handle New Client Insertion (if necessary)
     if (empty($client_id)) {
@@ -72,22 +72,22 @@ if (isset($_POST['addClientsTocredit'])) {
             $phone = $new_phone;
             $tin = filter_input(INPUT_POST, 'new_tin', FILTER_SANITIZE_STRING);
             $email = filter_input(INPUT_POST, 'new_email', FILTER_SANITIZE_EMAIL);
-            
+
             try {
                 // Insert new credit user using NAMED PARAMETERS
                 $stmt = $db->prepare("INSERT INTO creadit_id (f_name, l_name, phone, tinnumber, created_by, created_at, email) 
                                      VALUES (:fname, :lname, :phone, :tin, :created_by, :time, :email)");
-                
+
                 $stmt->execute([
-                    ':fname' => $fname, 
-                    ':lname' => $lname, 
-                    ':phone' => $phone, 
-                    ':tin' => $tin, 
-                    ':created_by' => $created_by, 
-                    ':time' => $time, 
+                    ':fname' => $fname,
+                    ':lname' => $lname,
+                    ':phone' => $phone,
+                    ':tin' => $tin,
+                    ':created_by' => $created_by,
+                    ':time' => $time,
                     ':email' => $email
                 ]);
-                
+
                 $client_id = $db->lastInsertId();
 
             } catch (PDOException $e) {
@@ -99,11 +99,11 @@ if (isset($_POST['addClientsTocredit'])) {
 
     // 3. Process Credit Transaction
     if (!empty($client_id) && $amount !== false && $amount > 0) {
-        
+
         try {
             // START TRANSACTION
             $db->beginTransaction();
-            
+
             // A. Update order (tbl_cmd) with credit user
             $db->prepare("UPDATE tbl_cmd SET creadit_user = :client_id WHERE OrderCode = :order_code")
                ->execute([':client_id' => $client_id, ':order_code' => $order_code]);
@@ -112,9 +112,9 @@ if (isset($_POST['addClientsTocredit'])) {
             $stmt = $db->prepare("INSERT INTO payment_tracks (amount, method, order_code, service, created_at, remark)
                                  VALUES (:amount, :method, :order_code, 'resto', :time, 'creadit')");
             $stmt->execute([
-                ':amount' => $amount, 
-                ':method' => $method, 
-                ':order_code' => $order_code, 
+                ':amount' => $amount,
+                ':method' => $method,
+                ':order_code' => $order_code,
                 ':time' => $time
             ]);
 
@@ -122,11 +122,11 @@ if (isset($_POST['addClientsTocredit'])) {
             $stmt = $db->prepare("INSERT INTO client_billings (client_id, cmd_code, total_debt, amount_paid, balance_due, created_at) 
                                  VALUES (:client_id, :order_code, :total_debt, :amount_paid, :balance_due, :currentDateTime)");
             $stmt->execute([
-                ':client_id' => $client_id, 
-                ':order_code' => $order_code, 
-                ':total_debt' => $amount,      
-                ':amount_paid' => $zero_paid,   
-                ':balance_due' => $amount,      
+                ':client_id' => $client_id,
+                ':order_code' => $order_code,
+                ':total_debt' => $amount,
+                ':amount_paid' => $zero_paid,
+                ':balance_due' => $amount,
                 ':currentDateTime' => $currentDateTime
             ]);
 
@@ -138,14 +138,14 @@ if (isset($_POST['addClientsTocredit'])) {
                ->execute([':order_code' => $order_code]);
 
             // E. Update table status to available (1)
-            if ($tbl_id !== false && $tbl_id !== null) { 
+            if ($tbl_id !== false && $tbl_id !== null) {
                 $db->prepare("UPDATE tbl_tables SET status = 1 WHERE table_id = :tbl_id")
                    ->execute([':tbl_id' => $tbl_id]);
             }
 
             // COMMIT TRANSACTION
             $db->commit();
-            
+
             // Success and Redirect
             echo "<script>alert('Credit successfully added');</script>";
             $redirect_url = "?resto=gstInvce&resrv=" . urlencode($_GET['resrv']) . "&c=" . urlencode($order_code);
@@ -371,37 +371,37 @@ if (isset($_POST['savesales'])) {
     $receipt = '{"custTin": ' . $tin . ',"custMblNo":"' . $phone . '","rptNo":2,"trdeNm":"","adrs":"KN 32 St","topMsg":"CENTRE SAINT PAUL KIGALI LTD\nKN 32 St, Kigali, Rwanda\nTin: ' . $branch_tin . '\nPhone: ' . $branch_phone . '","btmMsg":"CIS Version 1 Powered by RRA VSDC EBM2.1 \n -------------------------------- \n Welcome","prchrAcptcYn":"N"}';
     $json = formatingJson($ref, $pmtTyCd, $taxblAmtA, $taxblAmtB, $lastSale, $tin, $purchase_code, $client_name, $salestype, $rectype, $totalitem, $taxBamount, $tot_amount, $receipt, $prdct, $taxblAmtC, $taxblAmtD, $cfmDt, $salesDt);
 
-
+    // $_SESSION['json'] = $json;
     // echo $json;
 
     // echo $url . 'trnsSales/saveSales';
     // die($json);
-$json = is_string($json) ? $json : json_encode($json);
+    // $json = is_string($json) ? $json : json_encode($json);
 
-$curl = curl_init();
-curl_setopt_array($curl, [
-    CURLOPT_URL => $url . '/trnsSales/saveSales',
-    CURLOPT_RETURNTRANSFER => true,
-    CURLOPT_POST => true,
-    CURLOPT_POSTFIELDS => $json,
-    CURLOPT_HTTPHEADER => [
-        'Content-Type: application/json',
-        'Content-Length: ' . strlen($json)
-    ],
-]);
+    $curl = curl_init();
+    curl_setopt_array($curl, [
+        CURLOPT_URL => $url . '/trnsSales/saveSales',
+        CURLOPT_RETURNTRANSFER => true,
+        CURLOPT_POST => true,
+        CURLOPT_POSTFIELDS => $json,
+        CURLOPT_HTTPHEADER => [
+            'Content-Type: application/json',
+            'Content-Length: ' . strlen($json)
+        ],
+    ]);
 
-$response = curl_exec($curl);
+    $response = curl_exec($curl);
 
-if ($response === false) {
-    error_log('cURL error: ' . curl_error($curl));
-}
-$info = curl_getinfo($curl);
-curl_close($curl);
+    if ($response === false) {
+        error_log('cURL error: ' . curl_error($curl));
+    }
+    $info = curl_getinfo($curl);
+    curl_close($curl);
 
-// Inspect $info['http_code'] and $response for server message
+    // Inspect $info['http_code'] and $response for server message
     //   echo $response;
 
-// die(var_dump($response));
+    // die(var_dump($response));
 
     $data = json_decode($response);
 
@@ -424,7 +424,7 @@ curl_close($curl);
             $rcptSign = $res->rcptSign;
             $amount = $tot_amount;
 
-  $receipt = '{"custTin": '.$tin.',
+            $receipt = '{"custTin": '.$tin.',
     "custMblNo":"'.$phone.'","rptNo":2,"trdeNm":"","adrs":"KN 4 Ave",
     "topMsg":"CENTRE SAINT PAUL LTD\nKG 13 Avenue 22, Kigali,   Rwanda\nTin: '.$branch_tin.'\nPhone: '.$branch_phone.'",
     "btmMsg":"CIS Version 1 Powered by RRA VSDC EBM2.1 \n -------------------------------- \n Welcome",
@@ -433,20 +433,20 @@ curl_close($curl);
     "rcptPbctDt": "' . $vsdcRcptPbctDate . '","curRcptNo": "' . $rcptNo . '",
     "totRcptNo": ' . $totRcptNo . '}';
 
-			$json = formatingJson($ref, $pmtTyCd, $taxblAmtA, $taxblAmtB, $lastSale, $tin, $purchase_code, $client_name, $salestype, $rectype, $totalitem, $taxBamount, $tot_amount, $receipt, $prdct, $taxblAmtC, $taxblAmtD, $cfmDt, $salesDt);
-    try {
-      $inf = $db->prepare("INSERT INTO `json_receipts` (`saleId`, `json`, `r_id`) VALUES (NULL, :json, :rid)");
+            $json = formatingJson($ref, $pmtTyCd, $taxblAmtA, $taxblAmtB, $lastSale, $tin, $purchase_code, $client_name, $salestype, $rectype, $totalitem, $taxBamount, $tot_amount, $receipt, $prdct, $taxblAmtC, $taxblAmtD, $cfmDt, $salesDt);
+            try {
+                $inf = $db->prepare("INSERT INTO `json_receipts` (`saleId`, `json`, `r_id`) VALUES (NULL, :json, :rid)");
 
-      // Example values
+                // Example values
 
-      $inf->execute([
-        ':json' => $json,
-        ":rid" => $lastSale
-      ]);
-    } catch (Exception $e) {
+                $inf->execute([
+                  ':json' => $json,
+                  ":rid" => $lastSale
+                ]);
+            } catch (Exception $e) {
 
-      die(var_dump($e));
-    }
+                die(var_dump($e));
+            }
 
             // 			// data to save as result from rra with response
 
@@ -461,14 +461,14 @@ curl_close($curl);
                         $qty = getStockValue($object->itemCd) - $object->qty;
 
                         $jsonMaster[] = '{"tin":"' . $branch_tin . '",
-				"bhfId":"00",
-				"itemCd": "' . $object->itemCd . '",
-				"rsdQty":"' . $qty . '",
-				"regrId":"01",
-				"regrNm":"Admin",
-				"modrNm":"Admin",
-				"modrId":"01"
-			  }';
+     		"bhfId":"00",
+     		"itemCd": "' . $object->itemCd . '",
+     		"rsdQty":"' . $qty . '",
+     		"regrId":"01",
+     		"regrNm":"Admin",
+     		"modrNm":"Admin",
+     		"modrId":"01"
+     	  }';
 
                         $type_id = getItemId($object->itemCd);
                         $sql_upd = $db->prepare("UPDATE stock SET `quantities` = $qty WHERE `type`='" . $type_id . "'");
@@ -678,11 +678,11 @@ curl_close($curl);
             $lin .= '&pmtTyCd=' . $pmtTyCd;
 
 
-		$stmts = $db->prepare("INSERT INTO `receipts` (`receipt_url`, `agro`)
-		VALUES ('$lin', '$client_name')");
-	   $stmts->execute();
+            $stmts = $db->prepare("INSERT INTO `receipts` (`receipt_url`, `agro`)
+     VALUES ('$lin', '$client_name')");
+            $stmts->execute();
 
-	   $lastInsertId = $db->lastInsertId();
+            $lastInsertId = $db->lastInsertId();
 
 
 
@@ -751,7 +751,7 @@ curl_close($curl);
             // 		file_put_contents('receipts.txt', $lin."\n", FILE_APPEND);
 
             // $insert = $db->prepare("INSERT INTO `tbl_payment`(`table_id`, `amount`, `discount`, `tot_amount`, `user`, `due_date`)
-		    // VALUES ('$table','$price_amount','$discount_amount','$tot_amount','$waiter','$todaysdate')");
+            // VALUES ('$table','$price_amount','$discount_amount','$tot_amount','$waiter','$todaysdate')");
             // $insert->execute();
 
             // $sql = "UPDATE `tbl_cmd` SET `status_id` = '12' WHERE `OrderCode` = '" . $_REQUEST['c'] . "'";
@@ -771,7 +771,7 @@ curl_close($curl);
             // echo '<meta http-equiv="refresh"' . 'content="1;URL=?resto=OurGste">';
             // redirect using window.location.href
             echo "<script>window.location.href='?resto=OurGste';</script>";
-            
+
         } else {
             $msge = $data->resultMsg;
             // echo '<meta http-equiv="refresh"'.'content="1;URL=?resto=OurGste">';
@@ -1056,20 +1056,20 @@ function fill_product($db)
 								<tbody>
 									<?php
                                 $totprice = 0;
-                                $sql_rooms = $db->prepare("SELECT *,SUM(cmd_qty) AS qty FROM `tbl_cmd_qty`
+$sql_rooms = $db->prepare("SELECT *,SUM(cmd_qty) AS qty FROM `tbl_cmd_qty`
                                     INNER JOIN tbl_tables ON tbl_cmd_qty.cmd_table_id = tbl_tables.table_id
                                     INNER JOIN menu ON menu.menu_id = tbl_cmd_qty.cmd_item
                                     WHERE tbl_cmd_qty.cmd_code = '" . $_GET['c'] . "'
                                     GROUP BY cmd_item
                                     ");
-                                $sql_rooms->execute();
-                                $i = 0;
-                                while ($fetrooms = $sql_rooms->fetch()) {
-                                    $i++;
-                                    $totprice = $totprice + ($fetrooms['qty'] * $fetrooms['menu_price'] - $fetrooms['discount']);
+$sql_rooms->execute();
+$i = 0;
+while ($fetrooms = $sql_rooms->fetch()) {
+    $i++;
+    $totprice = $totprice + ($fetrooms['qty'] * $fetrooms['menu_price'] - $fetrooms['discount']);
 
-                                    $dueamount =  $totprice - $paidAmount;
-                                    ?>
+    $dueamount =  $totprice - $paidAmount;
+    ?>
 										<tr class="gradeU">
 											<td><?php echo $i; ?></td>
 											<td>x<?php echo $fetrooms['qty'] . ' ' . $fetrooms['menu_name']; ?></td>
@@ -1115,7 +1115,7 @@ function fill_product($db)
 										<th colspan="6"></th>
 										
 										<th colspan="1">Total: <?php echo number_format($totprice, 2);
-                                        $_SESSION['tot_inv_price'] = number_format($totprice, 2); ?></th>
+$_SESSION['tot_inv_price'] = number_format($totprice, 2); ?></th>
 										<th>
 											<div class="dropdown">
 												<button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
@@ -1344,7 +1344,7 @@ if ($sql->rowCount() > 0) {
 											<div class="modal-header">
 												<button type="button" class="close" data-dismiss="modal">&times;</button>
 											</div>
-											<form action="" method="POST">
+                      <form method="POST">
 												<div class="modal-body">
 													<h2>Add Discount</h2>
 
@@ -1427,7 +1427,7 @@ if ($credit) { ?>
 						<?php if ($dueamount == 0) { ?>
 
 
-							<form method="POST">
+							<form  method="POST">
                                 <!-- <label for="">Discount Amount</label> -->
 								<input type="hidden" readonly name="discount_amount" class="form-control" value="<?php echo $discount; ?>">
                                 <!-- <label for="">Price Amount</label> -->
@@ -1544,7 +1544,14 @@ if ($credit) { ?>
 									<?php } ?>
 								</div>
 								<div id="btn"><button type="submit" class="btn btn-primary pull-right" name="savesales" style="margin:10px;"> Save </button></div>
-							<?php } ?>
+							<!--          <?php if (isset($_SESSION['json'])):?> -->
+							<!---->
+							<!--                <textarea name="json"> -->
+							<!--                  <?= $_SESSION['json']?> -->
+							<!--                </textarea> -->
+							<!-- 	<div id="btn"><button type="submit" class="btn btn-primary pull-right" name="sale" style="margin:10px;"> confirm sale </button></div> -->
+							<!--          <?php endif; ?> -->
+							<!-- <?php } ?> -->
 							<br><br>
 							</form>
 						</div>
@@ -1627,11 +1634,11 @@ foreach ($cuntries as $key => $value) {
               <option value="">-- Choose Existing --</option>
               <?php
                 $res = $conn->query("SELECT id, f_name, l_name, phone FROM creadit_id ORDER BY f_name");
-                while ($row = $res->fetch_assoc()) {
-                    $name = htmlspecialchars($row['f_name'] . ' ' . $row['l_name'] . ' (' . $row['phone'] . ')');
-                    echo "<option value='{$row['id']}'>{$name}</option>";
-                }
-                ?>
+while ($row = $res->fetch_assoc()) {
+    $name = htmlspecialchars($row['f_name'] . ' ' . $row['l_name'] . ' (' . $row['phone'] . ')');
+    echo "<option value='{$row['id']}'>{$name}</option>";
+}
+?>
             </select>
           </div>
 

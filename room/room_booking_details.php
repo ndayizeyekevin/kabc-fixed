@@ -1,14 +1,14 @@
 <?php
 $json = null;
-$list='';
+$list = '';
 // $url = "http://localhost:8080/rraVsdcSandbox2.1.2.3.7/";
 $url = getenv('VSDC_URL');
 // ini_set('display_errors', 1);
-// ini_set('display_startup_errors', 1); 
-// error_reporting(E_ALL); 
-// ini_set('display_errors', 1); 
-// ini_set('display_startup_errors', 1); 
-// error_reporting(E_ALL); 
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
+// ini_set('display_errors', 1);
+// ini_set('display_startup_errors', 1);
+// error_reporting(E_ALL);
 include "../inc/conn.php";
 
 // PHP block to fetch booking status and determine class
@@ -262,7 +262,7 @@ if (isset($_POST['update_payment_method'])) {
 
                             $sql = "UPDATE  `tbl_acc_booking` SET `booking_type`='Group', group_id='$service' where  id ='$booking_id'";
 
-                            if ($conn->query($sql) === TRUE) {
+                            if ($conn->query($sql) === true) {
 
 
 
@@ -293,21 +293,21 @@ if (isset($_POST['add'])) {
 
     $sql = "INSERT INTO `orders` (`order_id`, `name`, `price`, `booking_id`, qty, total) VALUES (NULL, '$service', '$price', '" . $_REQUEST['booking_id'] . "', '$qty', '$total');";
 
-                            if ($conn->query($sql) === TRUE) {
-                                echo "<script>alert('created')</script>";
-                            } else {
-                                echo "Error: " . $sql . "<br>" . $conn->error;
-                            }
-                        }
+    if ($conn->query($sql) === true) {
+        echo "<script>alert('created')</script>";
+    } else {
+        echo "Error: " . $sql . "<br>" . $conn->error;
+    }
+}
 
 
 
-                        $today = date('Y-m-d');
+$today = date('Y-m-d');
 
-                        $sql = $db->prepare("SELECT * FROM tbl_acc_booking where id='" . $_REQUEST['booking_id'] . "'");
-                        $sql->execute();
-                        while ($row = $sql->fetch()) {
-                            $room_ids = getBookedRoom($row['id']);
+$sql = $db->prepare("SELECT * FROM tbl_acc_booking where id='" . $_REQUEST['booking_id'] . "'");
+$sql->execute();
+while ($row = $sql->fetch()) {
+    $room_ids = getBookedRoom($row['id']);
 
     $guest_id = $row['guest_id'];
     $ckin = $row['checkin_date'];
@@ -320,13 +320,13 @@ if (isset($_POST['add'])) {
     $diff = date_diff($ckin, $ckout);
     $night = $diff->format("%a");
 
-                            $booking_amount = $booking_amount_price * $night;
+    $booking_amount = $booking_amount_price * $night;
 
-                            $payment_status = $row['payment_status_id'];
-                            $booking_status_id = $row['booking_status_id'];
-                            $booking_type = $row['booking_type'];
-                            $booking_room_capacity = getRoomCapacity(getBookedRoom($row['id']));
-                        } ?>
+    $payment_status = $row['payment_status_id'];
+    $booking_status_id = $row['booking_status_id'];
+    $booking_type = $row['booking_type'];
+    $booking_room_capacity = getRoomCapacity(getBookedRoom($row['id']));
+} ?>
 
 
                         <div class="col-md-6 text-end">
@@ -419,38 +419,38 @@ if (isset($_POST['add'])) {
                                         <?php
 
 
-                                        $amountToPay = 0;
+                $amountToPay = 0;
 
 
-                                        $sql = $db->prepare("SELECT * FROM orders where booking_id='" . $_REQUEST['booking_id'] . "'");
-                                        $sql->execute();
-                                        while ($row = $sql->fetch()) {
-
-
-
-                                            $amountToPay = $amountToPay + ($row['price'] * $row['qty']);
-                                        }
-
-                                        $guest_booking = 0;
+$sql = $db->prepare("SELECT * FROM orders where booking_id='" . $_REQUEST['booking_id'] . "'");
+$sql->execute();
+while ($row = $sql->fetch()) {
 
 
 
-                                        $sql = $db->prepare("SELECT * FROM guest_booking where booking_id='" . $_REQUEST['booking_id'] . "'");
-                                        $sql->execute();
-                                        while ($row = $sql->fetch()) {
+    $amountToPay = $amountToPay + ($row['price'] * $row['qty']);
+}
+
+$guest_booking = 0;
 
 
 
-                                            $guest_booking = $guest_booking + $row['amount'];
-                                        }
+$sql = $db->prepare("SELECT * FROM guest_booking where booking_id='" . $_REQUEST['booking_id'] . "'");
+$sql->execute();
+while ($row = $sql->fetch()) {
 
-                                        $code = getClientOrder();
-                                        function getClientOrder()
-                                        {
-                                            include '../inc/conn.php';
 
-                                            $sql = "SELECT * FROM `tbl_cmd` WHERE room_client='" . $_REQUEST['booking_id'] . "'";
-                                            $result = $conn->query($sql);
+
+    $guest_booking = $guest_booking + $row['amount'];
+}
+
+$code = getClientOrder();
+function getClientOrder()
+{
+    include '../inc/conn.php';
+
+    $sql = "SELECT * FROM `tbl_cmd` WHERE room_client='" . $_REQUEST['booking_id'] . "'";
+    $result = $conn->query($sql);
 
     if ($result->num_rows > 0) {
         // output data of each row
@@ -468,52 +468,52 @@ if (isset($_POST['add'])) {
 
 
 
-                                        $menutotal = 0;
+$menutotal = 0;
 
-                                        $i = 0;
-                                        $tot = array();
-                                        $sql = $db->prepare("SELECT * FROM `tbl_cmd_qty`
+$i = 0;
+$tot = array();
+$sql = $db->prepare("SELECT * FROM `tbl_cmd_qty`
                                     WHERE tbl_cmd_qty.cmd_code='" . $code . "'");
-                                        $sql->execute(array());
-                                        if ($sql->rowCount()) {
-                                            while ($fetch = $sql->fetch()) {
-                                                $i++;
-                                                $tot[] = $fetch['cmd_status'];
+$sql->execute(array());
+if ($sql->rowCount()) {
+    while ($fetch = $sql->fetch()) {
+        $i++;
+        $tot[] = $fetch['cmd_status'];
 
-                                                $OrderCode = $fetch['cmd_code'];
-                                                $status = $fetch['cmd_status'];
+        $OrderCode = $fetch['cmd_code'];
+        $status = $fetch['cmd_status'];
 
 
 
-                                                $GetStsqty = $db->prepare("SELECT * FROM tbl_cmd WHERE OrderCode = '" . $OrderCode . "'");
-                                                $GetStsqty->execute();
-                                                $fstsqty = $GetStsqty->fetch();
+        $GetStsqty = $db->prepare("SELECT * FROM tbl_cmd WHERE OrderCode = '" . $OrderCode . "'");
+        $GetStsqty->execute();
+        $fstsqty = $GetStsqty->fetch();
 
-                                                $GetStsmenu = $db->prepare("SELECT * FROM menu WHERE menu_id = '" . $fetch['cmd_item'] . "'");
-                                                $GetStsmenu->execute();
-                                                $fstsmenu = $GetStsmenu->fetch();
+        $GetStsmenu = $db->prepare("SELECT * FROM menu WHERE menu_id = '" . $fetch['cmd_item'] . "'");
+        $GetStsmenu->execute();
+        $fstsmenu = $GetStsmenu->fetch();
 
-                                                $rsv_ID = $fstsqty['reservat_id'];
-                                                $cat_id = $fstsmenu['cat_id'];
-                                                $menu_price = $fstsmenu['menu_price'];
-                                                $menutotal += ($menu_price * $fetch['cmd_qty']);
-                                                $subcat_ID = $fstsmenu['subcat_ID'];
-                                                $menu_id = $fetch['cmd_qty_id'];
-                                                $OrderCode = $fstsqty['OrderCode'];
-                                                $serv = $fstsqty['Serv_id'];
-                                            }
-                                        }
+        $rsv_ID = $fstsqty['reservat_id'];
+        $cat_id = $fstsmenu['cat_id'];
+        $menu_price = $fstsmenu['menu_price'];
+        $menutotal += ($menu_price * $fetch['cmd_qty']);
+        $subcat_ID = $fstsmenu['subcat_ID'];
+        $menu_id = $fetch['cmd_qty_id'];
+        $OrderCode = $fstsqty['OrderCode'];
+        $serv = $fstsqty['Serv_id'];
+    }
+}
 
 
 $booking_amount = $booking_amount + $guest_booking + $menutotal;
 $amountToPay = $amountToPay + $booking_amount;
 
-                                        $paidAmount = 0;
+$paidAmount = 0;
 
 
-                                        $sql = $db->prepare("SELECT * FROM payments where booking_id='" . $_REQUEST['booking_id'] . "'");
-                                        $sql->execute();
-                                        while ($row = $sql->fetch()) {
+$sql = $db->prepare("SELECT * FROM payments where booking_id='" . $_REQUEST['booking_id'] . "'");
+$sql->execute();
+while ($row = $sql->fetch()) {
 
 
 
@@ -521,10 +521,10 @@ $amountToPay = $amountToPay + $booking_amount;
     $taxblAmtB += ($row['amount'] ?? 0);
 }
 
-                                        $tax = $amountToPay * 0.18;
+$tax = $amountToPay * 0.18;
 
-                                        $due_amount = $amountToPay - $paidAmount;
-                                        ?>
+$due_amount = $amountToPay - $paidAmount;
+?>
 
 
 
@@ -624,28 +624,28 @@ while ($row = $sql->fetch()) {
                                                                     <span>Paid</span><br><br>
                                                                     <strong
                                                                         class="fs-6"><?php echo number_format($paidAmount);
-                                                                    /* $taxblAmtB = $totalamount = $paidAmount ?? 0;  */
-                                                                    ?>
+    /* $taxblAmtB = $totalamount = $paidAmount ?? 0;  */
+    ?>
                                                                         RWF</strong>
                                                                 </p>
                                                             </div>
                                                             <div class="col-12">
                                                                 <p class="badge bg-danger p-2 text-start mt-2">
                                                                     <span>Left</span><br><br>
-                                                                    <!-- <strong class="fs-6"><?php // echo number_format($due_amount); ?> RWF</strong> -->
+                                                                    <!-- <strong class="fs-6"><?php // echo number_format($due_amount);?> RWF</strong> -->
                                                                      <!-- Display the balance amount only if status is checked in booking using the select query to fetch the status -->
                                                                       <?php
-                                                                      $fetchQuery = $db->prepare("SELECT booking_status_id FROM tbl_acc_booking WHERE id = ?");
-                                                                      $fetchQuery->execute([$_GET['booking_id']]);
-                                                                      $bookingStatus = $fetchQuery->fetchColumn();
+      $fetchQuery = $db->prepare("SELECT booking_status_id FROM tbl_acc_booking WHERE id = ?");
+    $fetchQuery->execute([$_GET['booking_id']]);
+    $bookingStatus = $fetchQuery->fetchColumn();
 
-                                                                      if ($bookingStatus == 6) {
-                                                                          echo "<strong class='fs-6'>" . number_format($due_amount) . " RWF</strong>";
-                                                                      } else {
-                                                                          echo "<strong class='fs-6'>0 RWF</strong>";
-                                                                          echo "<strong class='fs-6'> (Booking not checked in)</strong>";
-                                                                      }
-                                                                      ?>
+    if ($bookingStatus == 6) {
+        echo "<strong class='fs-6'>" . number_format($due_amount) . " RWF</strong>";
+    } else {
+        echo "<strong class='fs-6'>0 RWF</strong>";
+        echo "<strong class='fs-6'> (Booking not checked in)</strong>";
+    }
+    ?>
                                                                 </p>
                                                             </div>
                                                         </div>
@@ -928,9 +928,9 @@ $total = 0;
 
 
 
-                                                        $sql = $db->prepare("SELECT * FROM orders WHERE booking_id='" . $_REQUEST['booking_id'] . "'");
-                                                        $sql->execute();
-                                                        while ($row = $sql->fetch()) {
+$sql = $db->prepare("SELECT * FROM orders WHERE booking_id='" . $_REQUEST['booking_id'] . "'");
+$sql->execute();
+while ($row = $sql->fetch()) {
 
     $total = $total + $row['total'];
 
@@ -950,9 +950,9 @@ $total = 0;
 
                                                         <?php
 
-                                                        }
+}
 
-                                                        ?>
+?>
 
                                                         <tr>
                                                             <td>Grand Total:</td>
@@ -1048,11 +1048,11 @@ $total = 0;
             >
                 <?php
                 $sql = $db->prepare("SELECT * FROM currencies");
-                $sql->execute();
-                while ($row = $sql->fetch()) {
-                    echo "<option value='" . htmlspecialchars($row['currency_id'], ENT_QUOTES, 'UTF-8') . "' data-rate='" . htmlspecialchars($row['currency_exchange'], ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8') . " - (Rate: " . htmlspecialchars($row['currency_exchange'], ENT_QUOTES, 'UTF-8') . ")</option>";
-                }
-                ?>
+$sql->execute();
+while ($row = $sql->fetch()) {
+    echo "<option value='" . htmlspecialchars($row['currency_id'], ENT_QUOTES, 'UTF-8') . "' data-rate='" . htmlspecialchars($row['currency_exchange'], ENT_QUOTES, 'UTF-8') . "'>" . htmlspecialchars($row['name'], ENT_QUOTES, 'UTF-8') . " - (Rate: " . htmlspecialchars($row['currency_exchange'], ENT_QUOTES, 'UTF-8') . ")</option>";
+}
+?>
             </select>
         </div>
     </div>
@@ -1205,8 +1205,8 @@ $total = 0;
                                                     <tbody>
                                                         <?php
 
-                                                        $sum = 0;
-                                                        $sum = 0;
+                                        $sum = 0;
+$sum = 0;
 
 
 
@@ -1229,9 +1229,9 @@ while ($row = $sql->fetch()) {
 
                                                         <?php
 
-                                                        }
+}
 
-                                                        ?>
+?>
 
 
                                                     </tbody>
@@ -1259,7 +1259,7 @@ while ($row = $sql->fetch()) {
                             </div>
 
                             <?php
-$purchase_code='123214';
+$purchase_code = '123214';
 // Handle VSDC Sale
 $lastSale = getLastId();
 $branch_tin = $tin = getenv('VSDC_TIN');
@@ -1313,6 +1313,7 @@ if (isset($_POST['sale']) && isset($_POST['json'])) {
 
 
 
+    // die($url);
     // die(var_dump($_POST['json']));
 
     $ch = curl_init($url . '/trnsSales/saveSales');
@@ -1324,8 +1325,11 @@ if (isset($_POST['sale']) && isset($_POST['json'])) {
         'Content-Length: ' . strlen($_POST['json'])
     ));
     $response = curl_exec($ch);
+    if ($response === false) {
+        echo "cURL Error: " . curl_error($ch);
+    }
     curl_close($ch);
-    
+
     $data = json_decode($response);
     $responseData = json_decode($response, true);
     $prdct = json_decode($_POST['json']);
@@ -1408,7 +1412,7 @@ if (isset($_POST['sale']) && isset($_POST['json'])) {
 
             // Save to database
             $receipt_info = addslashes('{"custTin":' . $tin . ',"custMblNo":null,"rptNo":1,"trdeNm":"KABC","adrs":"KN 4 Ave","topMsg":"'.$company_name.'\n'.$company_address.',   Rwanda\nTin: ' . $branch_tin . '\nPhone: ' . $branch_phone . '","btmMsg":"CIS Version 1 Powered by RRA VSDC EBM2.1 \n -------------------------------- \n Welcome","prchrAcptcYn":"N"}');
-            
+
             $sql_inf = $db->prepare("INSERT INTO tbl_vsdc_sales SET
                 tin='$branch_tin', bhfId='00', invcNo='$lastSale', orgInvcNo=0,
                 custTin='$tin', custPhone='$phone', prcOrdCd='$purchase_code',
@@ -1622,8 +1626,8 @@ while ($row = $sql->fetch()) {
     $diff = date_diff($ckin_date, $ckout_date);
     $night = $diff->format("%a");
 
-                                                        // Calculate accommodation cost
-                                                        $accomodation = $roomprice * $night;
+    // Calculate accommodation cost
+    $accomodation = $roomprice * $night;
     ?>
                                                         <p class="mb-0 small">
                                                             <strong>Room:</strong> <?php echo getRoomName(getBookedRoom($row['id'])) ?><br>
@@ -1656,25 +1660,25 @@ while ($row = $sql->fetch()) {
     $no = 0;
 $sql = $db->prepare("SELECT * FROM orders WHERE booking_id='" . $_REQUEST['booking_id'] . "'");
 $sql->execute();
-                                                        $iii=1;
+$iii = 1;
 
-                                                        if($menutotal>0){
+if ($menutotal > 0) {
 
-$list .= '{"itemSeq":' . $iii . ',
+    $list .= '{"itemSeq":' . $iii . ',
               "itemCd":"RW2AMU0000276","itemClsCd":"90101500","itemNm":"Accommodation",
               "bcd":null,"pkgUnitCd":"AM","pkg":1,"qtyUnitCd":"U","qty":1,
               "prc":' . $menutotal . ',"splyAmt":' . $menutotal . ',"dcRt":' . 0 . ',
               "dcAmt":' . 0 . ', "isrccCd":null,"isrccNm":null,"isrcRt":null,"isrcAmt":null,"taxTyCd":"B",
-              "taxblAmt":' . $menutotal . ',"taxAmt":' . number_format(($menutotal*18/118), 2, '.', '') . ',"totAmt":' . ($menutotal) . '},';
-                                                        $iii++;
-                                                        }
+              "taxblAmt":' . $menutotal . ',"taxAmt":' . number_format(($menutotal * 18 / 118), 2, '.', '') . ',"totAmt":' . ($menutotal) . '},';
+    $iii++;
+}
 $list .= '{"itemSeq":' . $iii . ',
               "itemCd":"RW2AMU0000276","itemClsCd":"90101500","itemNm":"Accommodation",
               "bcd":null,"pkgUnitCd":"AM","pkg":1,"qtyUnitCd":"U","qty":'.$night.',
-              "prc":' . ($accomodation/$night). ',"splyAmt":' . ($accomodation) . ',"dcRt":' . 0 . ',
+              "prc":' . ($accomodation / $night). ',"splyAmt":' . ($accomodation) . ',"dcRt":' . 0 . ',
               "dcAmt":' . 0 . ', "isrccCd":null,"isrccNm":null,"isrcRt":null,"isrcAmt":null,"taxTyCd":"B",
-              "taxblAmt":' . ($accomodation) . ',"taxAmt":' . number_format((($accomodation)*18/118),2,'.','') .',"totAmt":' . ($accomodation) . '},';
-                                                        $iii++;
+              "taxblAmt":' . ($accomodation) . ',"taxAmt":' . number_format((($accomodation) * 18 / 118), 2, '.', '') .',"totAmt":' . ($accomodation) . '},';
+$iii++;
 while ($row = $sql->fetch()) {
     $no = $no + $row['total'];
     ?>
@@ -1682,31 +1686,31 @@ while ($row = $sql->fetch()) {
                                                                 <td><?php echo getServiceName($row['name']); ?> (<?php echo $row['qty'] ?>)</td>
                                                                 <td class="text-end"><?php echo number_format($row['total']) ?> RWF</td>
                                                             </tr>
-                                                        <?php 
-                                                        
-                                                        
-$taxBamount = number_format(($row['total']*18/118), 2, '.', '');
-$list .= '{"itemSeq":' . $iii . ',
+                                                        <?php
+
+
+$taxBamount = number_format(($row['total'] * 18 / 118), 2, '.', '');
+    $list .= '{"itemSeq":' . $iii . ',
               "itemCd":"RW2AMU0000276","itemClsCd":"90101500","itemNm":"'.getServiceName($row['name']).'",
               "bcd":null,"pkgUnitCd":"AM","pkg":1,"qtyUnitCd":"U","qty":'.$row['qty'].',
-              "prc":' . ($row['total']/ $row['qty']). ',"splyAmt":' . $row['total'] . ',"dcRt":' . 0 . ',
+              "prc":' . ($row['total'] / $row['qty']). ',"splyAmt":' . $row['total'] . ',"dcRt":' . 0 . ',
               "dcAmt":' . 0 . ', "isrccCd":null,"isrccNm":null,"isrcRt":null,"isrcAmt":null,"taxTyCd":"B",
               "taxblAmt":' . $row['total'] . ',"taxAmt":' . $taxBamount . ',"totAmt":' . $row['total'] . '},';
-                                                        $iii++;
-                                                        }
-                                                       
-                                                       
+    $iii++;
+}
+
+
 $totalitem += $row['qty'];
-                                                        ?>
+?>
                                                     </table>
 
                                                     <hr class="my-1">
 
                                                     <?php
                                                     $subtotal = $accomodation + $no + $menutotal;
-                                                    $vat = $subtotal * 0.18;
-                                                    $total = $subtotal;
-                                                    ?>
+$vat = $subtotal * 0.18;
+$total = $subtotal;
+?>
 
                                                     <table class="table-sm" style="width:100%">
                                                         <tr>
@@ -1722,10 +1726,10 @@ $totalitem += $row['qty'];
                                                         <tr class="font-weight-bold">
                                                             <td><strong>TOTAL</strong></td>
                                                             <td class="text-end"><strong><?php
-                                                               
-                                                                echo number_format($total);
- $taxblAmtB=$total; 
-                                                               
+
+            echo number_format($total);
+$taxblAmtB = $total;
+
 $taxBamount = number_format(($taxblAmtB * 18 / 118), 2, '.', '');
 
 $productList = $list;
@@ -1734,7 +1738,7 @@ $prdct =  '[' . substr($productList, 0, -1) . ']';
 $receipt = '{"custTin":'.$clientTin.',"custMblNo":"'.$clientPhone.'","rptNo":'.$lastSale.',"trdeNm":"","adrs":"KN 4 Ave","topMsg":"'.$company_name.'\n'.$company_address.', Rwanda\nTin: '.$branch_tin.'","btmMsg":"Welcome","prchrAcptcYn":"N"}';
 $methods = ['cash' => '01', 'Mobile Money' => '02'];
 
-$totalitem = $iii-1;
+$totalitem = $iii - 1;
 $json = formatingJson(
     $ref,
     '01',
@@ -1757,9 +1761,9 @@ $json = formatingJson(
     $salesDt
 );
 
-                                                        /* var_dump($json); */
+/* var_dump($json); */
 
-                                                                ?> RWF</strong></td>
+?> RWF</strong></td>
 
                                                         </tr>
 
@@ -1784,14 +1788,14 @@ $json = formatingJson(
                                                 // Prepare EBM data
                                                 $ebmdata = '<tr><td align="left" style="padding-left: 5px;">Accommodation<br>' . $roomprice . ' </td><td align="center"><br>' . $night . '</td><td align="center"><br>' . $accomodation . '</td></tr>';
 
-                                                if ($menutotal) {
-                                                    $ebmdata = $ebmdata . '<tr><td align="left" style="padding-left: 5px;">Food & Drinks<br>' . $menutotal . ' </td><td align="center"></td><td align="center"><br>' . $no . '</td></tr>';
-                                                }
+if ($menutotal) {
+    $ebmdata = $ebmdata . '<tr><td align="left" style="padding-left: 5px;">Food & Drinks<br>' . $menutotal . ' </td><td align="center"></td><td align="center"><br>' . $no . '</td></tr>';
+}
 
-                                                $_SESSION['total'] = $total;
-                                                $_SESSION['discount'] = 0;
-                                                $_SESSION['ebmdata'] = $ebmdata;
-                                                ?>
+$_SESSION['total'] = $total;
+$_SESSION['discount'] = 0;
+$_SESSION['ebmdata'] = $ebmdata;
+?>
 
                                                 <hr class="my-3">
 
@@ -1806,49 +1810,49 @@ $json = formatingJson(
                                                 <?php
 
 
-                                                /*
+/*
                             Creating Invoice and Insert in into database
                         */
 
-                                                if (isset($_GET['invoice_booking_id']) && $_GET['invoice_booking_id'] != '' && !empty($_GET['invoice_booking_id'])) {
-                                                    try {
-                                                        $guest_id = 0;
+if (isset($_GET['invoice_booking_id']) && $_GET['invoice_booking_id'] != '' && !empty($_GET['invoice_booking_id'])) {
+    try {
+        $guest_id = 0;
 
-                                                        $booking_id = $_REQUEST['booking_id'];
-                                                        $sql = $db->prepare("SELECT * FROM tbl_acc_booking WHERE id = :booking_id");
-                                                        $sql->bindParam(':booking_id', $booking_id);
-                                                        $sql->execute();
+        $booking_id = $_REQUEST['booking_id'];
+        $sql = $db->prepare("SELECT * FROM tbl_acc_booking WHERE id = :booking_id");
+        $sql->bindParam(':booking_id', $booking_id);
+        $sql->execute();
 
-                                                        $row = $sql->fetch();
-                                                        if ($row) {
-                                                            $guest_id = $row['guest_id'];
-                                                        }
-                                                        $booking_id = $_GET['invoice_booking_id'];
+        $row = $sql->fetch();
+        if ($row) {
+            $guest_id = $row['guest_id'];
+        }
+        $booking_id = $_GET['invoice_booking_id'];
 
-                                                        // Use proper date formatting
-                                                        $inv_date = date('Y-m-d H:i:s');
-                                                        $inv_guest_id = $guest_id;
-                                                        $room_no = getRoomName(getBookedRoom($row['id']));
-                                                        $total = number_format($total, 2, '.', '');
-                                                        $paid = number_format($paidAmount, 2, '.', '');
-                                                        $balance = number_format($total - $paidAmount, 2, '.', '');
+        // Use proper date formatting
+        $inv_date = date('Y-m-d H:i:s');
+        $inv_guest_id = $guest_id;
+        $room_no = getRoomName(getBookedRoom($row['id']));
+        $total = number_format($total, 2, '.', '');
+        $paid = number_format($paidAmount, 2, '.', '');
+        $balance = number_format($total - $paidAmount, 2, '.', '');
 
-                                                        // Use prepared statements for inserting data too
-                                                        $stmt = $db->prepare("INSERT INTO `invoice`
+        // Use prepared statements for inserting data too
+        $stmt = $db->prepare("INSERT INTO `invoice`
                                                     (`inv_id`, `booking_id`, `inv_date`, `inv_guest_id`, `room_no`, `description`, `Total`, `Paid`, `balance`)
                                                     VALUES
                                                     (null, :booking_id, :inv_date, :inv_guest_id, :room_no, '', :total, :paid, :balance)");
 
-                                                        $stmt->bindParam(':booking_id', $booking_id);
-                                                        $stmt->bindParam(':inv_date', $inv_date);
-                                                        $stmt->bindParam(':inv_guest_id', $inv_guest_id);
-                                                        $stmt->bindParam(':room_no', $room_no);
-                                                        $stmt->bindParam(':total', $total);
-                                                        $stmt->bindParam(':paid', $paid);
-                                                        $stmt->bindParam(':balance', $balance);
+        $stmt->bindParam(':booking_id', $booking_id);
+        $stmt->bindParam(':inv_date', $inv_date);
+        $stmt->bindParam(':inv_guest_id', $inv_guest_id);
+        $stmt->bindParam(':room_no', $room_no);
+        $stmt->bindParam(':total', $total);
+        $stmt->bindParam(':paid', $paid);
+        $stmt->bindParam(':balance', $balance);
 
-                                                        // Execute the query
-                                                        $result = $stmt->execute();
+        // Execute the query
+        $result = $stmt->execute();
 
         if ($result) {
             echo "<script>alert('Invoice created successfully'); window.location='?resto=room_booking_details&&booking_id=$booking_id'</script>";
@@ -1888,7 +1892,7 @@ $json = formatingJson(
                                                     $night =  mysqli_real_escape_string($conn, $_POST['$roomprice']);
                                                     $today =  date('Y-m-d');
                                                 }
-                                                ?>
+?>
                                                 <!-- Balance Info -->
                                                 <div class="col-md-12">
                                                     <div class="">
@@ -1900,9 +1904,9 @@ $json = formatingJson(
                                                                 <?php
 
 
-                                                                $sql = $db->prepare("SELECT * FROM tbl_acc_booking where id='" . $_REQUEST['booking_id'] . "'");
-                                                                $sql->execute();
-                                                                while ($row = $sql->fetch()) {
+                $sql = $db->prepare("SELECT * FROM tbl_acc_booking where id='" . $_REQUEST['booking_id'] . "'");
+$sql->execute();
+while ($row = $sql->fetch()) {
 
     ?>
                                                                     <div class="col-md-5 text-end">
@@ -1919,17 +1923,17 @@ $json = formatingJson(
 
                                                                 <?php
                                                                 $ckin = date_create($ckin);
-$ckout = date_create($row['checkout_date']);
+    $ckout = date_create($row['checkout_date']);
 
-$diff = date_diff($ckin, $ckout);
-$night = $diff->format("%a");
- ?>
+    $diff = date_diff($ckin, $ckout);
+    $night = $diff->format("%a");
+    ?>
 
 
                                                             <p><strong>Nights:</strong> <?php echo $night; ?></p>
                                                             <p><strong>Price Per Night:</strong> <?php
 
-        $roomprice = $row['room_price'];
+           $roomprice = $row['room_price'];
     echo number_format($row['room_price']); ?> RWF
                                                                 </p>
 
@@ -1987,57 +1991,57 @@ $night = $diff->format("%a");
                                                             <?php if ($balance > 0) {
 
 
-                                                                    echo "You can't checkout with unpaid invoices";
-                                                                } else {
+                                                                echo "You can't checkout with unpaid invoices";
+                                                            } else {
 
 
-                                                                    if ($booking_status_id == 5) {
-                                                                    } else { ?>
+                                                                if ($booking_status_id == 5) {
+                                                                } else { ?>
 
                                                                     <p><?php
 
 
-                                                                    }
-                                                                    if ($balance < 0){
-                                                                        ?>
+                                                                }
+                                                                if ($balance < 0) {
+                                                                    ?>
                                                                         <strong class="text-danger">Note: Overpaid amount of <?php echo number_format(abs($balance)); ?> RWF will be refunded to the guest.</strong>
                                                                         <!-- The button below should trigger a modal to refund the client -->
 
                                                                         <a class="btn btn-warning" href="./?resto=refund_page&booking_id=<?php echo $_REQUEST['booking_id']; ?>&balance=<?php echo $balance; ?>">Process Refund</a>
 
                                                                         <?php
-                                                                    } else{                                                                    ?>
-                                                                    <?php 
-                                                                    // Check if invoice exists before showing confirm checkout
-                                                                    if ($invoiceExists) { 
+                                                                } else {                                                                    ?>
+                                                                    <?php
+                                                                // Check if invoice exists before showing confirm checkout
+                                                                if ($invoiceExists) {
                                                                     ?>
                                                                     <a class="btn btn-info"
                                                                         href="confirmCheckout.php?balance=<?php echo $balance ?>&&booking_id=<?php echo $_REQUEST['booking_id'] ?>&&room=<?php echo getRoomName(getBookedRoom($row['id'])) ?>&&booking_amount=<?php echo $accomodation ?>&action=checkout">
                                                                         Confirm checkout</a>
-                                                                    <?php 
-                                                                    } else { 
+                                                                    <?php
+                                                                } else {
                                                                     ?>
                                                                     <div class="alert alert-warning">
                                                                         Before checking out, you must generate an invoice first.
                                                                     </div>
-                                                                    <?php 
-                                                                    } 
+                                                                    <?php
+                                                                }
                                                                     ?>
 
-                                                                    <?php 
-                                                                    }
+                                                                    <?php
                                                                 }
-                                                                ?>
+                                                            }
+    ?>
                                                                 <!-- <a class="btn btn-info" href="confirmCheckout.php?balance=<?php //echo $balance?>&&booking_id=<?php //echo $_REQUEST['booking_id']?>&&room=<?php //echo getRoomName(getBookedRoom($row['id']))?>&&booking_amount=<?php //echo $accomodation?>"> Add Corporate</a> -->
                                                                 <?php
-                                                                if ($balance > 0) {
-                                                                    ?>
+    if ($balance > 0) {
+        ?>
                                                                     <a class="btn btn-info" href="#" data-bs-toggle="modal"
                                                                         data-bs-target="#corporateModal">
                                                                         Add Corporate
                                                                     </a>
                                                                     <?php
-                                                                }
+    }
     ?>
                                                                 <?php
 } ?>
@@ -2089,14 +2093,14 @@ $night = $diff->format("%a");
                             <select class="form-control" name="service" required>
                                 <?php
                                 $sql = $db->prepare("SELECT * FROM  services");
-                                $sql->execute();
-                                while ($row = $sql->fetch()) {
-                                    ?>
+$sql->execute();
+while ($row = $sql->fetch()) {
+    ?>
                                     <option value='<?php echo $row['service_id'] ?>'><?php echo $row['service_name'] ?>
                                     </option>
                                     <?php
-                                }
-                                ?>
+}
+?>
                             </select>
                         </div>
                     </div>
@@ -2156,10 +2160,10 @@ $night = $diff->format("%a");
                         <option value="">-- Select Corporate --</option>
                         <?php
                         $sql = $conn->query("SELECT * FROM corporates");
-                        while ($row = $sql->fetch_assoc()) {
-                            echo "<option value='{$row['id']}'>{$row['name']} (TIN: {$row['tin_number']})</option>";
-                        }
-                        ?>
+while ($row = $sql->fetch_assoc()) {
+    echo "<option value='{$row['id']}'>{$row['name']} (TIN: {$row['tin_number']})</option>";
+}
+?>
                     </select>
                     <!-- Hidden Fields -->
                     <input type="hidden" name="balance" value="<?php echo $balance ?>">
