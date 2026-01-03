@@ -8,7 +8,8 @@ $jsonData = json_encode(array(
         
 ));
 
-$url = "http://197.243.26.62:8080/rraVsdcSandbox2.1.2.3.7/";
+// $url = "http://197.243.26.62:8080/rraVsdcSandbox2.1.2.3.9/";
+$url = getenv('VSDC_URL');
 
 function rra_function($jsonData, $endpoint){
     global $url;

@@ -80,10 +80,10 @@ function callCURL1($jsonData, $endpoint) {
     "sftyQty":null,
     "isrcAplcbYn":"'.$fetch['isrcAplcbYn'].'",
     "useYn":"Y",
-    "regrNm":"Centre Saint Paul Kigali Ltd",
-    "regrId":"saint paul",
-    "modrNm":"Centre Saint Paul Kigali Ltd",
-    "modrId":"saint paul"
+    "regrNm":"'.$company_name.'",
+    "regrId":"'.$company_name.'",
+    "modrNm":"'.$company_name.'",
+    "modrId":"'.$company_name.'"
     }';
  
 

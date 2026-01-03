@@ -27,22 +27,23 @@ defined('LIB_PATH') ? null : define('LIB_PATH', SITE_ROOT . DS . 'inc');
 require_once("session.php");
 require_once("DBController.php");
 
-$url = getenv('VSDC_BASE_URL') ?? "http://127.0.0.1:8080/rraVsdcSandbox2.1.2.3.7/";    // testing
+// $url = getenv('VSDC_BASE_URL') ?? "http://127.0.0.1:8080/rraVsdcSandbox2.1.2.3.7/";    // testing
 // $url = "http://127.0.0.1:8080/rraVsdcLatestProdVersion/";   // production
+$url = getenv('VSDC_URL');
 
 
 $msg = '';
 $msge = '';
 $snp = '';
 
-$logging_ID = $_SESSION['u_id'];
-$email = $_SESSION['email'];
-$USN = $_SESSION['usn'];
-$log_role = $_SESSION['log_role'];
+$logging_ID = $_SESSION['u_id'] ?? null;
+$email = $_SESSION['email'] ?? null;
+$USN = $_SESSION['usn'] ?? null;
+$log_role = $_SESSION['log_role'] ?? null;
 
-$USER_ID = $_SESSION['user_id'];
+$USER_ID = $_SESSION['user_id']	?? null;
 
-if ($_SESSION['log_role'] == 0) {
+if ($log_role == 0) {
 	$Rname = "Super Admin";
 } else {
 
@@ -169,4 +170,5 @@ $branch_tin = $fetch_role['Tin'];
 $mrc = $fetch_role['mrc'];
 $system_name = $fetch_role['system_name'];
 $branch_phone = $fetch_role['phone'];
+
 

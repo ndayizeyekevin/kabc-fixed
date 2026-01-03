@@ -70,7 +70,21 @@ $booking_amount = $booking['room_price'] * $night;
 $amountToPay += $booking_amount + $menutotal;
 
 // Get payments
-$sql = $db->prepare("SELECT * FROM payments WHERE booking_id = ?");
+$sql = $db->prepare("SELECT
+                        payments.payment_id,
+                        payments.method,
+                        payments.amount,
+                        payments.currency_amount,
+                        payments.rate,
+                        payments.created_at AS payment_created_at,
+                        currencies.currency_sign,
+                        currencies.currency_id
+                    FROM payments
+                    INNER JOIN currencies
+                        ON payments.currency = currencies.currency_id
+                    WHERE payments.booking_id = ?
+                    ORDER BY payments.payment_id ASC
+");
 $sql->execute([$booking_id]);
 $payments = $sql->fetchAll();
 
@@ -130,9 +144,9 @@ function getClientOrder($booking_id)
             margin: 0 auto;
             padding: 5px;
             line-height: 1.2;
-            font-size: 11px;
-            width: 80mm;
-            max-width: 80mm;
+            font-size: 12px;
+            width: 250mm;
+            max-width: 250mm;
             text-align: center;
         }
         .header {
@@ -143,7 +157,7 @@ function getClientOrder($booking_id)
         }
         .company-info {
             margin-bottom: 5px;
-            font-size: 10px;
+            font-size: 12px;
         }
         .logo {
             width: 60px;
@@ -181,95 +195,158 @@ function getClientOrder($booking_id)
         }
         .payment-item {
             margin: 2px 0;
-            font-size: 10px;
+            font-size: 12px;
         }
+
+        .table table {
+            width: 100%;
+            border-collapse: collapse; /* IMPORTANT */
+            border: 1px solid #000;
+        }
+
+        .table table th,
+        .table table td {
+            border: 1px solid #000;
+        }
+
         .no-print {
             margin: 10px 0;
             text-align: center;
         }
+
+        .balance {
+            font-size: 14px;
+            color: red;
+            font-weight: bold;
+        }
+
         @media print {
             .no-print {
                 display: none;
             }
             body {
                 width: auto;
+                padding: 60px;
                 max-width: none;
             }
+            .table table {
+                width: 100%;
+                border-collapse: collapse; /* IMPORTANT */
+                border: 1px solid #000;
+            }
+
+            .table table th,
+            .table table td {
+                border: 1px solid #000;
+                padding: 4px;
+            }
+            .balance {
+                font-size: 14px;
+                color: red;
+                font-weight: bold;
+            }
+
         }
     </style>
-<div class="no-print">
-    <button onclick="window.print()" style="padding: 5px 10px; font-size: 12px;">Print</button>
-    <button onclick="window.close()" style="padding: 5px 10px; font-size: 12px; margin-left: 5px;">Close</button>
-</div>
-
-<div class="header">
-    <img src="../img/logo.png" alt="Logo" class="logo" onerror="this.style.display='none'">
-    <div class="company-info center bold">
-        <?= $company_name ?><br>
-                    TIN/VAT :<?= $company_tin ?><br>
-                    Tel: <?= $company_phone ?><br>
-                    <?= $company_email ?><br>
+    <div class="no-print">
+        <button onclick="window.print()" style="padding: 5px 10px; font-size: 12px;">Print</button>
+        <button onclick="window.close()" style="padding: 5px 10px; font-size: 12px; margin-left: 5px;">Close</button>
     </div>
-    <div class="receipt-title center">PAYMENT RECEIPT</div>
-    <div class="center">Booking ID: <?php echo $booking_id; ?></div>
-</div>
 
-<div class="line"></div>
-
-<div class="left-align">
-    <div class="bold">GUEST INFORMATION</div>
-    <div>Name: <?php echo htmlspecialchars($guest['first_name'] . ' ' . $guest['last_name']); ?></div>
-    <div>Room: <?php echo htmlspecialchars($room_name); ?></div>
-    <div>Check-in: <?php echo htmlspecialchars($booking['checkin_date']); ?></div>
-    <div>Check-out: <?php echo htmlspecialchars($booking['checkout_date']); ?></div>
-</div>
-
-<div class="line"></div>
-
-<div>
-    <div class="bold">PAYMENT SUMMARY</div>
-    <div class="row">
-        <span>Total Amount:</span>
-        <span>RWF <?php echo number_format($amountToPay); ?></span>
+    <div class="header">
+        <img src="../img/logo.png" alt="Logo" class="logo" onerror="this.style.display='none'">
+        <div class="company-info center bold">
+            <?= $company_name ?><br>
+                        TIN/VAT :<?= $company_tin ?><br>
+                        Tel: <?= $company_phone ?><br>
+                        <?= $company_email ?><br>
+        </div>
+        <div class="receipt-title center">PAYMENT RECEIPT</div>
+        <div class="center">Booking ID: <?php echo $booking_id; ?></div>
     </div>
-    <div class="row">
-        <span>Amount Paid:</span>
-        <span>RWF <?php echo number_format($paidAmount); ?></span>
-    </div>
-    <div class="row bold">
-        <span>Balance:</span>
-        <span>RWF <?php echo number_format($due_amount); ?></span>
-    </div>
-    <div class="row">
-        <span>Status:</span>
-        <span><?php echo $due_amount === 0 ? 'PAID' : 'PARTIAL'; ?></span>
-    </div>
-</div>
 
-<div class="line"></div>
+    <div class="line"></div>
 
-<div class="left-align">
-    <div class="bold">PAYMENT HISTORY</div>
-    <?php 
-    $sum = 0;
-    foreach ($payments as $payment): 
-        $sum++;
-    ?>
-    <div class="payment-item">
-        <?php echo $sum; ?>. RWF <?php echo number_format($payment['amount']); ?> 
-        (<?php echo htmlspecialchars($payment['method']); ?>) 
-        <?php echo date('d/M/Y', $payment['payment_time']); ?>
+    <div class="left-align">
+        <div class="bold">GUEST INFORMATION</div>
+        <div>Name: <?php echo htmlspecialchars($guest['first_name'] . ' ' . $guest['last_name']); ?></div>
+        <div>Room: <?php echo htmlspecialchars($room_name); ?></div>
+        <div>Check-in: <?php echo htmlspecialchars($booking['checkin_date']); ?></div>
+        <div>Check-out: <?php echo htmlspecialchars($booking['checkout_date']); ?></div>
     </div>
-    <?php endforeach; ?>
-</div>
 
-<div class="line"></div>
+    <div class="line"></div>
 
-<div class="center" style="font-size: 9px;">
-    Printed: <?php echo date('d/M/Y H:i:s'); ?><br>
-    By: <?php echo htmlspecialchars($printedBy); ?><br>
-    Thank you for choosing us!
-</div>
+    <div>
+        <div class="bold">PAYMENT SUMMARY</div>
+        <div class="row">
+            <span>Total Amount:</span>
+            <span>RWF <?php echo number_format($amountToPay); ?></span>
+        </div>
+        <div class="row">
+            <span>Amount Paid:</span>
+            <span>RWF <?php echo number_format($paidAmount); ?></span>
+        </div>
+        <div class="row bold">
+            <span class="balance">Balance:</span>
+            <span class="balance">RWF <?php echo number_format($due_amount); ?></span>
+        </div>
+        <div class="row">
+            <span>Status:</span>
+            <span><?php echo $due_amount === 0 ? 'PAID' : 'PARTIAL'; ?></span>
+        </div>
+    </div>
+
+    <div class="line"></div>
+
+    <div class="left-align">
+        <div class="bold">PAYMENT HISTORY</div>
+            <div class="payment-item">
+                <!-- <?php echo $sum; ?>. RWF <?php echo number_format($payment['amount']); ?>
+                <?php echo $payment['note'] ? ' - ' . htmlspecialchars($payment['note']) : ''; ?> 
+                (<?php echo htmlspecialchars($payment['method']); ?>) 
+                <?php echo htmlspecialchars($payment['payment_created_at']); ?> -->
+                <div class="table">
+                    <table>
+                        <tr>
+                            <th>#</th>
+                            <th>Payment Method</th>
+                            <th>Payment Currency With Amount</th>
+                            <!-- <th>Currency Amount</th> -->
+                            <th>Currency Rate</th>
+                            <th>Amount In RWF</th>
+                            <th>Payment Time</th>
+
+                        </tr>
+                        <?php 
+                        $sum = 0;
+                        foreach ($payments as $payment): 
+                            $sum++;
+                        ?>
+            
+                        <tr>
+                            <td><?php echo $sum; ?></td>
+                            <td><?php echo htmlspecialchars($payment['method']); ?></td> 
+                            <td><?php echo $payment['currency_sign'] .''.number_format($payment['currency_amount'], 2); ?></td>
+                            <td><?php echo number_format($payment['rate'], 2); ?></td>
+                            <td><?php echo number_format($payment['amount'], 2).'RWF'; ?></td>
+                            <td><?php echo htmlspecialchars($payment['payment_created_at']); ?></td>
+                        </tr>
+
+                    
+                        <?php endforeach; ?>
+                    </table>
+            </div>
+        </div>
+    </div>
+
+    <div class="line"></div>
+
+    <div class="center" style="font-size: 12px;">
+        Printed: <?php echo date('d/M/Y H:i:s'); ?><br>
+        By: <?php echo htmlspecialchars($printedBy); ?><br>
+        Thank you for choosing us!
+    </div>
     <script>
         // Auto-print on load if requested
         if (window.location.search.includes('auto_print=1')) {

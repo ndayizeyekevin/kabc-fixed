@@ -472,7 +472,7 @@ if ($printedBy === '') {
                 </style>
                 <center>
                     <img src='<?= htmlspecialchars($company_logo ?? 'logo.png', ENT_QUOTES, 'UTF-8'); ?>' alt='Company Logo' style='max-width:150px;'><br>
-                    <div><?= htmlspecialchars($company_name ?? 'Centre Saint Paul Kigali Ltd', ENT_QUOTES, 'UTF-8'); ?><br>
+                    <div><?= htmlspecialchars($company_name ?? $company_address, ENT_QUOTES, 'UTF-8'); ?><br>
                     <?= $company_address ?>
                     TIN/VAT Number: <?= $company_tin ?><br>
                     <br>

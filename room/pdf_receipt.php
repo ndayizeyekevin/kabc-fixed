@@ -9,9 +9,9 @@
     </tr>
     <tr>
         <td align="center" style="display:grid;">
-           <span>Centre Saint Paul</span><br>
-           <span>KG 13 Avenue 22, Kigali, Rwanda</span><br>
-           <span>Tin: 111477597</span><br>
+           <span><?php echo $company_name; ?></span><br>
+           <span><?php echo $company_name; ?></span><br>
+           <span>Tin: <?php echo $company_name; ?></span><br>
            
         </td>
     </tr>

@@ -17,9 +17,11 @@ $html .= '<div id="container" style="width: 100%; border: 1px solid black; margi
     </tr>
     <tr>
         <td align="center" style="display:grid;">
-           <span><?=$company_name ?></span><br>
-           <span><?=$company_phone ?></span><br>
-           <span>Tin: <?=$company_tin ?></span><br>
+           <span>'.$company_name.'</span><br>
+           <span>'.$company_address.'</span><br>
+           <span>Tin: '.$companyTin.'</span><br>
+           <span>Phone: '.$phone.'</span><br>
+           <span><b>'.$title.'</b></span>
            
         </td>
     </tr>

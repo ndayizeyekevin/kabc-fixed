@@ -597,7 +597,7 @@ function printReport() {
             <div class="header">
                 <h1><?php echo htmlspecialchars($company_name); ?></h1>
                 <p>TEL: <?= $company_phone ?></p>
-                <p>www.centrestpaul.com | TIN/VAT: <?= $company_tin ?></p>
+                <p>TIN/VAT: <?= $company_tin ?></p>
                 <h2>PER SERVANT SALES REPORT</h2>
                 <p>Period: ${from} - ${to}</p>
                 <p>Generated on: ${new Date().toLocaleString('en-US', { month: 'long', day: 'numeric', year: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' })}</p>

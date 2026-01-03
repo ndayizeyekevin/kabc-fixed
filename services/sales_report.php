@@ -2,177 +2,309 @@
 error_reporting(E_ALL);
 ini_set('display_errors', 1);
 
-// **ASSUMPTIONS:**
-// 1. $db is a valid PDO connection object.
-// 2. $_SESSION['user_id'] is set and holds the current user's ID.
-// 3. The column names are: user_id=Serv_Id, menu item=cmd_item, quantity=cmd_qty.
-
-// Database connection ($db) and session ($_SESSION) must be initialized before this script.
-
 $user_IId = $_SESSION['user_id'];
 echo'<div class="container">';
 
-$where = [];
-$params = [];
-$date_today = date('Y-m-d');
-
-// --- 1. Date Range Filter (Mandatory) ---
-$date_from = $_GET['date_from'] ?? $date_today;
-$date_too  = $_GET['date_too']  ?? $date_today;
-$where[] = "DATE(tbl_cmd_qty.created_at) >= :date_from AND DATE(tbl_cmd_qty.created_at) <= :date_too";
-$params[':date_from'] = $date_from;
-$params[':date_too']  = $date_too;
-
-// --- 2. Filter by Current Logged-in User ---
-$where[] = "tbl_cmd_qty.Serv_Id = :user_id";
-$params[':user_id'] = $user_IId;
-
-// --- 3. Optional Month Filter ---
-if (!empty($_GET['month'])) {
-    $where[] = "MONTH(tbl_cmd_qty.created_at) = :month";
-    $params[':month'] = $_GET['month'];
-}
-
-// Combine WHERE conditions
-$whereClause = $where ? "WHERE " . implode(' AND ', $where) : "";
-
-// --- 4. Final SQL Query (SYNTAX & DISTINCT FIXED) ---
-// NOTE: DISTINCT is added to eliminate duplicates resulting from improper joins or bad data.
-$sql = "SELECT DISTINCT
-            tbl_cmd_qty.*, 
-            menu.menu_price,
-            menu.menu_name,
-            tbl_cmd.client,
-            tbl_cmd.OrderCode AS cmd_code, -- Use alias to ensure OrderCode is present
-            concat(tbl_users.f_name, ' ', tbl_users.l_name) as server,
-            tbl_cmd_qty.cmd_qty, 
-            tbl_cmd_qty.created_at
+// Fetch ALL reports for the logged-in waiter only
+$sql = "SELECT *, concat(f_name, ' ', l_name) as server, tbl_cmd_qty.created_at, tbl_cmd_qty.cmd_status,
+        tbl_tables.table_no, tbl_cmd_qty.cmd_qty, menu.menu_price
         FROM `tbl_cmd_qty`
         INNER JOIN menu ON menu.menu_id = tbl_cmd_qty.cmd_item
         INNER JOIN category ON menu.cat_id = category.cat_id
         INNER JOIN tbl_tables ON tbl_cmd_qty.cmd_table_id = tbl_tables.table_id
-        INNER JOIN tbl_cmd ON tbl_cmd.OrderCode = tbl_cmd_qty.cmd_code
-        INNER JOIN tbl_users ON tbl_users.user_id = :user_id 
-        $whereClause
+        INNER JOIN tbl_users ON tbl_users.user_id = tbl_cmd_qty.Serv_id
+        WHERE tbl_cmd_qty.Serv_id = :user_id
         ORDER BY tbl_cmd_qty.created_at DESC";
 
-// --- 5. Execute Query ---
-try {
-    $stmt = $db->prepare($sql);
-    $stmt->execute($params);
-    $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
-} catch (PDOException $e) {
-    die("Database Error: " . $e->getMessage()); 
-}
+$stmt = $db->prepare($sql);
+$stmt->execute([':user_id' => $user_IId]);
+$results = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Get the server name from the first result (or default if no orders found)
-$serverName = $results[0]['server'] ?? 'Current User';
+// Group by order code, then by menu item (to combine quantities)
+$grouped = [];
+foreach ($results as $row) {
+    $server = $row['server'];
+    $orderCode = $row['cmd_code'];
+    $menuId = $row['cmd_item'];
+
+    if (!isset($grouped[$orderCode])) {
+        $grouped[$orderCode] = [
+            'server' => $server,
+            'table_no' => $row['table_no'],
+            'client' => $row['client'] ?? '-',
+            'created_at' => $row['created_at'],
+            'items' => []
+        ];
+    }
+
+    // Group items by menu_id to combine quantities
+    if (!isset($grouped[$orderCode]['items'][$menuId])) {
+        $grouped[$orderCode]['items'][$menuId] = [
+            'menu_name' => $row['menu_name'],
+            'menu_price' => $row['menu_price'],
+            'quantity' => 0,
+            'created_at' => $row['created_at']
+        ];
+    }
+
+    $grouped[$orderCode]['items'][$menuId]['quantity'] += $row['cmd_qty'];
+}
 ?>
 
-<form method="get" class="mb-3">
-    <?php
-    // Preserve other GET parameters except the filter ones
-    foreach ($_GET as $key => $value) {
-        if (!in_array($key, ['date_from', 'date_too', 'month'])) {
-            echo "<input type='hidden' name='" . htmlspecialchars($key) . "' value='" . htmlspecialchars($value) . "'>";
-        }
-    }
-    ?>
-
-    <div class="row g-2 align-items-end">
-        <div class="col-md-3">
-            <label for="date_from" class="form-label">From:</label>
-            <input type="date" class="form-control" name="date_from" id="date_from" value="<?= htmlspecialchars($date_from) ?>">
-        </div>
-        <div class="col-md-3">
-            <label for="date_too" class="form-label">To:</label>
-            <input type="date" class="form-control" name="date_too" id="date_too" value="<?= htmlspecialchars($date_too) ?>">
-        </div>
-        <div class="col-md-3">
-            <label for="month_select" class="form-label">Or Month:</label>
-            <select name="month" id="month_select" class="form-control">
-                <option value="">-- Select Month --</option>
-                <?php
-                $current_month = $_GET['month'] ?? '';
-                for ($m = 1; $m <= 12; $m++) {
-                    $value = str_pad($m, 2, '0', STR_PAD_LEFT);
-                    $selected = $current_month == $value ? 'selected' : '';
-                    echo "<option value='$value' $selected>" . date('F', mktime(0, 0, 0, $m, 1)) . "</option>";
-                }
-                ?>
-            </select>
-        </div>
-        <div class="col-md-3">
-            <button type="submit" class="btn btn-primary w-100">Filter</button>
-        </div>
-    </div>
-</form>
-
+<!-- JavaScript Date Filter -->
+<div style="margin-bottom: 20px; padding: 15px; background-color: #f8f9fa; border-radius: 5px;">
+    <label style="margin-right: 15px;">
+        <strong>From:</strong>
+        <input type="date" id="dateFrom" class="form-control" style="display: inline-block; width: auto;" value="<?= date('Y-m-d') ?>">
+    </label>
+    <label style="margin-right: 15px;">
+        <strong>To:</strong>
+        <input type="date" id="dateTo" class="form-control" style="display: inline-block; width: auto;" value="<?= date('Y-m-d') ?>">
+    </label>
+    <button type="button" id="filterBtn" class="btn btn-primary">Filter</button>
+    <button type="button" id="resetBtn" class="btn btn-secondary">Show All</button>
+    <span id="filterStatus" style="margin-left: 15px; font-weight: bold; color: #28a745;"></span>
+</div>
 <br>
 
-<button id="printH" class="btn btn-secondary mb-3">Print Report</button>
+<button id="printH" class="btn btn-success"> Print </button>
 
 <div class="text-nowrap table-responsive">
     <div id="content">
-        <?php include '../holder/printHeader.php'; ?>
-        
-        <h2 class="mt-4">Waiter Report for <?= htmlspecialchars($serverName) ?></h2>
-        
-        <?php if (empty($results)): ?>
-            <div class="alert alert-info">No orders found for your account in the selected date range.</div>
-        <?php else: ?>
-            <table border="1" cellpadding="5" class="table table-striped table-bordered">
-                <thead>
-                    <tr>
-                        <th>Order Code</th>
-                        <th>Client</th>
-                        <th>Menu Item</th>
-                        <th>Qty</th> 
-                        <th>Unit Price</th>
-                        <th>Subtotal</th> 
-                        <th>Date Served</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php $grand_total = 0; foreach ($results as $row): 
-                        // The columns are now correct based on the DISTINCT query
-                        $quantity = $row['cmd_qty'];
-                        $unit_price = $row['menu_price'];
-                        $subtotal = $quantity * $unit_price;
-                        $grand_total += $subtotal;
-                    ?>
+        <?php include '../holder/printHeader.php' ?>
+
+        <?php if (!empty($grouped)): ?>
+            <?php
+            // Get server name from first order
+            $firstOrder = reset($grouped);
+            $serverName = $firstOrder['server'];
+            ?>
+            <div class="waiter-section">
+                <h2 style="text-align: center; color: #333; margin-bottom: 20px;">
+                    Sales Report for <?= htmlspecialchars($serverName) ?>
+                </h2>
+
+                <table border="1" cellpadding="8" class="table table-striped table-bordered">
+                    <thead style="background-color: #007bff; color: white;">
                         <tr>
-                            <td><?= htmlspecialchars($row['cmd_code']) ?></td>
-                            <td><?= htmlspecialchars($row['client'] ?? "-") ?></td>
-                            <td><?= htmlspecialchars($row['menu_name']) ?></td>
-                            <td class="text-end"><?= htmlspecialchars($quantity) ?></td>
-                            <td class="text-end"><?= number_format($unit_price, 2) ?></td>
-                            <td class="text-end"><strong><?= number_format($subtotal, 2) ?></strong></td>
-                            <td><?= htmlspecialchars($row['created_at']) ?></td>
+                            <th>Order Code</th>
+                            <th>Table</th>
+                            <th>Client</th>
+                            <th>Item</th>
+                            <th>Qty</th>
+                            <th>Unit Price</th>
+                            <th>Total Price</th>
+                            <th>Date Served</th>
                         </tr>
-                    <?php endforeach; ?>
-                        <tr class="table-info">
-                            <td colspan="5"><strong>Total Sales</strong></td>
-                            <td class="text-end"><strong><?= number_format($grand_total, 2) ?></strong></td>
-                            <td></td>
+                    </thead>
+                    <tbody>
+                        <?php
+                        $grandTotal = 0;
+                        foreach ($grouped as $orderCode => $orderData):
+                            $orderDate = date('Y-m-d', strtotime($orderData['created_at']));
+                            $itemCount = count($orderData['items']);
+                            $firstItem = true;
+                            $orderTotal = 0;
+                        ?>
+                            <?php foreach ($orderData['items'] as $menuId => $item):
+                                $itemTotal = $item['menu_price'] * $item['quantity'];
+                                $orderTotal += $itemTotal;
+                            ?>
+                                <tr class="order-row" data-order-code="<?= htmlspecialchars($orderCode) ?>" data-date="<?= $orderDate ?>">
+                                    <?php if ($firstItem): ?>
+                                        <td rowspan="<?= $itemCount + 1 ?>" style="vertical-align: middle; font-weight: bold;">
+                                            <?= htmlspecialchars($orderCode) ?>
+                                        </td>
+                                        <td rowspan="<?= $itemCount + 1 ?>" style="vertical-align: middle;">
+                                            <?= htmlspecialchars($orderData['table_no']) ?>
+                                        </td>
+                                        <td rowspan="<?= $itemCount + 1 ?>" style="vertical-align: middle;">
+                                            <?= htmlspecialchars($orderData['client']) ?>
+                                        </td>
+                                        <?php $firstItem = false; ?>
+                                    <?php endif; ?>
+                                    <td><?= htmlspecialchars($item['menu_name']) ?></td>
+                                    <td style="text-align: center;"><strong>x<?= $item['quantity'] ?></strong></td>
+                                    <td style="text-align: right;"><?= number_format($item['menu_price'], 2) ?></td>
+                                    <td style="text-align: right;" class="item-price"><?= number_format($itemTotal, 2) ?></td>
+                                    <td><?= htmlspecialchars($item['created_at']) ?></td>
+                                </tr>
+                            <?php endforeach; ?>
+
+                            <tr class="order-total-row" data-order-code="<?= htmlspecialchars($orderCode) ?>" data-date="<?= $orderDate ?>" data-order-total="<?= $orderTotal ?>" style="background-color: #e9ecef;">
+                                <td colspan="4" style="text-align: right;"><strong>Order Total:</strong></td>
+                                <td colspan="2" style="text-align: right;"><strong><?= number_format($orderTotal, 2) ?> RWF</strong></td>
+                                <td></td>
+                            </tr>
+                            <?php $grandTotal += $orderTotal; ?>
+                        <?php endforeach; ?>
+
+                        <tr class="grand-total-row" style="background-color: #28a745; color: white; font-size: 16px;">
+                            <td colspan="6" style="text-align: right; padding: 12px;"><strong>GRAND TOTAL:</strong></td>
+                            <td colspan="2" class="grand-total-value" style="text-align: right; padding: 12px;">
+                                <strong><?= number_format($grandTotal, 2) ?> RWF</strong>
+                            </td>
                         </tr>
-                </tbody>
-            </table>
+                    </tbody>
+                </table>
+            </div>
+        <?php else: ?>
+            <div class="alert alert-info" style="text-align: center; padding: 30px; font-size: 18px;">
+                <strong>No sales records found for your account.</strong>
+            </div>
         <?php endif; ?>
 
-        <?php include '../holder/printFooter.php'; ?>
+        <?php include '../holder/printFooter.php' ?>
     </div>
 </div>
 
-<script src="https://code.jquery.com/jquery-3.5.1.min.js" crossorigin="anonymous"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.js" crossorigin="anonymous"></script>
+
 <script type="text/javascript">
     $(document).ready(function () {
+        // Apply today's filter by default on page load
+        filterReportsByDate();
+
+        // Filter button click
+        $("#filterBtn").click(function() {
+            filterReportsByDate();
+        });
+
+        // Reset button click
+        $("#resetBtn").click(function() {
+            // Show all rows
+            $(".order-row, .order-total-row").show();
+            $(".waiter-section").show();
+
+            // Recalculate grand total
+            recalculateGrandTotal();
+
+            $("#filterStatus").text("Showing all records").css("color", "#007bff");
+        });
+
+        // Print functionality
         $("#printH").click(function(){
+            $("#headerprint").show();
             var printContents = document.getElementById('content').innerHTML;
             var originalContents = document.body.innerHTML;
             document.body.innerHTML = printContents;
             window.print();
             document.body.innerHTML = originalContents;
         });
+
+        $("#headerprint").hide();
     });
+
+    function filterReportsByDate() {
+        var dateFrom = $("#dateFrom").val();
+        var dateTo = $("#dateTo").val();
+
+        if (!dateFrom || !dateTo) {
+            alert("Please select both From and To dates");
+            return;
+        }
+
+        var fromDate = new Date(dateFrom);
+        var toDate = new Date(dateTo);
+
+        if (fromDate > toDate) {
+            alert("From date cannot be greater than To date");
+            return;
+        }
+
+        var totalOrdersShown = 0;
+
+        // Get all unique order codes
+        var orderCodes = [];
+        $(".order-row").each(function() {
+            var orderCode = $(this).data("order-code");
+            if (orderCodes.indexOf(orderCode) === -1) {
+                orderCodes.push(orderCode);
+            }
+        });
+
+        // Filter each order
+        orderCodes.forEach(function(orderCode) {
+            var orderRows = $(".order-row[data-order-code='" + orderCode + "']");
+            var orderTotalRow = $(".order-total-row[data-order-code='" + orderCode + "']");
+
+            if (orderRows.length > 0) {
+                var orderDate = new Date(orderRows.first().data("date"));
+
+                // Check if order date is within range
+                if (orderDate >= fromDate && orderDate <= toDate) {
+                    orderRows.show();
+                    orderTotalRow.show();
+                    totalOrdersShown++;
+                } else {
+                    orderRows.hide();
+                    orderTotalRow.hide();
+                }
+            }
+        });
+
+        // Recalculate grand total
+        recalculateGrandTotal();
+
+        // Update filter status
+        var statusText = "Showing records from " + dateFrom + " to " + dateTo + " (" + totalOrdersShown + " orders)";
+        $("#filterStatus").text(statusText).css("color", "#28a745");
+    }
+
+    function recalculateGrandTotal() {
+        var grandTotal = 0;
+
+        // Sum up all visible order totals
+        $(".order-total-row:visible").each(function() {
+            var orderTotal = parseFloat($(this).data("order-total")) || 0;
+            grandTotal += orderTotal;
+        });
+
+        // Update the grand total display
+        var grandTotalCell = $(".grand-total-value");
+        grandTotalCell.html("<strong>" + formatNumber(grandTotal) + " RWF</strong>");
+    }
+
+    function formatNumber(num) {
+        return num.toFixed(2).replace(/\d(?=(\d{3})+\.)/g, '$&,');
+    }
+
+    function printInvoice() {
+        var printContents = document.getElementById('content').innerHTML;
+        var originalContents = document.body.innerHTML;
+        document.body.innerHTML = printContents;
+        window.print();
+        document.body.innerHTML = originalContents;
+    }
 </script>
+
+<style>
+    .table {
+        box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    }
+
+    .table thead th {
+        font-weight: bold;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .table tbody td {
+        vertical-align: middle;
+    }
+
+    @media print {
+        .btn, #dateFrom, #dateTo, #filterBtn, #resetBtn, #filterStatus, label {
+            display: none !important;
+        }
+
+        .table {
+            page-break-inside: auto;
+        }
+
+        .table tr {
+            page-break-inside: avoid;
+            page-break-after: auto;
+        }
+    }
+</style>

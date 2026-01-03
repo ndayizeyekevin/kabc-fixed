@@ -98,7 +98,7 @@
                                <!-- Food title -->
                                 <div class="menu-box-head">
                                   <div class="pull-left">
-                                      <?php echo $fetch['created_at']; ?></div>
+                                      <?php echo $fetch['created']; ?></div>
                                   <div class="clearfix"></div>
                                 </div>
                                 <div class="menu-box-content referrer">

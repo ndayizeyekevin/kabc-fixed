@@ -22,8 +22,12 @@
     
   
 <br>
-         <a  id="checkMenu" name="checkMenu" style="border-radius: 4px;"><i class="fa fa-fw fa-check-circle-o"></i> Check Menu</a>
+         <button type="button" id="checkMenu" name="checkMenu" value="<?php echo $rmID; ?>" class="btn btn-primary" style="border-radius: 4px;">
+               Check Menu    <i class="fa fa-chevron-circle-down"></i>
 
+
+
+         </button>
  
  
 

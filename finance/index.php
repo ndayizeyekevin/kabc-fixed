@@ -17,11 +17,31 @@ switch ($view) {
         $title="Manage Request";
 		$page='view_requests.php';
 		break;
+	
+	case 'stock_balance' :
+		$title="Stock Balance";
+		$page='stock_balance.php';
+		break;
+	
+	case 'cumurative':
+		$title="Cumulative Stock Movement";
+		$page='cumulative_stock.php';
+		break;
+	
+	
+	case 'sales' :
+		$title="Restaurant Sales";
+		$page='sales.php';
+		break;
+	case 'room_sales' :
+		$title="Room Sales";
+		$page='room_sales.php';
+		break;
 		
 	default :
 	    $title="Home";
 		$page ='dashboard.php';
-     }
+}
 
     require_once("../inc/ontouch.php");
 ?>

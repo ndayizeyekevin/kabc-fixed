@@ -256,11 +256,10 @@ $html .= '<div id="container" style="width: 100%; margin: -10px; padding: 1px;">
             '.$img.'
        </td>
          <td align="left">
-           <span>Centre Saint Paul Kigali Ltd</span><br>
-           <span>KN 31 St, Kigali, Rwanda</span><br>
-           <span>Tin: '.$companyTin.'</span><br>
-           <span>Phone: '.$phone.'</span><br>
-           <span><b>'.$title.'</b></span>
+                   <span>'.$company_name.'</span><br>
+            <span>'.$company_address.' / '.$company_phone.'</span><br>
+            <span>Tin: '.$companyTin.'</span><br>
+            <span><b>'.$title.'</b></span>
            <br>
            <b style="font-size: 15px">PROFORMA</b><br>
         </td>
