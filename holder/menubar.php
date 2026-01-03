@@ -370,6 +370,11 @@ include "switch_role.php";
 
                     <ul class="nav nav-tabs notika-menu-wrap menu-it-icon-pro customize">
                         <li><a href="?resto=home"><i class="fa fa-tachometer"></i> Dashboard</a></li>
+                        <!-- View stock -->
+                        <li><a href="?resto=stock_balance"><i class="fas fa-balance-scale"></i> Stock Balance</a></li>
+                        <li><a href="?resto=sales"><i class="fa fa-cutlery"></i> Restaurant Sales</a></li>
+                        <li><a href="?resto=room_sales"><i class="fa fa-bed"></i> View Room Sales</a></li>
+
                         <!-- <li><a data-toggle="tab" href="#setting"><i class="fas fa-cash-register"></i> Expenses <i class="fa fa-angle-down"></i></a></li> -->
                     </ul>
 
@@ -391,6 +396,9 @@ include "switch_role.php";
 
                     <ul class="nav nav-tabs notika-menu-wrap menu-it-icon-pro customize">
                         <li><a href="?resto=home"><i class="fa fa-tachometer"></i> Dashboard</a></li>
+                        <li><a href="?resto=stock_balance"><i class="fas fa-balance-scale"></i> Stock Balance</a></li>
+                        <li><a href="?resto=sales"><i class="fa fa-cutlery"></i> Restaurant Sales</a></li>
+                        <li><a href="?resto=room_sales"><i class="fa fa-bed"></i> View Room Sales</a></li>
                     </ul>
 
                     <?php } ?>

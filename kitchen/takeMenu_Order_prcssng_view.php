@@ -18,6 +18,7 @@
 
 		$db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     			$sql = "UPDATE `tbl_cmd` SET `status_id` = '".$a."' WHERE `reservat_id` = '".$id."' AND OrderCode = '".$orderCode."'";
+    			$acidq = $db->prepare($sql);
     			$acidq->execute();
 
             for($i=0; $i<count($menu_id); $i++){

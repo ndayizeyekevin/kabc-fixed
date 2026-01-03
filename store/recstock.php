@@ -525,7 +525,7 @@ include '../inc/conn.php';
                     <html>
                     <head>
                         <center>
-                        <img src='https://saintpaul.gope.rw/img/logo.png'>
+                        <img src='../img/logo.png' alt='Company Logo' style='max-width:150px;'><br>
                         <div><?php $company_name; ?><br>
                         <?php $company_address; ?><br>
                         TIN/VAT Number: <?php $company_tin; ?><br>

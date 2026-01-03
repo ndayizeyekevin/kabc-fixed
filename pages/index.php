@@ -19,6 +19,11 @@ switch ($view) {
         $title = "forgotPassword";
         $content = 'forgotPassword.php';
         break;
+    
+    case 'ordercomplete':
+        $title = "ordercomplete";
+        $content = 'ordercomplete.php';
+        break;
 
 
         // 	case 'accomodations' :

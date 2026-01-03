@@ -927,7 +927,7 @@ function fill_product($db){
         <tr><td>
         <?php
         // Company details
-  $logoUrl = 'https://rms.nsportsclub.rw/img/logo.png'; // Change to your logo path if needed
+  $logoUrl = 'https://kabc.gope.rw/img/logo.png'; // Change to your logo path if needed
   echo '<div style="text-align:center;margin-bottom:8px;"><img src="' . $logoUrl . '" alt="Logo" style="max-width:120px;max-height:120px;display:inline-block;" /></div>';
   $thankYou = '<div style="margin-top:5px;font-size:12px;text-align:center;color:#28a745;">Thank you, you are always welcome!</div>';
   $companyInfo = '<div style="font-size:14px;line-height:1.4;text-align:center;margin-bottom:4px;">
@@ -1095,7 +1095,7 @@ if ($result->num_rows > 0) {
 }
 
 
-$img = '<img src="https://rms.nsportsclub.rw/img/logo.jpeg" style="width: 100px;height: 100px;">';
+$img = '<img src="../img/logo.jpeg" style="width: 100px;height: 100px;">';
 
 echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">
@@ -1305,61 +1305,61 @@ include  '../inc/conn.php';
 $img = '<img src="https://rms.nsportsclub.rw/img/logo.jpeg" style="width: 100px;height: 100px;">';
 
 echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
-<table border="0" align="center" width="100%">
+                  <table border="0" align="center" width="100%">
 
 
-<tr>
-<td align="center" style="display: grid;">
-   <h3>Date: '.$bondate.'</h3>
-</td>
-</tr>
-<tr>
-<td align="center" style="display: grid;">
-   <h3>Order Number: '.$ino.'</h3>
-</td>
-</tr>
+                  <tr>
+                  <td align="center" style="display: grid;">
+                    <h3>Date: '.$bondate.'</h3>
+                  </td>
+                  </tr>
+                  <tr>
+                  <td align="center" style="display: grid;">
+                    <h3>Order Number: '.$ino.'</h3>
+                  </td>
+                  </tr>
 
-     <tr>
-        <td align="center" style="display: grid;">
-           <h3> Table  '.$tableno.'</h3>
-        </td>
-    </tr>
+                      <tr>
+                          <td align="center" style="display: grid;">
+                            <h3> Table  '.$tableno.'</h3>
+                          </td>
+                      </tr>
 
-    <tr>
-        <td align="center" style="display: grid;">
-           <h3> BON DE COMMANDE (Coffee shop) </h3>
-        </td>
-    </tr>
-    <tr>
-        <td><hr style="border: none; border-top: 1px dashed black; width: 80%;" /></td>
-    </tr>
-</table>
-<h3>
-  '.$coffe.'
+                      <tr>
+                          <td align="center" style="display: grid;">
+                            <h3> BON DE COMMANDE (Coffee shop) </h3>
+                          </td>
+                      </tr>
+                      <tr>
+                          <td><hr style="border: none; border-top: 1px dashed black; width: 80%;" /></td>
+                      </tr>
+                  </table>
+                  <h3>
+                    '.$coffe.'
 
-</h3>
+                  </h3>
 
-<table border="0"  align="center" width="100%">
-<tr>
-    <td align="center"><h3>Requested by:  '.$servant.'<h3></td>
-</tr>
-</table>
+                  <table border="0"  align="center" width="100%">
+                  <tr>
+                      <td align="center"><h3>Requested by:  '.$servant.'<h3></td>
+                  </tr>
+                  </table>
 
-</div>';
-?>
-
-
+                </div>';
+                ?>
 
 
-      </div>
-      <div class="modal-footer">
-        <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
-        <button type="button"  id="idcoffee" class="btn btn-info" onclick="printDiv('coffee')">Print</button>
-      </div>
-    </div>
 
-  </div>
-</div>
+
+                        </div>
+                        <div class="modal-footer">
+                          <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                          <button type="button"  id="idcoffee" class="btn btn-info" onclick="printDiv('coffee')">Print</button>
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
 
 
 
@@ -1413,7 +1413,7 @@ echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; 
 										</div>
 										</div>
                     -------------------------------------------
-<p>Date: <?php echo date("d-m-Y H:I")?></p>
+                  <p>Date: <?php echo date("d-m-Y H:I")?></p>
 
 										</div>
 

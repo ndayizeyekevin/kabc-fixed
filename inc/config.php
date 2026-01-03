@@ -36,14 +36,14 @@ $msg = '';
 $msge = '';
 $snp = '';
 
-$logging_ID = $_SESSION['u_id'];
-$email = $_SESSION['email'];
-$USN = $_SESSION['usn'];
-$log_role = $_SESSION['log_role'];
+$logging_ID = $_SESSION['u_id'] ?? null;
+$email = $_SESSION['email'] ?? null;
+$USN = $_SESSION['usn'] ?? null;
+$log_role = $_SESSION['log_role'] ?? null;
 
-$USER_ID = $_SESSION['user_id'];
+$USER_ID = $_SESSION['user_id']	?? null;
 
-if ($_SESSION['log_role'] == 0) {
+if ($log_role == 0) {
 	$Rname = "Super Admin";
 } else {
 
