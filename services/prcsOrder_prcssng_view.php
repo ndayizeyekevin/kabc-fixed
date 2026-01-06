@@ -935,9 +935,14 @@ function fill_product($db){
 TIN/VAT : '.$company_tin.'<br>
 Tel: '.$company_phone.'<br>
 '.$company_email.'<br>
-'.$company_website.'
+'.$website.'
 </div>';
-  $momo = '<div style="margin-top:8px;font-size:15px;text-align:center;"><strong>MOMO : 007972</strong></div>';
+  $momoPay = $momo;
+  $momo = '<div style="margin-top:8px;font-size:15px;text-align:center;"><strong>MOMO : '.$momoPay.'</strong></div>
+  <div style="margin-top:8px;font-size:15px;text-align:center;">
+  <strong>MOMO NAME: '.$momo_name.'</strong>
+  </div>
+  ';
 
   echo $companyInfo;
         echo '<hr style="border: none; border-top: 2px solid #333; width: 100%; margin:8px 0;" />';
