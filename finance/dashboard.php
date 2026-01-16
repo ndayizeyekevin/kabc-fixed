@@ -263,24 +263,25 @@ function fill_product($db){
                                             <td><?php echo $fetch['request_date']; ?></td>
                                             <td><?php echo $fetch['required_date']; ?></td>
                                             <td><?php
-												$status = (int)$fetch['status'];
-												$daf = isset($fetch['daf']) ? trim($fetch['daf']) : '';
-												$md = isset($fetch['md']) ? trim($fetch['md']) : '';
+                                                  $status = (int)$fetch['status'];
+                                                  $daf = isset($fetch['daf']) ? trim($fetch['daf']) : '';
+                                                  $md = isset($fetch['md']) ? trim($fetch['md']) : '';
 
-												if($status === 1){
-													echo 'Received';
-												} elseif($status === 0 && empty($daf)){
-													echo 'Pending';
-												} elseif($status === 0 && !empty($daf) && empty($md)){
-													echo 'Reviewed by ' . htmlspecialchars($daf);
-												} elseif($status === 0 && !empty($daf) && !empty($md)){
-													echo 'Approved by ' . htmlspecialchars($md);
-												} else {
-													echo 'error';
-												}
-											?></td>
+                                                  if($status === 1){
+                                                    echo 'Received';
+                                                  } elseif($status === 0 && empty($daf)){
+                                                    echo 'Pending';
+                                                  } elseif($status === 0 && !empty($daf) && empty($md)){
+                                                    echo 'Reviewed by ' . htmlspecialchars($daf);
+                                                  } elseif($status === 0 && !empty($daf) && !empty($md)){
+                                                    echo 'Approved by ' . htmlspecialchars($md);
+                                                  } else {
+                                                    echo 'error';
+                                                  }
+                                                ?>
+                                            </td>
 											
-											                            <td>     
+											                      <td>     
                                             
                                     <?php $results = $db->prepare("SELECT * FROM suppliers where id  = '".$fetch['supplier']."'");
                                         $results->execute();
@@ -293,7 +294,14 @@ $supplierid = $row['id'];}
                                             
                                             </td>
                                             <td>
-                                              <a  href="?resto=viewRequests&&id=<?php echo $fetch['req_id']?>">View</a>
+                                              <a  href="?resto=viewRequests&&id=<?php echo $fetch['req_id']?>" class='btn btn-info m-2'>View</a>
+                                              <?php
+                                                if(strtolower($fetch['request_status']) == 'received'){
+                                                  ?>
+                                                  <a href="?resto=print_purchase&id=<?php echo $fetch['req_id']; ?>" class="btn btn-success">Print PO</a>
+                                                  <?php
+                                                }
+                                              ?>
                                             </td>
                                      	</tr>
          <?php

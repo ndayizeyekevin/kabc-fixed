@@ -38,6 +38,12 @@ switch ($view) {
 		$page='room_sales.php';
 		break;
 		
+	case 'print_purchase' :
+        $title="print_purchase";
+		$page='print_purchase.php';
+		break;
+		
+		
 	default :
 	    $title="Home";
 		$page ='dashboard.php';
