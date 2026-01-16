@@ -37,7 +37,7 @@ switch ($view) {
 		$title="Room Sales";
 		$page='room_sales.php';
 		break;
-		
+
 	case 'print_purchase' :
         $title="print_purchase";
 		$page='print_purchase.php';
@@ -50,5 +50,7 @@ switch ($view) {
 }
 
     require_once("../inc/ontouch.php");
+
+	
 ?>
 

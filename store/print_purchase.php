@@ -286,7 +286,7 @@ if ($result->num_rows > 0) {
 
   	<tr>
 	<td colspan="4" style="border: 1px solid black; padding: 5px;"><H4><b>Total</b></H4></td>
-	<td align="right" style="border: 1px solid black; padding-right: 10px;"><H4><b><?php echo number_format($amount)?> </b></H4></td>
+	<td align="right" style="border: 1px solid black; padding-right: 10px;"><H4><b><?php echo number_format($amount, 2)?> </b></H4></td>
 
 	</tr>
 
@@ -308,7 +308,16 @@ if ($result->num_rows > 0) {
               
                    <td>
  
-    <b>Store Keeper</b> <br>Ordered by: <?php echo $_SESSION['f_name']." ". $_SESSION['l_name']?> <br><br> Signature .........................
+    <?php
+    // Fetch user's info
+    $query = $db->prepare("SELECT * FROM store_request WHERE req_id = :req_id");
+    $query->execute([':req_id' => $_REQUEST['id']]);
+    $data = $query->fetch(PDO::FETCH_ASSOC);
+    $daf = $data['daf'];
+    $md = $data['md'];
+    $store_keeper = $data['user_info'];
+    ?>
+    <b>Store Keeper</b> <br>Ordered by: <?php echo $store_keeper; ?> <br><br> Signature .........................
     
       </td>
               <!-- <td>
@@ -327,14 +336,14 @@ if ($result->num_rows > 0) {
     //   if($request==$by){
     //   echo "Operation Manager";
     //   }else{
-      echo "DAF";//} ?></b> <br>Verified by:.............................. <br><br> Signature .........................
+      echo "DAF";//} ?></b> <br>Verified by: <?php echo $daf; ?> <br><br> Signature .........................
       </td>
       
             <td>
           
                 
  
-  <b>Managing Director</b> <br>Approved:.............................. <br><br> Signature .........................
+  <b>Managing Director</b> <br>Approved: <?php echo $md; ?> <br><br> Signature .........................
             </td>
             
         
