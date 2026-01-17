@@ -422,7 +422,7 @@ if (isset($_POST['export_excel']) && !empty($categories)) {
                                     $rowSum = $sumStmt->fetch(PDO::FETCH_ASSOC);
                                     $categoryTotal = (float)($rowSum['total'] ?? 0);
                                 } catch (Exception $e) { $categoryTotal = 0; }
-                                echo number_format($categoryTotal);
+                                // echo number_format($categoryTotal);
                                 ?>
 
                                 <?php
