@@ -36,7 +36,7 @@ if (isset($_SESSION['u_id']) && isset($_SESSION['user_id'])) {
 
         <?php
         // Redirect logic
-        if ($role == 6) { // Waiter
+        if (in_array($role, [5, 6, 10, 12])) { // Waiter
             echo '<meta http-equiv="refresh" content="1;URL=pages/index?page=ordercomplete">';
         } else {
             echo '<meta http-equiv="refresh" content="1;URL=pages/index?page=login">';

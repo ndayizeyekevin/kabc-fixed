@@ -3,6 +3,9 @@
 require_once __DIR__.'/../dompdf/autoload.inc.php';
 require_once(__DIR__."/../../../inc/config.php");
 
+
+
+
 $sqlseason = $db->prepare("SELECT * FROM system_configuration");
 $sqlseason->execute();
 $rows = $sqlseason->fetch();
@@ -79,7 +82,36 @@ $time = $dateTime->format('H:i:s');
 // require_once __DIR__.'/../../phpqrcode/ebmqr.php';
 //
 // QRcode::png($qrcode_data, $filename, $errorCorrectionLevel, $matrixPointSize, 2);
-$qrcode = '<img src="https://rms.nsportsclub.rw/rm/images/qr.png" width="100" height="100"/>';
+// $qrcode = '<img src="https://rms.nsportsclub.rw/rm/images/qr.png" width="100" height="100"/>';
+
+
+/* ================== QR CODE (SAFE, ISOLATED) ================== */
+
+if (!empty($date) && !empty($time) && !empty($sdc) && !empty($receipt_no)
+    && !empty($tot) && !empty($receiptT) && !empty($complete_int) && !empty($signature)
+) {
+    require_once __DIR__ . '/../../phpqrcode/ebmqr.php';
+
+    $qr_payload =
+        '#'.$date.
+        '#'.$time.
+        '#'.$sdc.
+        '#'.$receipt_no.'/ '.$tot.' '.$receiptT.
+        '#'.$complete_int.
+        '#'.$signature;
+
+    ob_start();
+    QRcode::png($qr_payload, null, QR_ECLEVEL_L, 4, 2);
+    $qr_image = ob_get_clean();
+
+    $qrcode = '<img src="data:image/png;base64,'.base64_encode($qr_image).'" width="100" height="100">';
+} else {
+    // Fallback: keeps layout intact if something is missing
+    $qrcode = '';
+}
+
+/* ================== END QR CODE ================== */
+
 
 $title = '';
 $title1 = '';
@@ -263,11 +295,10 @@ $html .= '<div id="container" style="width: 100%; margin: -10px; padding: 1px;">
             '.$img.'
        </td>
          <td align="left">
-           <span>'.$company_name.'</span><br>
-           <span>'.$company_address.'</span><br>
-           <span>Tin: '.$companyTin.'</span><br>
-           <span>Phone: '.$phone.'</span><br>
-           <span><b>'.$title.'</b></span>
+                   <span>'.$company_name.'</span><br>
+            <span>'.$company_address.' / '.$company_phone.'</span><br>
+            <span>Tin: '.$companyTin.'</span><br>
+            <span><b>'.$title.'</b></span>
         </td>
         
         <td align="">
