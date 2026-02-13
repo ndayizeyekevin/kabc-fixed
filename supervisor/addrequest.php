@@ -1,3 +1,2 @@
 <?php
-require_once '../reception/addrequest.php';
-?>
+require_once("../kitchen/addrequest.php");

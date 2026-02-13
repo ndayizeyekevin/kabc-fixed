@@ -85,12 +85,16 @@ if(ISSET($_GET['del'])){
 function fill_product($db){
   $output= '';
 
-  $select = $db->prepare("SELECT * FROM tbl_items WHERE item_status = 1");
+  $select = $db->prepare("SELECT tbl_items.*, tbl_item_stock.qty as quantity 
+                          FROM tbl_items 
+                          LEFT JOIN tbl_item_stock ON tbl_items.item_id = tbl_item_stock.item
+                          WHERE tbl_items.item_status = 1");
   $select->execute();
   $result = $select->fetchAll();
 
   foreach($result as $row){
-    $output.='<option value="'.$row['item_id'].'">'.$row["item_name"].'</option>';
+    $qty = isset($row['quantity']) ? $row['quantity'] : 0;
+    $output.='<option value="'.$row['item_id'].'" data-quantity="'.$qty.'">'.$row["item_name"].' (Stock: '.$qty.')</option>';
   }
 
   return $output;
@@ -335,14 +339,39 @@ function fill_product($db){
                      <textarea class="form-control" name="remark" required></textarea>
                     </div> 
                     <label class="col-md-2 control-label" for=""><strong>Request Type</strong></label>
-                <div class="col-md-4">
-                 <select class="form-control" name="req_type" required>
-                   <option value="">-- Select Type --</option>
-                   <option value="1">Other</option> 
-                    <option value="Staff">Staff Meal</option>
-                 </select>
-                </div>
-                    </div>
+                    <!-- If session log role is 4 (Kitchen) -->
+                     <?php if($_SESSION['log_role'] == 4){ ?>
+                        <div class="col-md-4">
+                            <select class="form-control" name="req_type" required>
+                                <option value="">-- Select Type --</option>
+                                <option value="Kitchen">Kitchen</option>
+                                <option value="Staff">Staff Meal</option>
+                            </select>
+                        </div>
+                        <?php 
+                    } else if($_SESSION['log_role'] == 5){ ?>
+                        <div class="col-md-4">
+                            <select class="form-control" name="req_type" required>
+                                <option value="Bar">Barman</option>
+                            </select>
+                        </div>
+                        <?php 
+                    } else { ?>
+                        <div class="col-md-4">
+                            <select class="form-control" name="req_type" required>
+                                <option value="">-- Select Type --</option>
+                                <option value="Administration">Administration</option>
+                                <option value="F&B">Food & Beverage</option>
+                                <option value="Guest-Related">Guest-Related</option>
+                                <option value="Housekeeping">Housekeeping</option> 
+                                <option value="Other">Other</option>
+
+                            </select>
+                        </div>
+                        <?php 
+                    } 
+                    ?>
+            </div>
             <div class="form-group">
                 <div class="col-md-12">
                  <table class="table table-border" id="myOrder">
