@@ -1075,7 +1075,7 @@ while ($row = $sql->fetch()) {
     </div>
 
     <div>
-        <input type="submit" class="btn btn-info btn-primary colr" name="addpayment" value="Create Payment">
+        <input type="submit" class="btn btn-info btn-primary colr" name="addpayment" value="Create Payment" onclick="return confirm('Are you sure you want confirm this payment?');">
     </div>
 </form>
 
@@ -1778,10 +1778,22 @@ $json = formatingJson(
                                                         </tr>
                                                     </table>
 
- <form method="POST">
-                <button name="sale" class="btn btn-primary">Print RRA Receipt</button>
-                <textarea style="visibility: hidden" name="json"><?=$json?></textarea>
-              </form>
+                                                    <!-- Hide Print RRA Receipt if the balance is > 0 -->
+                                                    <?php
+                                                    if($due_amount <= 0){
+                                                        ?>
+
+                                                        <form method="POST">
+                                                            <button name="sale" class="btn btn-primary" onclick = "return confirm('Are you sure you want to generate and print RRA Receipt?')";>Print RRA Receipt</button>
+                                                            <textarea style="visibility: hidden" name="json"><?=$json?></textarea>
+                                                        </form>
+                                                        <?php
+                                                    } else{
+                                                        ?>
+                                                        <h5 class="text-danger">Please: Pay Outstanding Balance To Print RRA Receipt</h4>
+                                                        <?php
+                                                    }
+                                                    ?>
                                                 </div>
 
                                                 <?php
