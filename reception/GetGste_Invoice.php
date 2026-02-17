@@ -19,6 +19,18 @@ if (isset($_POST['addClientToOrder'])) {
     $didq = $db->prepare($sql);
     $didq->execute();
 
+    // Calculate the total amount for the order and insert it into new table for rooms
+    // $order_amount = $_SESSION['tot_inv_price'];
+    $order_amount = $_SESSION['totalOrderAmount'] ?? 0;
+
+    // Insert this amount into a new table called room credits
+    $room_credits = $db->prepare("INSERT INTO room_credits (OrderCode, amount, created_by) VALUES (:cmd_code, :amount, :created_by)");
+    $room_credits->execute([':cmd_code' => $code, ':amount' => $order_amount, ':created_by' => $_SESSION['user_id']]);
+
+    // Generate sql command to create the table above
+
+    // Create table room_credits(id int auto_increment primary key, cmd_code int, amount int, created_by int, created_at timestamp default current_timestamp, updated_at timestamp default current_timestamp, foreign key (cmd_code) references tbl_cmd(OrderCode), foreign key (created_by) references tbl_users(user_id));
+
     // update tbl_cmd_qty and tbl_cmd status to 12 as well as tbl_tables to available 1
     $tbl_id = $_GET['resrv'];
     $db->prepare("UPDATE tbl_cmd_qty SET cmd_status = 12 WHERE cmd_code = :order_code")
@@ -31,6 +43,7 @@ if (isset($_POST['addClientToOrder'])) {
     // Refresh to avoid resubmission
     echo "<script>window.location.href='?resto=gstInvce&resrv=" . $_GET['resrv'] . "&c=" . $code . "';</script>";
 }
+
 if (isset($_GET['delete_id'])) {
     $delete_id = intval($_GET['delete_id']);
     $conn->query("DELETE FROM payment_tracks WHERE id = $delete_id");
@@ -1075,7 +1088,11 @@ while ($fetrooms = $sql_rooms->fetch()) {
 											<td>x<?php echo $fetrooms['qty'] . ' ' . $fetrooms['menu_name']; ?></td>
 											<td><?php echo number_format($fetrooms['menu_price'], 2); ?></td>
 											<td><?php echo $fetrooms['discount']; ?></td>
-											<td><?php echo number_format($fetrooms['qty'] * $fetrooms['menu_price'] - $fetrooms['discount'], 2); ?></td>
+											<td>
+                                                <?php echo number_format($fetrooms['qty'] * $fetrooms['menu_price'] - $fetrooms['discount'], 2); 
+                                                ?>
+
+                                            </td>
 											<td>
 												<?php echo $fetrooms['created_at']; ?>
 											</td>
@@ -1114,8 +1131,12 @@ while ($fetrooms = $sql_rooms->fetch()) {
 									<tr>
 										<th colspan="6"></th>
 										
-										<th colspan="1">Total: <?php echo number_format($totprice, 2);
-$_SESSION['tot_inv_price'] = number_format($totprice, 2); ?></th>
+										<th colspan="1">Total: 
+                                            <?php 
+                                            echo number_format($totprice, 2);
+                                            $_SESSION['tot_inv_price'] = number_format($totprice, 2); 
+                                            $_SESSION['totalOrderAmount'] = $totprice;
+                                            ?></th>
 										<th>
 											<div class="dropdown">
 												<button class="btn btn-primary dropdown-toggle" type="button" data-toggle="dropdown">
@@ -1420,7 +1441,17 @@ if ($credit) { ?>
 
 						    echo "<h6 style='background-color:white;padding:20px'>" . $client . "</h6>";
 
-						    ?><a href="../services/remove.php?order=<?php echo $_REQUEST['c'] ?>" style='color:red'>Remove Client to this order</a><?php
+						    ?>
+                            <form action="../services/remove.php" method="POST" 
+                                onsubmit="return confirm('Are you sure you want to remove this client from this order?');">
+                                <input type="hidden" name="order" value="<?php echo htmlspecialchars($_GET['c']); ?>">
+                                <!-- table id -->
+                                <input type="hidden" name="table_id" value="<?php echo htmlspecialchars($_GET['resrv']); ?>">
+                                <button type="submit" class="btn btn-danger">
+                                    Remove Room Client
+                                </button>
+                            </form>
+                            <?php
 
 						}; ?>
 
@@ -1496,8 +1527,8 @@ if ($credit) { ?>
 												<input type="text" name="clientPhone" class="form-control" value="<?php if ($phone) {
 												    echo $phone;
 												} else {
-												    echo "070000000";
-												} ?>" required>
+												    echo "0700000000";
+												} ?>" minlength='10' maxlength='10' required>
 												<br><br>
 											</div>
 
@@ -1563,190 +1594,194 @@ if ($credit) { ?>
 
 							<!-- Modal content-->
 							<div class="modal-content">
-    <div class="modal-header">
-        <button type="button" class="close" data-dismiss="modal">&times;</button>
-        <h4 class="modal-title">Payment</h4>
-    </div>
-    <div class="modal-body">
-        <form method="POST" id="paymentForm">
-            <input type="hidden" name="edit_id" id="edit_id" value="">
-            <input type="hidden" name="totprice" id="totprice" value="<?php echo $_SESSION['tot_inv_price'];?>" disabled>
-            <div class="alert alert-danger" id="totalValidation" style="display:none;"></div>
-            
-            <div id="paymentRows">
-                <div class="payment-row row mb-3">
-                    <div class="col-md-4">
-                        <label class="form-label">Amount</label>
-                        <input type="number" min="0" step="0.01" class="form-control" name="amount[]" required>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Payment Method</label>
-                        <select class="form-control" name="method[]" required>
-                            <?php
-                            $cuntries = getInfoTable(7);
-foreach ($cuntries as $key => $value) {
-    echo '<option value="' . trim($value['code']) . '">' . $value['code_name'] . '</option>';
-}
-?>
-                        </select>
-                    </div>
-                    <div class="col-md-4">
-                        <label class="form-label">Reference</label>
-                        <input type="text" class="form-control" name="remark[]" placeholder="Reference / POS Auth">
-                    </div>
-                </div>
-            </div>
+                                <div class="modal-header">
+                                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                                    <h4 class="modal-title">Payment</h4>
+                                </div>
+                                <div class="modal-body">
+                                    <form method="POST" id="paymentForm">
+                                        <input type="hidden" name="edit_id" id="edit_id" value="">
+                                        <input type="hidden" name="totprice" id="totprice" value="<?php echo $_SESSION['tot_inv_price'];?>" disabled>
+                                        <div class="alert alert-danger" id="totalValidation" style="display:none;"></div>
+                                        
+                                        <div id="paymentRows">
+                                            <div class="payment-row row mb-3">
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Amount</label>
+                                                    <input type="number" min="0" step="0.01" class="form-control" name="amount[]" required>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Payment Method</label>
+                                                    <select class="form-control" name="method[]" required>
+                                                        <?php
+                                                        $cuntries = getInfoTable(7);
+                                                        foreach ($cuntries as $key => $value) {
+                                                            echo '<option value="' . trim($value['code']) . '">' . $value['code_name'] . '</option>';
+                                                        }
+                                                    ?>
+                                                    </select>
+                                                </div>
+                                                <div class="col-md-4">
+                                                    <label class="form-label">Reference</label>
+                                                    <input type="text" class="form-control" name="remark[]" placeholder="Reference / POS Auth">
+                                                </div>
+                                            </div>
+                                        </div>
 
-            <div class="mb-3" id="addAnotherWrapper">
-                <button type="button" class="btn btn-secondary" onclick="addRow()">+ Add Another Method</button>
-            </div>
+                                        <div class="mb-3" id="addAnotherWrapper">
+                                            <button type="button" class="btn btn-secondary" onclick="addRow()">+ Add Another Method</button>
+                                        </div>
 
-            <div class="modal-footer">
-                <button type="submit" class="btn btn-primary" id="submitBtn" name="addpayment">
-                    Confirm
-                </button>
-                <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-            </div>
-        </form>
-    </div>
-</div>
+                                        <div class="modal-footer">
+                                            <button type="submit" class="btn btn-primary" id="submitBtn" name="addpayment" onclick ="return confirm('Are you sure you want to confirm payment(s)?');">
+                                                Confirm
+                                            </button>
+                                            <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
 						</div>
 					</div>
 
 
 					<!-- Credit Client Modal -->
-<div class="modal fade" id="creditclient" tabindex="-1" role="dialog" aria-labelledby="creditclientLabel">
-  <div class="modal-dialog" role="document">
-    <div class="modal-content">
-      <form method="POST">
-        <div class="modal-header">
-          <h4 class="modal-title" id="creditclientLabel">Add Credit Client</h4>
-          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-            &times;
-          </button>
-        </div>
-        <div class="modal-body">
+                    <div class="modal fade" id="creditclient" tabindex="-1" role="dialog" aria-labelledby="creditclientLabel">
+                        <div class="modal-dialog" role="document">
+                            <div class="modal-content">
+                            <form method="POST">
+                                <div class="modal-header">
+                                <h4 class="modal-title" id="creditclientLabel">Add Credit Client</h4>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    &times;
+                                </button>
+                                </div>
+                                <div class="modal-body">
 
-          <!-- Select Existing Client -->
-          <div class="form-group">
-            <label for="clientname">Select Existing Client</label>
-            <select class="form-control" name="clientname" id="clientname">
-              <option value="">-- Choose Existing --</option>
-              <?php
-                $res = $conn->query("SELECT id, f_name, l_name, phone FROM creadit_id ORDER BY f_name");
-while ($row = $res->fetch_assoc()) {
-    $name = htmlspecialchars($row['f_name'] . ' ' . $row['l_name'] . ' (' . $row['phone'] . ')');
-    echo "<option value='{$row['id']}'>{$name}</option>";
-}
-?>
-            </select>
-          </div>
+                                <!-- Select Existing Client -->
+                                <div class="form-group">
+                                    <label for="clientname">Select Existing Client</label>
+                                    <select class="form-control" name="clientname" id="clientname">
+                                    <option value="">-- Choose Existing --</option>
+                                    <?php
+                                        $res = $conn->query("SELECT id, f_name, l_name, phone FROM creadit_id ORDER BY f_name");
+                                        while ($row = $res->fetch_assoc()) {
+                                            $name = htmlspecialchars($row['f_name'] . ' ' . $row['l_name'] . ' (' . $row['phone'] . ')');
+                                            echo "<option value='{$row['id']}'>{$name}</option>";
+                                        }
+                                    ?>
+                                    </select>
+                                </div>
 
-          <hr>
-          <p class="text-center">OR Add New Client</p>
+                                <hr>
+                                <p class="text-center">OR Add New Client</p>
 
-          <!-- New Client Inputs -->
-          <div class="row">
-            <div class="col-md-6">
-              <label>First Name</label>
-              <input type="text" name="new_fname" class="form-control">
-            </div>
-            <div class="col-md-6">
-              <label>Last Name</label>
-              <input type="text" name="new_lname" class="form-control">
-            </div>
-          </div>
+                                <!-- New Client Inputs -->
+                                <div class="row">
+                                    <div class="col-md-6">
+                                    <label>First Name</label>
+                                    <input type="text" name="new_fname" class="form-control">
+                                    </div>
+                                    <div class="col-md-6">
+                                    <label>Last Name</label>
+                                    <input type="text" name="new_lname" class="form-control">
+                                    </div>
+                                </div>
 
-          <div class="form-group mt-2">
-            <label>Phone</label>
-            <input type="text" name="new_phone" class="form-control">
-          </div>
+                                <div class="form-group mt-2">
+                                    <label>Phone</label>
+                                    <input type="text" name="new_phone" class="form-control">
+                                </div>
 
-          <div class="form-group">
-            <label>TIN Number</label>
-            <input type="text" name="new_tin" class="form-control">
-          </div>
+                                <div class="form-group">
+                                    <label>TIN Number</label>
+                                    <input type="text" name="new_tin" class="form-control">
+                                </div>
 
-          <div class="form-group">
-            <label>Email (optional)</label>
-            <input type="email" name="new_email" class="form-control">
-          </div>
+                                <div class="form-group">
+                                    <label>Email (optional)</label>
+                                    <input type="email" name="new_email" class="form-control">
+                                </div>
 
-          <!-- Credit Amount -->
-          <div class="form-group mt-3">
-            <label>Credit Amount</label>
-            <input type="number" min="<?php echo $totprice; ?>" max="<?php echo $totprice; ?>" name="creaditamount" class="form-control" required>
-          </div>
+                                <!-- Credit Amount -->
+                                <div class="form-group mt-3">
+                                    <label>Credit Amount <span class="text-primary">(<?php echo number_format($_SESSION['totalOrderAmount'], 2); ?> RWF)</span></label>
+                                    <input type="number" min="<?php echo $totprice; ?>" max="<?php echo $totprice; ?>" name="creaditamount" class="form-control" required>
+                                </div>
 
-        </div>
+                                </div>
 
-        <div class="modal-footer">
-          <button type="submit" name="addClientsTocredit" class="btn btn-primary">Confirm Credit</button>
-          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
-        </div>
+                                <div class="modal-footer">
+                                <button type="submit" name="addClientsTocredit" class="btn btn-primary">Confirm Credit</button>
+                                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+                                </div>
 
-      </form>
-    </div>
-  </div>
-</div>
-
-
-<div class="modal fade" id="roomclient" role="dialog">
-        <div class="modal-dialog">
-        <div class="modal-content">
-            <div class="modal-header">
-              <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-              <h3 class="modal-title">Extra info</h3>
-            </div>
-            <div class="modal-body">
-                <form method="POST">
-            <div class="row">
-            <div class="form-group">
-                <div class="col-md-12">
-					 <select name="clientinroom" class="form-control">
-					<?php
-$sql = $db->prepare("
-    SELECT
-
-        b.id AS booking_id,
-        g.first_name,
-        g.last_name,
-		g.id as userbooking,
-        b.checkin_date,
-        b.checkout_date,
-        b.payment_status_id,
-        r.room_number
-    FROM tbl_acc_booking b
-    JOIN tbl_acc_guest g ON b.guest_id = g.id
-    JOIN tbl_acc_booking_room br ON b.id = br.booking_id
-    JOIN tbl_acc_room r ON br.room_id = r.id
-    WHERE b.booking_status_id = 6 AND b.checkout_date >= CURRENT_DATE
-");
-$sql->execute();
-
-if ($sql->rowCount()) {
-    while ($row = $sql->fetch()) { ?>
-
-		<option value="<?php echo $row['booking_id']; ?> "><?php   echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) ?> -  <?php echo $row['room_number']; ?> </option>
+                            </form>
+                            </div>
+                        </div>
+                    </div>
 
 
-		<?php }
-    } ?>
+                    <div class="modal fade" id="roomclient" role="dialog">
+                        <div class="modal-dialog">
+                            <div class="modal-content">
+                                <div class="modal-header">
+                                <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+                                <h3 class="modal-title">Extra info</h3>
+                                </div>
+                                <div class="modal-body">
+                                    <form method="POST">
+                                <div class="row">
+                                    <div class="form-group">
+                                        <div class="col-md-12">
+                                            <select name="clientinroom" class="form-control">
+                                            <?php
+                                                $sql = $db->prepare("
+                                                    SELECT
+
+                                                        b.id AS booking_id,
+                                                        g.first_name,
+                                                        g.last_name,
+                                                        g.id as userbooking,
+                                                        b.checkin_date,
+                                                        b.checkout_date,
+                                                        b.payment_status_id,
+                                                        r.room_number
+                                                    FROM tbl_acc_booking b
+                                                    JOIN tbl_acc_guest g ON b.guest_id = g.id
+                                                    JOIN tbl_acc_booking_room br ON b.id = br.booking_id
+                                                    JOIN tbl_acc_room r ON br.room_id = r.id
+                                                    WHERE b.booking_status_id = 6 AND b.checkout_date >= CURRENT_DATE
+                                                ");
+                                                $sql->execute();
+
+                                                if ($sql->rowCount()) {
+                                                    while ($row = $sql->fetch()) { ?>
+
+                                                        <option value="<?php echo $row['booking_id']; ?> "><?php   echo htmlspecialchars($row['first_name'] . ' ' . $row['last_name']) ?> -  <?php echo $row['room_number']; ?> </option>
 
 
-				 </select>
+                                                        <?php 
+                                                    }
+                                                } 
+                                            ?>
 
 
-            </div>
-            </div>
-             <button type="submit" name="addClientToOrder" class="btn btn-sm label-info margin" style="border-radius: 4px;"><i class="fa fa-fw fa-save"></i> Save </button>
-            </div>
+                                            </select>
 
-            </form>
-            </div>
-        </div>
-    </div>
-    </div>
+
+                                        </div>
+                                    </div>
+                                    <button type="submit" name="addClientToOrder" class="btn btn-sm label-info margin" style="border-radius: 4px;" onclick="return confirm('Are you sure you want to add this client to this order?');">
+                                        <i class="fa fa-fw fa-save"></i> Save 
+                                    </button>
+                            </div>
+
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                </div>
 
 
 				</div>

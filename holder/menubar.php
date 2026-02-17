@@ -521,10 +521,11 @@ include "switch_role.php";
             		        <li class="pt-4"><a href="?resto=customers"><i class="fa fa-sticky-note-o"></i> Venue Customers</a></li>
                             <!-- Make Internal Request -->
                             <li class="pt-4"><a href="?resto=request"><i class="fa fa-shopping-cart"></i> Request Materials</a></li>
-            		      <li class="pt-4"><a data-toggle="tab" href="#chk"><i class="fa fa-file"></i> Report <i class="fa fa-angle-down"></i></a></li>
+                            <li class="pt-4"><a data-toggle="tab" href="#chk"><i class="fa fa-file"></i> Report <i class="fa fa-angle-down"></i></a></li>
+                            <li class="py-3 ms-3"><a href="?resto=currencyIssue" class="btn btn-info py-2 px-4">💸 Manage Currencies</a></li>
             		     <?php
             		        if (isset($_SESSION['real_admin_role'])): ?>
-                            <li class="pt-4"><a href="?access_as=1" class="btn btn-outline-warning">Back to Admin</a></li>
+                            <li class="py-3 mx-3"><a href="?access_as=1" class="btn btn-primary py-2 px-4">Back to Admin</a></li>
                          <?php endif; ?>
 	                </ul>
 
@@ -544,12 +545,9 @@ include "switch_role.php";
 
                                  <li><a href="?resto=daily_occupancy_rate"> Daily occupancy rate</a></li>
                                 <li><a href="?resto=average_room_rate"> Average room rate</a></li>
-                                   <li><a href="?resto=room_occupancy_index"> Room occupancy index
-</a></li>
-                                <li><a href="?resto=revpar"> REVPAR
-</a></li>
-                                <li><a href="?resto=venuereports"> Venue Reports
-</a></li>
+                                <li><a href="?resto=room_occupancy_index"> Room occupancy index</a></li>
+                                <li><a href="?resto=revpar"> REVPAR</a></li>
+                                <li><a href="?resto=venuereports"> Venue Reports</a></li>
 
 
                             </ul>

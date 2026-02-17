@@ -269,6 +269,11 @@ case 'venue_inventory':
 		$page = 'move_booking.php';
 		break;
 
+	case 'currencyIssue' :
+		$title="Manage Currencies";
+		$page='currency.php';
+		break;
+
 	case 'split_invoice':
 		$title = "split_invoice";
 		$page = 'split_payment.php';
