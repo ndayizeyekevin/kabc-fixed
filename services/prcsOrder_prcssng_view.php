@@ -651,6 +651,9 @@ function fill_product($db){
                          $printedIdresto = '';
                          $printedIdcoffee = '';
                          $coffe="";
+                         $bonbar_total = 0;
+                         $bon_total = 0;
+                         $coffe_total = 0;
                                         $sql_rooms = $db->prepare("SELECT * FROM `tbl_cmd_qty`
                                     WHERE cmd_code='".$code."'");
                                         $sql_rooms->execute();
@@ -668,7 +671,8 @@ function fill_product($db){
                                                  $printed = $fetrooms['printed'];
                                                  $status = $fetrooms['cmd_status'];
 
-
+                                              $unit_price = isset($fetrooms['unit_price']) ? floatval(str_replace(',', '', $fetrooms['unit_price'])) : 0;
+                                              $line_total = $unit_price * $fetrooms['cmd_qty'];
 
                                               $cat = getcategory($mid);
 
@@ -677,15 +681,16 @@ function fill_product($db){
                                                //  echo "<script>alert($cat)</script>";
                                                if($printed==null && $status != '3'){
                                                 $printedIdbar = $printedIdbar.$itemslistss.",";
-                                                  $bonbar = $bonbar.getname($mid).' '.getprice($mid).'<br> Qty: '.$fetrooms['cmd_qty'].'<br> '.$fetrooms['message'].'<hr style="border: none; border-top: 1px dashed black; width: 100%;" />';
+                                                $bonbar_total += $line_total;
+                                                  $bonbar = $bonbar.getname($mid).' '.number_format($unit_price).'<br> Qty: '.$fetrooms['cmd_qty'].' x '.number_format($unit_price).' = '.number_format($line_total).'<br> '.$fetrooms['message'].'<hr style="border: none; border-top: 1px dashed black; width: 100%;" />';
                                                }
                                             }
                                                if($cat==1){
                                                if($printed==null && $status != '3'){
                                                 $printedIdresto = $printedIdresto.$itemslistss.",";
+                                                $bon_total += $line_total;
 
-
-                                                $bon = $bon.getname($mid).' '.getprice($mid).'<br> Qty: '.$fetrooms['cmd_qty'].'<br> '.$fetrooms['message'].'<hr style="border: none; border-top: 1px dashed black; width: 100%;" />';
+                                                $bon = $bon.getname($mid).' '.number_format($unit_price).'<br> Qty: '.$fetrooms['cmd_qty'].' x '.number_format($unit_price).' = '.number_format($line_total).'<br> '.$fetrooms['message'].'<hr style="border: none; border-top: 1px dashed black; width: 100%;" />';
                                             }}
 
 
@@ -693,9 +698,9 @@ function fill_product($db){
 
                                                     if($printed==null && $status != '3'){
                                                 $printedIdcoffee = $printedIdcoffee.$itemslistss.",";
+                                                $coffe_total += $line_total;
 
-
-                                                $coffe = $coffe.getname($mid).' '.getprice($mid).'<br>: '.$fetrooms['cmd_qty'].'<br> '.$fetrooms['message'].'<hr style="border: none; border-top: 1px dashed black; width: 100%;" />';
+                                                $coffe = $coffe.getname($mid).' '.number_format($unit_price).'<br> Qty: '.$fetrooms['cmd_qty'].' x '.number_format($unit_price).' = '.number_format($line_total).'<br> '.$fetrooms['message'].'<hr style="border: none; border-top: 1px dashed black; width: 100%;" />';
 
 
                                                }}
@@ -718,6 +723,9 @@ function fill_product($db){
                                           $_SESSION['bon']= $bon;
                                           $_SESSION['bonbar']= $bonbar;
                                           $_SESSION['coffe']= $coffe;
+                                          $_SESSION['bon_total']= $bon_total;
+                                          $_SESSION['bonbar_total']= $bonbar_total;
+                                          $_SESSION['coffe_total']= $coffe_total;
                                           $_SESSION['total']= $totprice;
                                           //$_SESSION['tax']= $totprice* 0.18 ;
                                           $_SESSION['servant_name']= $_SESSION['f_name']. " ".$_SESSION['l_name'];
@@ -929,7 +937,7 @@ function fill_product($db){
         // Company details
   $logoUrl = 'https://kabc.gope.rw/img/logo.png'; // Change to your logo path if needed
   echo '<div style="text-align:center;margin-bottom:8px;"><img src="' . $logoUrl . '" alt="Logo" style="max-width:120px;max-height:120px;display:inline-block;" /></div>';
-  $thankYou = '<div style="margin-top:5px;font-size:12px;text-align:center;color:#28a745;">Thank you, you are always welcome!</div>';
+  $thankYou = '<div style="margin-top:5px;font-size:12px;text-align:center;color:#28a745;">Thank you for choosing us. We hope you enjoyed your meal and can’t wait to welcome you back soon!</div>';
   $companyInfo = '<div style="font-size:14px;line-height:1.4;text-align:center;margin-bottom:4px;">
 '.$company_name.'<br>
 TIN/VAT : '.$company_tin.'<br>
@@ -953,13 +961,15 @@ Tel: '.$company_phone.'<br>
         echo '<div style="text-align:center;font-size:14px;margin:6px 0;">'
           .'<strong>Date:</strong> ' . htmlspecialchars($dateTime)
           .'</div>';
-        echo '<hr style="border: none; border-top: 2px solid #333; width: 100%; margin:8px 0;" />';
-        echo '<div style="text-align:center;font-size:15px;font-weight:bold;margin:10px 0;">SERVED ITEMS</div>';
-        echo '<table style="width:100%;font-size:16px;border-collapse:collapse;margin:0;padding:0;border:1px solid #333;">';
+        echo '<hr style="border: none; border-top: 2px solid #333; width: 100%; margin: 8px 0;" />';
+        echo '<div style="text-align: center; font-size: 15px; font-weight: bold; margin: 10px 0;">SERVED ITEMS</div>';
+        echo '
+        <div class="mx-2">
+        <table style="width: 100%; font-size: 16px; border-collapse: collapse; margin: 0; padding: 0; border: 2px solid #333;">';
         echo '<tr style="background:#f8f8f8;">'
-          .'<th align="left" style="border:1px solid #333;padding:2px;">Item</th>'
-          .'<th align="center" style="border:1px solid #333;padding:2px;">Qty</th>'
-          .'<th align="right" style="border:1px solid #333;padding:2px 12px 2px 2px;">Price</th>'
+          .'<th align="left" style="border: 1px solid #333; padding: 2px;">Item</th>'
+          .'<th align="center" style="border: 1px solid #333; padding: 2px;">Qty</th>'
+          .'<th align="right" style="border: 1px solid #333; padding: 2px 12px 2px 2px;">Price</th>'
           .'</tr>';
         $sql_items = $db->prepare("SELECT menu.menu_name, menu.menu_price, SUM(cmd_qty) AS qty FROM tbl_cmd_qty INNER JOIN menu ON menu.menu_id = tbl_cmd_qty.cmd_item WHERE tbl_cmd_qty.cmd_code = ? GROUP BY cmd_item");
         $sql_items->execute([$_GET['s']]);
@@ -968,14 +978,15 @@ Tel: '.$company_phone.'<br>
           $lineTotal = $item['qty'] * $item['menu_price'];
           $total += $lineTotal;
           echo '<tr>'
-          .'<td align="left" style="border:1px solid #333;padding:2px;">'.htmlspecialchars($item['menu_name']).'</td>'
-          .'<td align="center" style="border:1px solid #333;padding:2px;">'.$item['qty'].'</td>'
-          .'<td align="right" style="border:1px solid #333;padding:2px 12px 2px 2px;">'.(is_numeric($lineTotal) ? number_format($lineTotal) : '0').'</td>'
+          .'<td align="left" style="border: 1px solid #333; padding: 2px;">'.htmlspecialchars($item['menu_name']).'</td>'
+          .'<td align="center" style="border: 1px solid #333; padding: 2px;">'.$item['qty'].'</td>'
+          .'<td align="right" style="border: 1px solid #333; padding: 2px 12px 2px 2px;">'.(is_numeric($lineTotal) ? number_format($lineTotal) : '0').'</td>'
           .'</tr>';
         }
-        echo '</table>';
+        echo '</table>
+        </div>';
         echo '<hr style="border: none; border-top: 2px solid #333; width: 100%; margin:8px 0;" />';
-        echo '<div style="text-align:right;font-size:17px;font-weight:bold;margin:8px 0;">GRAND TOTAL: <span style="border-bottom:1px solid #333;">'.(is_numeric($total) ? number_format($total) : '0').'</span></div>';
+        echo '<div style="text-align: right; font-size: 17px; font-weight: bold; margin-right: 15px;">GRAND TOTAL: <span >'.(is_numeric($total) ? number_format($total) : '0').' RWF</span></div>';
         echo '<hr style="border: none; border-top: 2px solid #333; width: 100%; margin:8px 0;" />';
         $waiterName = '';
         if (!empty($_SESSION['f_name']) && !empty($_SESSION['l_name'])) {
@@ -990,7 +1001,7 @@ Tel: '.$company_phone.'<br>
           $waiterName = $_SESSION['name'];
         }
         if ($waiterName) {
-          echo '<div style="margin-top:8px;font-size:15px;text-align:center;"><strong>Served by: ' . htmlspecialchars($waiterName) . '</strong></div>';
+          echo '<div style="margin-top: 8px; font-size: 15px; text-align: center;"><strong>Served by: ' . htmlspecialchars($waiterName) . '</strong></div>';
         }
         echo $momo;
         echo '<hr style="border: none; border-top: 1px solid #333; width: 100%; margin:8px 0;" />';
@@ -1137,7 +1148,9 @@ echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; 
   '.$bonbar.'
 
 </h3>
-
+<div style="text-align:center;font-weight:bold;font-size:14px;margin:10px 0;border-top:1px dashed black;padding-top:10px;">
+TOTAL BAR: <span style="font-size:16px;">'.number_format($_SESSION['bonbar_total']).'</span>
+</div>
 
 <table border="0"  align="center" width="100%">
 <tr>
@@ -1215,7 +1228,7 @@ $printedIdresto = substr($printedIdresto, 0, -1);
 
 
 
-$img = '<img src="https://rms.nsportsclub.rw/img/logo.jpeg" style="width: 100px;height: 100px;">';
+$img = '<img src="' .$company_logo. '" style="width: 100px;height: 100px;">';
 
 echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
 <table border="0" align="center" width="100%">
@@ -1251,6 +1264,9 @@ echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; 
   '.$bon.'
 
 </h3>
+<div style="text-align:center;font-weight:bold;font-size:14px;margin:10px 0;border-top:1px dashed black;padding-top:10px;">
+TOTAL KITCHEN: <span style="font-size:16px;">'.number_format($_SESSION['bon_total']).'</span>
+</div>
 
 <table border="0"  align="center" width="100%">
 <tr>
@@ -1307,7 +1323,7 @@ include  '../inc/conn.php';
 
 
 
-$img = '<img src="https://rms.nsportsclub.rw/img/logo.jpeg" style="width: 100px;height: 100px;">';
+$img = '<img src="' .$company_logo. '" style="width: 100px;height: 100px;">';
 
 echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; margin: 0;">
                   <table border="0" align="center" width="100%">
@@ -1343,6 +1359,9 @@ echo $html .= '<div id="container" style="width: 100%; border: 0px solid black; 
                     '.$coffe.'
 
                   </h3>
+                  <div style="text-align:center;font-weight:bold;font-size:14px;margin:10px 0;border-top:1px dashed black;padding-top:10px;">
+TOTAL COFFEE SHOP: <span style="font-size:16px;">'.number_format($_SESSION['coffe_total']).'</span>
+                  </div>
 
                   <table border="0"  align="center" width="100%">
                   <tr>
