@@ -2,13 +2,12 @@
 $date = date("YmdHis");
 $jsonData = json_encode(array(
     
-    "tin" => "999900823",
+    "tin" => "970000006",
     "bhfId" => "00",
     "lastReqDt" => "20200520000000"
         
 ));
 
-// $url = "http://197.243.26.62:8080/rraVsdcSandbox2.1.2.3.9/";
 $url = getenv('VSDC_URL');
 
 function rra_function($jsonData, $endpoint){

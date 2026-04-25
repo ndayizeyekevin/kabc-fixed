@@ -19,7 +19,7 @@ $curl = curl_init();
 // $prdct = $productList;
 $prdct = '[{"itemSeq":1,"itemCd":"RW1NTXU0000011","itemClsCd":"5059690800","itemNm":"Somen","bcd":null,"pkgUnitCd":"HH","pkg":1,"qtyUnitCd":"BG","qty":1,"prc":1000,"splyAmt":1000,"dcRt":0,"dcAmt":0,"isrccCd":null,"isrccNm":null,"isrcRt":null,"isrcAmt":null,"taxTyCd":"B","taxblAmt":0,"taxAmt":0,"totAmt":1000}]';
 //$prdct  = json_decode($prdct);
-$json =  '{"tin":"999900823",
+$json =  '{"tin":"970000006",
   "bhfId":"00",
   "invcNo":"'.$lastID.'",
   "orgInvcNo":0,

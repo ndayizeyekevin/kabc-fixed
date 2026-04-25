@@ -5,7 +5,7 @@
 $date = date("YmdHis");
 $jsonData = json_encode(array(
     
-    "tin" => "999900823",
+    "tin" => "970000006",
     "bhfId" => "00",
     "lastReqDt" => "20180520000000"
         

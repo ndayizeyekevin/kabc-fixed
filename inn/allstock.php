@@ -7,7 +7,7 @@ $jsonMaster = array();
 $sql = $db->prepare("SELECT * FROM `stock` INNER JOIN menu ON menu.menu_id=stock.type WHERE `branch`= 'HQ'");
 $sql->execute();
 while($data = $sql->fetch()){
-  $jsonMaster[] = '{"tin":"999900823",
+  $jsonMaster[] = '{"tin":"970000006",
     "bhfId":"00",
     "itemCd": "'.$data['itemCd'].'",
     "rsdQty":"'.$data['quantities'].'",

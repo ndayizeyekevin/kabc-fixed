@@ -102,7 +102,7 @@ $ab = json_encode(array_merge($_POST,$arr));
                             <div class="col-lg-4">
                                 <label>Item Name</label>
                                 <input type="text" name="itemNm" autocomplete="off" class="form-control" required>
-                                <input type="hidden" name="tin" value="999900823" class="form-control">
+                                <input type="hidden" name="tin" value="970000006" class="form-control">
                                 <input type="hidden" name="bhfId" value="00" class="form-control">
                                 <input type="hidden" name="itemStdNm" class="form-control">
                                 <input type="hidden" name="btchNo" class="form-control">

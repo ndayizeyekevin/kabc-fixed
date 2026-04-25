@@ -38,7 +38,6 @@ if ($row) {
             $data,
             JSON_UNESCAPED_UNICODE | JSON_PRESERVE_ZERO_FRACTION
         );
-$url = getenv('VSDC_BASE_URL');
 /* die(var_dump($newJson)); */
         $url = getenv('VSDC_URL');
         $curl = curl_init();

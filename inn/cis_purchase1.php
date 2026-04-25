@@ -93,7 +93,7 @@ function fill_product($db){
 
                         <div class="col-lg-2">
                             <label for="inputAddress">Origin Invoice Number</label>
-                            <input type="hidden" name="tin" value="999900823" class="form-control">
+                            <input type="hidden" name="tin" value="970000006" class="form-control">
                             <input type="hidden" name="bhfId" value="00" class="form-control">
                             <input type="hidden" name="invcNo" value="1" class="form-control" autocomplete="off">
                             <input type="hidden" name="orgInvcNo" value="0" class="form-control" autocomplete="off">
